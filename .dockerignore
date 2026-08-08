@@ -1,0 +1,35 @@
+# Build context hygiene for the Semiconductor Intelligence STAGING/SOAK
+# image. The Dockerfile only COPYs specific paths, so nothing here can leak
+# into the image regardless -- this just keeps the build context small and
+# the daemon from hashing local venvs, live secrets, and packaged binaries.
+.git
+.venv/
+.venv313/
+.x_browser_profile/
+x_session.json
+dist/
+build/
+*.exe
+data/
+backups/
+
+# Additional local hygiene (not in the base list from the brief, but the
+# same category of "never needed in the image" local state):
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+diagnostics/
+config/
+semi_intel.db
+temp_ui.db
+radar.db
+semintel.config.json
+logs/
+exports/
+http_cache/
+src/
+packaging/
+tests/

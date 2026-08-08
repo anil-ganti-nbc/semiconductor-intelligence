@@ -1,0 +1,36 @@
+# Semiconductor Intelligence -- STAGING/SOAK ONLY (Tier B).
+#
+# This is the only compose file this clank has in this phase -- there is no
+# production compose, and none should be added until Semiconductor
+# Intelligence is explicitly promoted past Tier B. Isolated named volume,
+# no ports published, no Docker socket mounted, restart disabled so a
+# soak/candidate container never silently respawns after a crash and masks
+# a real failure.
+#
+# Usage:
+#   docker compose -f docker-compose.staging.yml build
+#   docker compose -f docker-compose.staging.yml run --rm semi-intel identity
+#   docker compose -f docker-compose.staging.yml run --rm semi-intel health
+#   docker compose -f docker-compose.staging.yml run --rm semi-intel backup
+#     (delegates to the pre-existing, already-verified `semintel backup`)
+#   docker compose -f docker-compose.staging.yml config   # validate only
+services:
+  semi-intel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: semi-intel:${IMAGE_TAG:-soak-local}
+    container_name: semi-intel-staging
+    restart: "no"
+    environment:
+      SEMI_INTEL_DB_URL: sqlite:////app/data/semi_intel.db
+      SEMINTEL_PROJECT_ROOT: /app
+      # Tier B: never anything but soaking (or staging once explicitly
+      # promoted) -- see semi_intel/runtime_bridge.py.
+      SEMINTEL_RELEASE_CHANNEL: ${SEMINTEL_RELEASE_CHANNEL:-soaking}
+    volumes:
+      - semintel_staging_data:/app/data
+
+volumes:
+  semintel_staging_data:
+    name: semintel_staging_data
