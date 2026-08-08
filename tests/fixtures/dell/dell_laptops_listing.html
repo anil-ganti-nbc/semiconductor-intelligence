@@ -1,0 +1,48 @@
+<!-- Trimmed fixture from live https://www.dell.com/en-us/shop/dell-laptops/sr/laptops
+     capture, 2026-07-22. Dell embeds product listing data as JSON-LD ItemList
+     (the robust parse target) AND renders visible cards. Both are preserved
+     here so the engine's primary (JSON-LD) and fallback (text) paths are tested.
+     Real quirks kept: model codes (DC/DX/PC/DA/AC prefixes), "Starting at" price,
+     Alienware sub-brand, gaming vs non-gaming. -->
+<!DOCTYPE html>
+<html><head><title>Dell Laptops</title>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "itemListElement": [
+    {"@type": "Product", "name": "Dell 15 Laptop", "sku": "DC15250",
+     "url": "https://www.dell.com/en-us/shop/dell-laptops/dell-15-laptop/spd/dell-15-dc15250",
+     "image": "https://i.dell.com/is/image/DellContent/dc15250.png",
+     "description": "Intel Core Processors. Windows 11. Built for everyday computing.",
+     "offers": {"@type": "Offer", "price": "679.99", "priceCurrency": "USD",
+                "availability": "https://schema.org/InStock"}},
+    {"@type": "Product", "name": "New XPS 13 Laptop", "sku": "DX13260",
+     "url": "https://www.dell.com/en-us/shop/dell-laptops/new-xps-13/spd/xps-13-dx13260",
+     "image": "https://i.dell.com/is/image/DellContent/dx13260.png",
+     "description": "Series 3 Intel Core Ultra Processors, AI PC. 13.4 inch 2.5K touch. Up to 17 hours battery.",
+     "offers": {"@type": "Offer", "price": "699.99", "priceCurrency": "USD",
+                "availability": "https://schema.org/InStock"}},
+    {"@type": "Product", "name": "Alienware 16X Aurora Gaming Laptop", "sku": "AC16251",
+     "url": "https://www.dell.com/en-us/shop/gaming-laptops/alienware-16x-aurora/spd/alienware-ac16251",
+     "image": "https://i.dell.com/is/image/DellContent/ac16251.png",
+     "description": "Intel Core Ultra Plus Processors. NVIDIA GeForce RTX 50 Series Laptop Graphics. Up to 240Hz OLED.",
+     "offers": {"@type": "Offer", "price": "2779.99", "priceCurrency": "USD",
+                "availability": "https://schema.org/InStock"}},
+    {"@type": "Product", "name": "Dell Pro Max 16 Laptop", "sku": "MC16250",
+     "url": "https://www.dell.com/en-us/shop/workstations/dell-pro-max-16/spd/dell-pro-max-mc16250",
+     "image": "https://i.dell.com/is/image/DellContent/mc16250.png",
+     "description": "Intel Core Ultra Processors, AI PC. Integrated Intel and NVIDIA RTX Pro Graphics Options.",
+     "offers": {"@type": "Offer", "price": "1786.06", "priceCurrency": "USD",
+                "availability": "https://schema.org/InStock"}}
+  ]
+}
+</script></head>
+<body>
+  <div class="ps-results">
+    <article class="ps-product"><h3>Dell 15 Laptop</h3><span class="model">Model DC15250</span>
+      <span class="display">Display 15.6"</span><span class="price">Starting at $679.99</span></article>
+    <article class="ps-product"><h3>New XPS 13 Laptop</h3><span class="model">Model DX13260</span>
+      <span class="display">Display 13.4"</span><span class="price">Starting at $699.99</span></article>
+  </div>
+</body></html>

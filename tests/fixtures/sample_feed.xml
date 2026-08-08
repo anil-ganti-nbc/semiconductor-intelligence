@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Fake Hardware News</title>
+    <link>https://example.com</link>
+    <description>Test fixture feed</description>
+    <item>
+      <title>Nova Lake spotted with 18A-P process node</title>
+      <link>https://example.com/nova-lake-18a-p</link>
+      <guid>https://example.com/nova-lake-18a-p</guid>
+      <description>A new leak suggests Nova Lake uses Intel's 18A-P node.</description>
+      <pubDate>Wed, 15 Jul 2026 10:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>RTX 5080 Super rumored with 24GB VRAM</title>
+      <link>https://example.com/rtx-5080-super-24gb</link>
+      <guid>https://example.com/rtx-5080-super-24gb</guid>
+      <description>Board partner slides show a 24GB configuration on a 256-bit bus.</description>
+      <pubDate>Thu, 16 Jul 2026 08:30:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

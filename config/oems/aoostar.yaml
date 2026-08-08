@@ -1,0 +1,13 @@
+# Verified Shopify at aoostar.com (probe, 2026-07-18).
+
+manufacturer:
+  name: AOOSTAR
+  country: CN
+
+sources:
+  - id: aoostar-shopify
+    engine: shopify
+    base_url: https://aoostar.com
+    min_interval: 6h
+    discovery: [products_json, sitemap]
+    currency_default: USD

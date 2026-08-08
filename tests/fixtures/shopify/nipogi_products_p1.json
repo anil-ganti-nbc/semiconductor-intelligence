@@ -1,0 +1,2784 @@
+{
+  "products": [
+    {
+      "id": 9690290913637,
+      "title": "NiPoGi P2 AMD Ryzen Embedded R2544 Mini PC 16GB RAM 512GB SSD",
+      "handle": "p2",
+      "body_html": null,
+      "published_at": "2026-03-17T01:46:05-04:00",
+      "created_at": "2026-03-17T01:46:05-04:00",
+      "updated_at": "2026-08-02T05:12:43-04:00",
+      "vendor": "Nipogi",
+      "product_type": "",
+      "tags": [
+        "2026",
+        "Embedded",
+        "Enterprise",
+        "P2",
+        "Ryzen R2544"
+      ],
+      "variants": [
+        {
+          "id": 50198427304293,
+          "title": "Ryzen Embedded R2544 / 16GB+512GB",
+          "option1": "Ryzen Embedded R2544",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": null,
+          "available": false,
+          "price": "479.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9690290913637,
+          "created_at": "2026-03-17T01:46:33-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 58905380290917,
+          "created_at": "2026-03-17T01:47:17-04:00",
+          "position": 1,
+          "updated_at": "2026-03-17T01:47:17-04:00",
+          "product_id": 9690290913637,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/64751567ab1810a6806f1b83df5daca9.jpg",
+          "width": 1485,
+          "height": 1189
+        },
+        {
+          "id": 58905380323685,
+          "created_at": "2026-03-17T01:47:19-04:00",
+          "position": 2,
+          "updated_at": "2026-03-17T01:47:19-04:00",
+          "product_id": 9690290913637,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/7a3444a49798f7d2bb7230b39829eec8.jpg",
+          "width": 1200,
+          "height": 1472
+        },
+        {
+          "id": 58905380356453,
+          "created_at": "2026-03-17T01:47:20-04:00",
+          "position": 3,
+          "updated_at": "2026-03-17T01:47:21-04:00",
+          "product_id": 9690290913637,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/2fcfa6da317887a5fbd76773ad8a995d.jpg",
+          "width": 1085,
+          "height": 1359
+        },
+        {
+          "id": 58905380389221,
+          "created_at": "2026-03-17T01:47:22-04:00",
+          "position": 4,
+          "updated_at": "2026-03-17T01:47:22-04:00",
+          "product_id": 9690290913637,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/3592aa0ae311070780fc8812e3066484.jpg",
+          "width": 1200,
+          "height": 1500
+        },
+        {
+          "id": 58905380421989,
+          "created_at": "2026-03-17T01:47:24-04:00",
+          "position": 5,
+          "updated_at": "2026-03-17T01:47:24-04:00",
+          "product_id": 9690290913637,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/113ff61d8c05ab7dc7d552a0941da90e.jpg",
+          "width": 1200,
+          "height": 1500
+        },
+        {
+          "id": 58905380520293,
+          "created_at": "2026-03-17T01:47:26-04:00",
+          "position": 6,
+          "updated_at": "2026-03-17T01:47:26-04:00",
+          "product_id": 9690290913637,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/a7e0beaee17095c61c2e8dd803604aea.jpg",
+          "width": 1074,
+          "height": 1340
+        },
+        {
+          "id": 58905380553061,
+          "created_at": "2026-03-17T01:47:27-04:00",
+          "position": 7,
+          "updated_at": "2026-03-17T01:47:27-04:00",
+          "product_id": 9690290913637,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/602fb5476d8ef324017b1031146e9b79.jpg",
+          "width": 1200,
+          "height": 1500
+        }
+      ],
+      "options": [
+        {
+          "name": "CPU",
+          "position": 1,
+          "values": [
+            "Ryzen Embedded R2544"
+          ]
+        },
+        {
+          "name": "RAM+SSD",
+          "position": 2,
+          "values": [
+            "16GB+512GB"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 9690290717029,
+      "title": "NiPoGi E3B AMD Ryzen V2748 Mini PC 16GB RAM 512GB SSD WiFi 6",
+      "handle": "nipogi-e3b-amd-ryzen-v2748-mini-pc-16gb-ram-512gb-ssd",
+      "body_html": "NiPoGi E3B AMD Ryzen V2748 Mini PC, 16GB RAM/512GB SSD, Mini Desktop PC WiFi 6/BT 5.2/4K",
+      "published_at": "2026-03-17T01:41:56-04:00",
+      "created_at": "2026-03-17T01:41:56-04:00",
+      "updated_at": "2026-08-02T05:12:43-04:00",
+      "vendor": "Nipogi",
+      "product_type": "",
+      "tags": [
+        "2026",
+        "E3B",
+        "Gaming Mini PC",
+        "Ryzen V2748",
+        "WiFi 6"
+      ],
+      "variants": [
+        {
+          "id": 50198427074917,
+          "title": "AMD Ryzen V2748 / 16GB+512GB",
+          "option1": "AMD Ryzen V2748",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": "E3B-V2748-16-512",
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": null,
+          "available": true,
+          "price": "499.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9690290717029,
+          "created_at": "2026-03-17T01:41:57-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 58905379111269,
+          "created_at": "2026-03-17T01:43:39-04:00",
+          "position": 1,
+          "updated_at": "2026-03-17T01:43:39-04:00",
+          "product_id": 9690290717029,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/4bb1d458db564bed99f0310b87729054.jpg",
+          "width": 501,
+          "height": 355
+        },
+        {
+          "id": 58905379144037,
+          "created_at": "2026-03-17T01:43:41-04:00",
+          "position": 2,
+          "updated_at": "2026-03-17T01:43:41-04:00",
+          "product_id": 9690290717029,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/4da845576f975c2a2610e9a39239e63b.jpg",
+          "width": 1219,
+          "height": 1500
+        },
+        {
+          "id": 58905379209573,
+          "created_at": "2026-03-17T01:43:43-04:00",
+          "position": 3,
+          "updated_at": "2026-03-17T01:43:43-04:00",
+          "product_id": 9690290717029,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/ef84e5c7db0d73abb3560806d505d6f1.jpg",
+          "width": 1219,
+          "height": 1500
+        },
+        {
+          "id": 58905379242341,
+          "created_at": "2026-03-17T01:43:45-04:00",
+          "position": 4,
+          "updated_at": "2026-03-17T01:43:45-04:00",
+          "product_id": 9690290717029,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/67997d52bc31209bed832600c26716dc.jpg",
+          "width": 1219,
+          "height": 1500
+        },
+        {
+          "id": 58905379307877,
+          "created_at": "2026-03-17T01:43:46-04:00",
+          "position": 5,
+          "updated_at": "2026-03-17T01:43:46-04:00",
+          "product_id": 9690290717029,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/b76749bb0e61173bb6a563c4e3b67aca.jpg",
+          "width": 1219,
+          "height": 1500
+        }
+      ],
+      "options": [
+        {
+          "name": "CPU",
+          "position": 1,
+          "values": [
+            "AMD Ryzen V2748"
+          ]
+        },
+        {
+          "name": "RAM+SSD",
+          "position": 2,
+          "values": [
+            "16GB+512GB"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 9690189365605,
+      "title": "NiPoGi Pinova P2 AMD Ryzen 4300U Mini PC 16GB RAM 512GB SSD",
+      "handle": "nipogi-pinova-p2-mini-pc-amd-ryzen-4300u",
+      "body_html": "<h2>Powerful Mini PC for Home &amp; Business</h2><p>Experience high-performance computing in a compact design.</p><ul>\n<li>AMD Ryzen 4000 Series Processor</li>\n<li>DDR4 Memory &amp; M.2 SSD Storage</li>\n<li>Triple 4K Display Support</li>\n<li>WiFi, Bluetooth &amp; Gigabit LAN</li>\n<li>VESA Mount Ready</li>\n</ul>",
+      "published_at": "2026-03-16T12:37:27-04:00",
+      "created_at": "2026-03-16T12:37:27-04:00",
+      "updated_at": "2026-08-02T05:12:43-04:00",
+      "vendor": "Nipogi",
+      "product_type": "Mini PC",
+      "tags": [
+        "Budget",
+        "Mini PC",
+        "Pinova P2",
+        "Ryzen 4300U"
+      ],
+      "variants": [
+        {
+          "id": 50197651980645,
+          "title": "AMD Ryzen 4300U / 16GB+512GB",
+          "option1": "AMD Ryzen 4300U",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": "NIPO-PINOVA-P2-4300U-16G-512G",
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": null,
+          "available": true,
+          "price": "329.99",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9690189365605,
+          "created_at": "2026-03-16T12:37:27-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 58904902664549,
+          "created_at": "2026-03-16T12:38:02-04:00",
+          "position": 1,
+          "updated_at": "2026-03-18T01:59:56-04:00",
+          "product_id": 9690189365605,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/1e6cfca7565ab3d4ec7bfc57ea5901ff_4f1431b8-fa84-46f4-a929-6b7739808b72.png",
+          "width": 1206,
+          "height": 1140
+        },
+        {
+          "id": 58904902599013,
+          "created_at": "2026-03-16T12:38:00-04:00",
+          "position": 2,
+          "updated_at": "2026-03-18T01:59:56-04:00",
+          "product_id": 9690189365605,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/fd316a033719fb7a83851af8e2f88704_e8793f25-cead-4f90-8872-88f7a7e2c008.jpg",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58904902631781,
+          "created_at": "2026-03-16T12:38:01-04:00",
+          "position": 3,
+          "updated_at": "2026-03-18T01:59:56-04:00",
+          "product_id": 9690189365605,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/49e35d05920f466c552d13f240a5fe86.jpg",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58904902697317,
+          "created_at": "2026-03-16T12:38:03-04:00",
+          "position": 4,
+          "updated_at": "2026-03-16T12:38:03-04:00",
+          "product_id": 9690189365605,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/17024848b893dd8dda4a247c805f8d17.jpg",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58904902730085,
+          "created_at": "2026-03-16T12:38:04-04:00",
+          "position": 5,
+          "updated_at": "2026-03-16T12:38:04-04:00",
+          "product_id": 9690189365605,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/2dcd426b1db3cdb512cd18bf1bbea096_168cebce-8ff9-4976-8d36-4aa82d7f0eab.jpg",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58904902762853,
+          "created_at": "2026-03-16T12:38:05-04:00",
+          "position": 6,
+          "updated_at": "2026-03-16T12:38:05-04:00",
+          "product_id": 9690189365605,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/66351e1b796664a0b4ec8a8d2bde668d_ebdb6b8f-f13e-4029-b013-c10bae77d518.jpg",
+          "width": 600,
+          "height": 799
+        },
+        {
+          "id": 58904902795621,
+          "created_at": "2026-03-16T12:38:25-04:00",
+          "position": 7,
+          "updated_at": "2026-03-16T12:38:25-04:00",
+          "product_id": 9690189365605,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/fd316a033719fb7a83851af8e2f88704_d9ca3576-941f-41f4-a4fb-7832f69b9b35.jpg",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58904902828389,
+          "created_at": "2026-03-16T12:38:26-04:00",
+          "position": 8,
+          "updated_at": "2026-03-16T12:38:26-04:00",
+          "product_id": 9690189365605,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/66351e1b796664a0b4ec8a8d2bde668d_26f93a6c-eb8b-4395-88a0-3925924e8e8f.jpg",
+          "width": 600,
+          "height": 799
+        },
+        {
+          "id": 58904902861157,
+          "created_at": "2026-03-16T12:38:27-04:00",
+          "position": 9,
+          "updated_at": "2026-03-16T12:38:27-04:00",
+          "product_id": 9690189365605,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/67f7783d27909b721f25fcd8b63b43eb_2ffc17b0-1c30-418b-adb1-a90d7004989b.jpg",
+          "width": 600,
+          "height": 750
+        }
+      ],
+      "options": [
+        {
+          "name": "CPU",
+          "position": 1,
+          "values": [
+            "AMD Ryzen 4300U"
+          ]
+        },
+        {
+          "name": "RAM+SSD",
+          "position": 2,
+          "values": [
+            "16GB+512GB"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 9649460740453,
+      "title": "NiPoGi AMD Ryzen 9 8945HS Mini PC 96GB DDR5 4TB SSD WiFi 7",
+      "handle": "mini-pc-amd-ryzen-9-8945hs-8-core-16-thread-up-to-5-2ghz-96gb-ddr5-4tb-ssd",
+      "body_html": "",
+      "published_at": "2025-11-10T05:13:46-05:00",
+      "created_at": "2025-11-10T05:13:44-05:00",
+      "updated_at": "2026-08-02T05:12:43-04:00",
+      "vendor": "Nipogi",
+      "product_type": "",
+      "tags": [
+        "2024",
+        "Flagship",
+        "Gaming Mini PC",
+        "Ryzen 9 8945HS",
+        "WiFi 7"
+      ],
+      "variants": [
+        {
+          "id": 50019229925733,
+          "title": "Ryzen 9 8945HS / 32GB+1TB",
+          "option1": "Ryzen 9 8945HS",
+          "option2": "32GB+1TB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": true,
+          "featured_image": null,
+          "available": true,
+          "price": "1037.68",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9649460740453,
+          "created_at": "2025-11-10T05:13:44-05:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 58630620545381,
+          "created_at": "2025-11-10T05:09:59-05:00",
+          "position": 1,
+          "updated_at": "2025-11-10T05:10:01-05:00",
+          "product_id": 9649460740453,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61cq1yXQjvL._AC_SL1500.jpg",
+          "width": 1500,
+          "height": 1208
+        },
+        {
+          "id": 58630620578149,
+          "created_at": "2025-11-10T05:10:10-05:00",
+          "position": 2,
+          "updated_at": "2025-11-10T05:10:11-05:00",
+          "product_id": 9649460740453,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71K7crmkYrL._AC_SL1500.jpg",
+          "width": 1500,
+          "height": 1500
+        },
+        {
+          "id": 58630620610917,
+          "created_at": "2025-11-10T05:10:14-05:00",
+          "position": 3,
+          "updated_at": "2025-11-10T05:10:16-05:00",
+          "product_id": 9649460740453,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71nP4WUzGrL._AC_SL1500.jpg",
+          "width": 1500,
+          "height": 1500
+        },
+        {
+          "id": 58630620643685,
+          "created_at": "2025-11-10T05:10:18-05:00",
+          "position": 4,
+          "updated_at": "2025-11-10T05:10:19-05:00",
+          "product_id": 9649460740453,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/715cPTaLisL._AC_SL1500.jpg",
+          "width": 1500,
+          "height": 1500
+        },
+        {
+          "id": 58630620676453,
+          "created_at": "2025-11-10T05:10:22-05:00",
+          "position": 5,
+          "updated_at": "2025-11-10T05:10:24-05:00",
+          "product_id": 9649460740453,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71fBSSwBVaL._AC_SL1500.jpg",
+          "width": 1500,
+          "height": 1500
+        },
+        {
+          "id": 58630620709221,
+          "created_at": "2025-11-10T05:10:26-05:00",
+          "position": 6,
+          "updated_at": "2025-11-10T05:10:27-05:00",
+          "product_id": 9649460740453,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/81NYv8jbsRL._AC_SL1500.jpg",
+          "width": 1500,
+          "height": 1500
+        },
+        {
+          "id": 58630620741989,
+          "created_at": "2025-11-10T05:10:30-05:00",
+          "position": 7,
+          "updated_at": "2025-11-10T05:10:32-05:00",
+          "product_id": 9649460740453,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71Sksjq-3yL._AC_SL1500.jpg",
+          "width": 1500,
+          "height": 1500
+        },
+        {
+          "id": 58630620807525,
+          "created_at": "2025-11-10T05:10:35-05:00",
+          "position": 8,
+          "updated_at": "2025-11-10T05:10:36-05:00",
+          "product_id": 9649460740453,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71x2JjceT_L._AC_SL1500.jpg",
+          "width": 1500,
+          "height": 1500
+        },
+        {
+          "id": 58630620840293,
+          "created_at": "2025-11-10T05:10:38-05:00",
+          "position": 9,
+          "updated_at": "2025-11-10T05:10:40-05:00",
+          "product_id": 9649460740453,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/81WuyVkeAfL._AC_SL1500.jpg",
+          "width": 1500,
+          "height": 1500
+        }
+      ],
+      "options": [
+        {
+          "name": "CPU",
+          "position": 1,
+          "values": [
+            "Ryzen 9 8945HS"
+          ]
+        },
+        {
+          "name": "RAM+SSD",
+          "position": 2,
+          "values": [
+            "32GB+1TB"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 9626580287845,
+      "title": "NiPoGi  Essenx  Series AK1 PLUS Mini PC Intel Alder Lake N95 (up to 3.4 GHz) 16GB DDR4 512GB SSD",
+      "handle": "nipogi-essenx-series-ak1-pluss",
+      "body_html": "",
+      "published_at": "2025-09-03T05:49:28-04:00",
+      "created_at": "2025-09-03T05:49:25-04:00",
+      "updated_at": "2026-08-02T05:12:43-04:00",
+      "vendor": "NIPOGI",
+      "product_type": "",
+      "tags": [],
+      "variants": [
+        {
+          "id": 49940848116069,
+          "title": "\u0399ntel Alder Lake \u039d95 / 8GB+256GB",
+          "option1": "\u0399ntel Alder Lake \u039d95",
+          "option2": "8GB+256GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "179.49",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9626580287845,
+          "created_at": "2025-09-03T05:49:25-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49940848148837,
+          "title": "\u0399ntel Alder Lake \u039d95 / 16GB+512GB",
+          "option1": "\u0399ntel Alder Lake \u039d95",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "239.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 2,
+          "product_id": 9626580287845,
+          "created_at": "2025-09-03T05:49:25-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49940848181605,
+          "title": "\u0399ntel Alder Lake \u039d95 / 16GB+1TB",
+          "option1": "\u0399ntel Alder Lake \u039d95",
+          "option2": "16GB+1TB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": false,
+          "price": "179.49",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 3,
+          "product_id": 9626580287845,
+          "created_at": "2025-09-03T05:49:25-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49940848214373,
+          "title": "\u0399ntel Alder Lake \u039d97 / 8GB+256GB",
+          "option1": "\u0399ntel Alder Lake \u039d97",
+          "option2": "8GB+256GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": false,
+          "price": "0.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 4,
+          "product_id": 9626580287845,
+          "created_at": "2025-09-03T05:49:25-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49940848247141,
+          "title": "\u0399ntel Alder Lake \u039d97 / 16GB+512GB",
+          "option1": "\u0399ntel Alder Lake \u039d97",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": false,
+          "price": "0.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 5,
+          "product_id": 9626580287845,
+          "created_at": "2025-09-03T05:49:25-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49940848279909,
+          "title": "\u0399ntel Alder Lake \u039d97 / 16GB+1TB",
+          "option1": "\u0399ntel Alder Lake \u039d97",
+          "option2": "16GB+1TB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "289.69",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 6,
+          "product_id": 9626580287845,
+          "created_at": "2025-09-03T05:49:25-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 58506885071205,
+          "created_at": "2025-09-03T05:48:58-04:00",
+          "position": 1,
+          "updated_at": "2025-09-03T05:48:59-04:00",
+          "product_id": 9626580287845,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/7f3ce4272e9.png",
+          "width": 1206,
+          "height": 1018
+        },
+        {
+          "id": 58506882416997,
+          "created_at": "2025-09-03T05:47:01-04:00",
+          "position": 2,
+          "updated_at": "2025-09-03T05:47:02-04:00",
+          "product_id": 9626580287845,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71ojaV46YRL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506882449765,
+          "created_at": "2025-09-03T05:47:05-04:00",
+          "position": 3,
+          "updated_at": "2025-09-03T05:47:06-04:00",
+          "product_id": 9626580287845,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61_GslgDI4L._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506884907365,
+          "created_at": "2025-09-03T05:47:35-04:00",
+          "position": 4,
+          "updated_at": "2025-09-03T05:47:36-04:00",
+          "product_id": 9626580287845,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/6153JvjhhhL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506884940133,
+          "created_at": "2025-09-03T05:47:45-04:00",
+          "position": 5,
+          "updated_at": "2025-09-03T05:47:46-04:00",
+          "product_id": 9626580287845,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/616BifPYwRL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506884972901,
+          "created_at": "2025-09-03T05:47:51-04:00",
+          "position": 6,
+          "updated_at": "2025-09-03T05:47:52-04:00",
+          "product_id": 9626580287845,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/81hHGEpDtYL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506885005669,
+          "created_at": "2025-09-03T05:47:55-04:00",
+          "position": 7,
+          "updated_at": "2025-09-03T05:47:57-04:00",
+          "product_id": 9626580287845,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61kvJ1sPaWL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506885038437,
+          "created_at": "2025-09-03T05:48:02-04:00",
+          "position": 8,
+          "updated_at": "2025-09-03T05:48:03-04:00",
+          "product_id": 9626580287845,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61FUqapdLpL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        }
+      ],
+      "options": [
+        {
+          "name": "CPU",
+          "position": 1,
+          "values": [
+            "\u0399ntel Alder Lake \u039d95",
+            "\u0399ntel Alder Lake \u039d97"
+          ]
+        },
+        {
+          "name": "RAM+SSD",
+          "position": 2,
+          "values": [
+            "8GB+256GB",
+            "16GB+512GB",
+            "16GB+1TB"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 9626577437029,
+      "title": "NiPoGi Pinova Pro AMD Ryzen 7 5700U Mini PC 32GB DDR4 512GB SSD",
+      "handle": "nipogi-pinova-series-amd-ryzen-7",
+      "body_html": "",
+      "published_at": "2025-09-03T05:30:11-04:00",
+      "created_at": "2025-09-03T05:30:08-04:00",
+      "updated_at": "2026-08-02T05:12:43-04:00",
+      "vendor": "NIPOGI",
+      "product_type": "",
+      "tags": [
+        "Creator",
+        "Pinova Pro",
+        "Pro Mini PC",
+        "Ryzen 7 5700U"
+      ],
+      "variants": [
+        {
+          "id": 49940837335397,
+          "title": "Ryzen 7 5700U / 16GB+512GB",
+          "option1": "Ryzen 7 5700U",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "452.98",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9626577437029,
+          "created_at": "2025-09-03T05:30:08-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49940837368165,
+          "title": "Ryzen 7 5700U / 32GB+512GB",
+          "option1": "Ryzen 7 5700U",
+          "option2": "32GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "532.37",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 2,
+          "product_id": 9626577437029,
+          "created_at": "2025-09-03T05:30:08-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49940837400933,
+          "title": "Ryzen 5 5500U / 16GB+512GB",
+          "option1": "Ryzen 5 5500U",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "452.98",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 3,
+          "product_id": 9626577437029,
+          "created_at": "2025-09-03T05:30:08-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49940837433701,
+          "title": "Ryzen 5 5500U / 32GB+512GB",
+          "option1": "Ryzen 5 5500U",
+          "option2": "32GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "519.92",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 4,
+          "product_id": 9626577437029,
+          "created_at": "2025-09-03T05:30:08-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 58506849780069,
+          "created_at": "2025-09-03T05:30:00-04:00",
+          "position": 1,
+          "updated_at": "2025-09-03T05:30:02-04:00",
+          "product_id": 9626577437029,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/2074684307.png",
+          "width": 1206,
+          "height": 1140
+        },
+        {
+          "id": 58506841031013,
+          "created_at": "2025-09-03T05:27:23-04:00",
+          "position": 2,
+          "updated_at": "2025-09-03T05:27:24-04:00",
+          "product_id": 9626577437029,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71hHbmvyktL._AC_SL1500_47a040b9-0461-4333-9e42-e39e23e67696.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506841391461,
+          "created_at": "2025-09-03T05:27:27-04:00",
+          "position": 3,
+          "updated_at": "2025-09-03T05:27:29-04:00",
+          "product_id": 9626577437029,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71lzDlaizIL._AC_SL1500_9a9bec77-4a27-4920-9af7-0e7d4a45cd89.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506842112357,
+          "created_at": "2025-09-03T05:27:38-04:00",
+          "position": 4,
+          "updated_at": "2025-09-03T05:27:39-04:00",
+          "product_id": 9626577437029,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71a9JUwd7xL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506842145125,
+          "created_at": "2025-09-03T05:27:44-04:00",
+          "position": 5,
+          "updated_at": "2025-09-03T05:27:46-04:00",
+          "product_id": 9626577437029,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71csb26yJZL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506842210661,
+          "created_at": "2025-09-03T05:27:55-04:00",
+          "position": 6,
+          "updated_at": "2025-09-03T05:27:56-04:00",
+          "product_id": 9626577437029,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/714PzNAsqKL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506842440037,
+          "created_at": "2025-09-03T05:28:26-04:00",
+          "position": 7,
+          "updated_at": "2025-09-03T05:28:28-04:00",
+          "product_id": 9626577437029,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71gmvtYIR1L._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506842833253,
+          "created_at": "2025-09-03T05:28:39-04:00",
+          "position": 8,
+          "updated_at": "2025-09-03T05:28:41-04:00",
+          "product_id": 9626577437029,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61dcFXs6I7L._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506845127013,
+          "created_at": "2025-09-03T05:28:54-04:00",
+          "position": 9,
+          "updated_at": "2025-09-03T05:28:55-04:00",
+          "product_id": 9626577437029,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71v_jpQyIBL._AC_SL1500.webp",
+          "width": 600,
+          "height": 799
+        }
+      ],
+      "options": [
+        {
+          "name": "CPU",
+          "position": 1,
+          "values": [
+            "Ryzen 7 5700U",
+            "Ryzen 5 5500U"
+          ]
+        },
+        {
+          "name": "RAM+SSD",
+          "position": 2,
+          "values": [
+            "16GB+512GB",
+            "32GB+512GB"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 9626575733093,
+      "title": "NiPoGi Pinova Pro AMD Ryzen 7 5825U Mini PC Win11 Pro",
+      "handle": "nipogi-pinova-series-amd-ryzen-7-5825u",
+      "body_html": "",
+      "published_at": "2025-09-03T05:20:45-04:00",
+      "created_at": "2025-09-03T05:20:41-04:00",
+      "updated_at": "2026-08-02T05:12:43-04:00",
+      "vendor": "NIPOGI",
+      "product_type": "",
+      "tags": [
+        "Pinova Pro",
+        "Pro Mini PC",
+        "Ryzen 7 5825U",
+        "Win11"
+      ],
+      "variants": [
+        {
+          "id": 49940828717413,
+          "title": "Ryzen 7 5825U / 16GB+512GB",
+          "option1": "Ryzen 7 5825U",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "373.79",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9626575733093,
+          "created_at": "2025-09-03T05:20:41-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49940828750181,
+          "title": "Ryzen 7 5825U / 32GB+512GB",
+          "option1": "Ryzen 7 5825U",
+          "option2": "32GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "678.51",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 2,
+          "product_id": 9626575733093,
+          "created_at": "2025-09-03T05:20:41-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49940828782949,
+          "title": "Ryzen 7 5700U / 16GB+512GB",
+          "option1": "Ryzen 7 5700U",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": false,
+          "price": "396.45",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 3,
+          "product_id": 9626575733093,
+          "created_at": "2025-09-03T05:20:41-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49940828815717,
+          "title": "Ryzen 7 5700U / 32GB+512GB",
+          "option1": "Ryzen 7 5700U",
+          "option2": "32GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "396.45",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 4,
+          "product_id": 9626575733093,
+          "created_at": "2025-09-03T05:20:41-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 58506830938469,
+          "created_at": "2025-09-03T05:20:20-04:00",
+          "position": 1,
+          "updated_at": "2025-09-03T05:20:21-04:00",
+          "product_id": 9626575733093,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/9b97b7bd.png",
+          "width": 600,
+          "height": 441
+        },
+        {
+          "id": 58506829627749,
+          "created_at": "2025-09-03T05:10:31-04:00",
+          "position": 2,
+          "updated_at": "2025-09-03T05:10:32-04:00",
+          "product_id": 9626575733093,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71TASpaAL5L._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506829660517,
+          "created_at": "2025-09-03T05:10:37-04:00",
+          "position": 3,
+          "updated_at": "2025-09-03T05:10:38-04:00",
+          "product_id": 9626575733093,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71mt8Y4z8vL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506829693285,
+          "created_at": "2025-09-03T05:10:46-04:00",
+          "position": 4,
+          "updated_at": "2025-09-03T05:10:47-04:00",
+          "product_id": 9626575733093,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71h0sU5yjqL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506830414181,
+          "created_at": "2025-09-03T05:17:40-04:00",
+          "position": 5,
+          "updated_at": "2025-09-03T05:17:41-04:00",
+          "product_id": 9626575733093,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71njBIeYWdL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506830446949,
+          "created_at": "2025-09-03T05:17:48-04:00",
+          "position": 6,
+          "updated_at": "2025-09-03T05:17:49-04:00",
+          "product_id": 9626575733093,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/714PzNAsqKL._AC_SL1500_ce6e1eb6-950b-40c2-9bc8-f06bf842756f.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506830479717,
+          "created_at": "2025-09-03T05:17:58-04:00",
+          "position": 7,
+          "updated_at": "2025-09-03T05:17:59-04:00",
+          "product_id": 9626575733093,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71gmvtYIR1L._AC_SL1500_d5ceb1a8-2045-4593-9816-9b5c09757449.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506830545253,
+          "created_at": "2025-09-03T05:18:04-04:00",
+          "position": 8,
+          "updated_at": "2025-09-03T05:18:05-04:00",
+          "product_id": 9626575733093,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61dcFXs6I7L._AC_SL1500_40ac4bd0-650f-4b9d-b4e0-70e384751674.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58506830905701,
+          "created_at": "2025-09-03T05:18:15-04:00",
+          "position": 9,
+          "updated_at": "2025-09-03T05:18:16-04:00",
+          "product_id": 9626575733093,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71v_jpQyIBL._AC_SL1500_80efe7a2-d285-48fe-9f45-468092cec3c7.webp",
+          "width": 600,
+          "height": 799
+        }
+      ],
+      "options": [
+        {
+          "name": "CPU",
+          "position": 1,
+          "values": [
+            "Ryzen 7 5825U",
+            "Ryzen 7 5700U"
+          ]
+        },
+        {
+          "name": "RAM+SSD",
+          "position": 2,
+          "values": [
+            "16GB+512GB",
+            "32GB+512GB"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 9625490555237,
+      "title": "NiPoGi HyPer AMD Ryzen 9 6900HX Mini PC 16GB DDR5 512GB NVMe",
+      "handle": "nipogi-hyper-series-amd-ryzen-9-6900hx",
+      "body_html": "",
+      "published_at": "2025-09-01T06:08:47-04:00",
+      "created_at": "2025-09-01T06:08:43-04:00",
+      "updated_at": "2026-08-02T05:12:43-04:00",
+      "vendor": "NIPOGI",
+      "product_type": "",
+      "tags": [
+        "Gaming Mini PC",
+        "High Performance",
+        "HyPer",
+        "Ryzen 9 6900HX"
+      ],
+      "variants": [
+        {
+          "id": 49938055856485,
+          "title": "\u0391\u039cD Ryzen 9 6900HX / 16GB+512GB",
+          "option1": "\u0391\u039cD Ryzen 9 6900HX",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": true,
+          "featured_image": null,
+          "available": true,
+          "price": "554.93",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9625490555237,
+          "created_at": "2025-09-01T06:08:44-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49938055889253,
+          "title": "\u0391\u039cD Ryzen 9 6900HX / 12GB+256GB",
+          "option1": "\u0391\u039cD Ryzen 9 6900HX",
+          "option2": "12GB+256GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": true,
+          "featured_image": null,
+          "available": false,
+          "price": "554.93",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 2,
+          "product_id": 9625490555237,
+          "created_at": "2025-09-01T06:08:44-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49938055922021,
+          "title": "\u0391\u039cD Ryzen 7 5700U / 16GB+512GB",
+          "option1": "\u0391\u039cD Ryzen 7 5700U",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": true,
+          "featured_image": null,
+          "available": true,
+          "price": "441.75",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 3,
+          "product_id": 9625490555237,
+          "created_at": "2025-09-01T06:08:44-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49938055954789,
+          "title": "\u0391\u039cD Ryzen 7 5700U / 12GB+256GB",
+          "option1": "\u0391\u039cD Ryzen 7 5700U",
+          "option2": "12GB+256GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": true,
+          "featured_image": null,
+          "available": false,
+          "price": "441.75",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 4,
+          "product_id": 9625490555237,
+          "created_at": "2025-09-01T06:08:44-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49938055987557,
+          "title": "Intel Alder Lake N100 / 16GB+512GB",
+          "option1": "Intel Alder Lake N100",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": true,
+          "featured_image": null,
+          "available": false,
+          "price": "203.88",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 5,
+          "product_id": 9625490555237,
+          "created_at": "2025-09-01T06:08:44-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49938056020325,
+          "title": "Intel Alder Lake N100 / 12GB+256GB",
+          "option1": "Intel Alder Lake N100",
+          "option2": "12GB+256GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": true,
+          "featured_image": null,
+          "available": true,
+          "price": "203.88",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 6,
+          "product_id": 9625490555237,
+          "created_at": "2025-09-01T06:08:44-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 58505529688421,
+          "created_at": "2025-09-01T06:08:35-04:00",
+          "position": 1,
+          "updated_at": "2025-09-01T06:08:36-04:00",
+          "product_id": 9625490555237,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/4b40fc8a4067d5f9c.png",
+          "width": 1206,
+          "height": 690
+        },
+        {
+          "id": 58505519628645,
+          "created_at": "2025-09-01T05:46:31-04:00",
+          "position": 2,
+          "updated_at": "2025-09-01T05:46:32-04:00",
+          "product_id": 9625490555237,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71n3pYpNHSL._AC_SL1500_6ded13da-f08a-4ed4-867b-962a3bdb8f32.webp",
+          "width": 600,
+          "height": 738
+        },
+        {
+          "id": 58505519890789,
+          "created_at": "2025-09-01T05:46:40-04:00",
+          "position": 3,
+          "updated_at": "2025-09-01T05:46:41-04:00",
+          "product_id": 9625490555237,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/716goO2HwoL._AC_SL1500_ed31aedb-60a6-44e8-accb-5d910b03806c.webp",
+          "width": 600,
+          "height": 738
+        },
+        {
+          "id": 58505520972133,
+          "created_at": "2025-09-01T05:46:53-04:00",
+          "position": 4,
+          "updated_at": "2025-09-01T05:46:54-04:00",
+          "product_id": 9625490555237,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71Fzi9ySr1L._AC_SL1500_2c425551-b13a-4fdd-9f18-5a491c7731d1.webp",
+          "width": 600,
+          "height": 738
+        },
+        {
+          "id": 58505521267045,
+          "created_at": "2025-09-01T05:47:03-04:00",
+          "position": 5,
+          "updated_at": "2025-09-01T05:47:04-04:00",
+          "product_id": 9625490555237,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61M2dN4BQVL._AC_SL1500_e5cd1ccf-b389-4a47-a5a2-99455b239d28.webp",
+          "width": 600,
+          "height": 738
+        },
+        {
+          "id": 58505522446693,
+          "created_at": "2025-09-01T05:47:17-04:00",
+          "position": 6,
+          "updated_at": "2025-09-01T05:47:18-04:00",
+          "product_id": 9625490555237,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71SVUqcZTwL._AC_SL1500_d5f390be-cc1e-4786-8b72-d42c1f9d6aeb.webp",
+          "width": 600,
+          "height": 738
+        },
+        {
+          "id": 58505523364197,
+          "created_at": "2025-09-01T05:47:26-04:00",
+          "position": 7,
+          "updated_at": "2025-09-01T05:47:27-04:00",
+          "product_id": 9625490555237,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61jfWnQEtrL._AC_SL1500_fcc130af-bf85-4c00-9e65-08e18d76446b.webp",
+          "width": 600,
+          "height": 738
+        }
+      ],
+      "options": [
+        {
+          "name": "CPU",
+          "position": 1,
+          "values": [
+            "\u0391\u039cD Ryzen 9 6900HX",
+            "\u0391\u039cD Ryzen 7 5700U",
+            "Intel Alder Lake N100"
+          ]
+        },
+        {
+          "name": "RAM+SSD",
+          "position": 2,
+          "values": [
+            "16GB+512GB",
+            "12GB+256GB"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 9625164054885,
+      "title": "NiPoGi CK10 Intel i5-12450H Mini PC 32GB DDR4 1024GB SSD WiFi 6",
+      "handle": "nipogi-ck10-mini-pc-32gb",
+      "body_html": "",
+      "published_at": "2025-08-30T05:52:40-04:00",
+      "created_at": "2025-08-30T05:52:38-04:00",
+      "updated_at": "2026-08-02T05:12:43-04:00",
+      "vendor": "NIPOGI",
+      "product_type": "",
+      "tags": [
+        "CK10",
+        "Creator",
+        "Intel i5-12450H",
+        "Pro Mini PC",
+        "WiFi 6"
+      ],
+      "variants": [
+        {
+          "id": 49937151033701,
+          "title": "Intel Core i5-12450H / 16GB+512GB",
+          "option1": "Intel Core i5-12450H",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": null,
+          "available": true,
+          "price": "453.08",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9625164054885,
+          "created_at": "2025-08-30T05:52:38-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49937151066469,
+          "title": "Intel Core i5-12450H / 32GB+512GB",
+          "option1": "Intel Core i5-12450H",
+          "option2": "32GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": null,
+          "available": true,
+          "price": "519.92",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 2,
+          "product_id": 9625164054885,
+          "created_at": "2025-08-30T05:52:38-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49937151099237,
+          "title": "Intel Core i5-12450H / 32GB+1TB",
+          "option1": "Intel Core i5-12450H",
+          "option2": "32GB+1TB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": null,
+          "available": true,
+          "price": "521.06",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 3,
+          "product_id": 9625164054885,
+          "created_at": "2025-08-30T05:52:38-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 58504052441445,
+          "created_at": "2025-08-30T05:56:30-04:00",
+          "position": 1,
+          "updated_at": "2025-08-30T05:56:37-04:00",
+          "product_id": 9625164054885,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/e8df18eee05a220.png",
+          "width": 1206,
+          "height": 968
+        },
+        {
+          "id": 58504052113765,
+          "created_at": "2025-08-30T05:52:55-04:00",
+          "position": 2,
+          "updated_at": "2025-08-30T05:56:37-04:00",
+          "product_id": 9625164054885,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71aXbN2stuL._AC_SL1500.webp",
+          "width": 600,
+          "height": 738
+        },
+        {
+          "id": 58504052146533,
+          "created_at": "2025-08-30T05:53:00-04:00",
+          "position": 3,
+          "updated_at": "2025-08-30T05:56:37-04:00",
+          "product_id": 9625164054885,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71iVQxyGUwL._AC_SL1500.webp",
+          "width": 600,
+          "height": 738
+        },
+        {
+          "id": 58504052179301,
+          "created_at": "2025-08-30T05:53:10-04:00",
+          "position": 4,
+          "updated_at": "2025-08-30T05:56:37-04:00",
+          "product_id": 9625164054885,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71mPieTjl8L._AC_SL1500.webp",
+          "width": 600,
+          "height": 738
+        },
+        {
+          "id": 58504052212069,
+          "created_at": "2025-08-30T05:53:14-04:00",
+          "position": 5,
+          "updated_at": "2025-08-30T05:56:37-04:00",
+          "product_id": 9625164054885,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61fO0MuJG0L._AC_SL1500.webp",
+          "width": 600,
+          "height": 738
+        },
+        {
+          "id": 58504052244837,
+          "created_at": "2025-08-30T05:53:25-04:00",
+          "position": 6,
+          "updated_at": "2025-08-30T05:56:37-04:00",
+          "product_id": 9625164054885,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71xlO5aL-dL._AC_SL1500.webp",
+          "width": 600,
+          "height": 738
+        },
+        {
+          "id": 58504052277605,
+          "created_at": "2025-08-30T05:53:34-04:00",
+          "position": 7,
+          "updated_at": "2025-08-30T05:56:37-04:00",
+          "product_id": 9625164054885,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61pj01K_BL._AC_SL1500.webp",
+          "width": 600,
+          "height": 738
+        },
+        {
+          "id": 58504052310373,
+          "created_at": "2025-08-30T05:53:43-04:00",
+          "position": 8,
+          "updated_at": "2025-08-30T05:56:37-04:00",
+          "product_id": 9625164054885,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71jFd9tKdKL._AC_SL1500.webp",
+          "width": 600,
+          "height": 600
+        },
+        {
+          "id": 58504052375909,
+          "created_at": "2025-08-30T05:54:31-04:00",
+          "position": 9,
+          "updated_at": "2025-08-30T05:56:37-04:00",
+          "product_id": 9625164054885,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71ackWNkE6L._AC_SL1500.webp",
+          "width": 600,
+          "height": 740
+        }
+      ],
+      "options": [
+        {
+          "name": "CPU",
+          "position": 1,
+          "values": [
+            "Intel Core i5-12450H"
+          ]
+        },
+        {
+          "name": "RAM+SSD",
+          "position": 2,
+          "values": [
+            "16GB+512GB",
+            "32GB+512GB",
+            "32GB+1TB"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 9625160319333,
+      "title": "NiPoGi E1 Intel Twin Lake N150 16GB RAM 512GB SSD Win11 Pro",
+      "handle": "nipogi-essenx-series-e1",
+      "body_html": "",
+      "published_at": "2025-08-30T05:48:05-04:00",
+      "created_at": "2025-08-30T05:48:02-04:00",
+      "updated_at": "2026-08-02T05:12:43-04:00",
+      "vendor": "NIPOGI",
+      "product_type": "",
+      "tags": [
+        "Budget",
+        "E1",
+        "Intel N150",
+        "Mini PC",
+        "Win11"
+      ],
+      "variants": [
+        {
+          "id": 49937148739941,
+          "title": "\u0399ntel Twin Lake N150 / 16GB+512GB",
+          "option1": "\u0399ntel Twin Lake N150",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "214.09",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9625160319333,
+          "created_at": "2025-08-30T05:48:02-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49937148772709,
+          "title": "\u0399ntel Twin Lake N150 / 16GB+1TB",
+          "option1": "\u0399ntel Twin Lake N150",
+          "option2": "16GB+1TB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "248.07",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 2,
+          "product_id": 9625160319333,
+          "created_at": "2025-08-30T05:48:02-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 58504036057445,
+          "created_at": "2025-08-30T05:47:12-04:00",
+          "position": 1,
+          "updated_at": "2025-08-30T05:47:14-04:00",
+          "product_id": 9625160319333,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/aae76fde28785dfba6.png",
+          "width": 1206,
+          "height": 1167
+        },
+        {
+          "id": 58504029405541,
+          "created_at": "2025-08-30T05:45:16-04:00",
+          "position": 2,
+          "updated_at": "2025-08-30T05:45:17-04:00",
+          "product_id": 9625160319333,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/715D8II7KML._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58504029700453,
+          "created_at": "2025-08-30T05:45:20-04:00",
+          "position": 3,
+          "updated_at": "2025-08-30T05:45:21-04:00",
+          "product_id": 9625160319333,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71-UGaCJ7OL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58504030126437,
+          "created_at": "2025-08-30T05:45:26-04:00",
+          "position": 4,
+          "updated_at": "2025-08-30T05:45:28-04:00",
+          "product_id": 9625160319333,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71aLCr1e3vL._AC_SL1500_46e8dbb3-4fec-40ce-a19b-a6436f3d6002.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58504030978405,
+          "created_at": "2025-08-30T05:45:39-04:00",
+          "position": 5,
+          "updated_at": "2025-08-30T05:45:40-04:00",
+          "product_id": 9625160319333,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61RCACJIkkL._AC_SL1500_4a964c30-747f-4394-a409-a97032baa4c1.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58504031175013,
+          "created_at": "2025-08-30T05:45:43-04:00",
+          "position": 6,
+          "updated_at": "2025-08-30T05:45:44-04:00",
+          "product_id": 9625160319333,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61hiejDRWzL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58504031633765,
+          "created_at": "2025-08-30T05:45:49-04:00",
+          "position": 7,
+          "updated_at": "2025-08-30T05:45:50-04:00",
+          "product_id": 9625160319333,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61ObsM3R7lL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58504032026981,
+          "created_at": "2025-08-30T05:45:56-04:00",
+          "position": 8,
+          "updated_at": "2025-08-30T05:45:57-04:00",
+          "product_id": 9625160319333,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71ifDb6n-IL._AC_SL1500_cfb0716a-286b-4a06-9083-984cebbf2818.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58504032354661,
+          "created_at": "2025-08-30T05:46:03-04:00",
+          "position": 9,
+          "updated_at": "2025-08-30T05:46:05-04:00",
+          "product_id": 9625160319333,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71mwavxBSzL._AC_SL1500_9f8707d2-bbd8-4d2c-a0ce-a8a0ccf28ff0.webp",
+          "width": 600,
+          "height": 750
+        }
+      ],
+      "options": [
+        {
+          "name": "CPU",
+          "position": 1,
+          "values": [
+            "\u0399ntel Twin Lake N150"
+          ]
+        },
+        {
+          "name": "RAM+SSD",
+          "position": 2,
+          "values": [
+            "16GB+512GB",
+            "16GB+1TB"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 9625150456165,
+      "title": "NiPoGi E1 Intel Twin Lake N150 Mini PC 16GB RAM 512GB SSD",
+      "handle": "nipogi-essenx-serie-mini-pc",
+      "body_html": "",
+      "published_at": "2025-08-30T05:39:08-04:00",
+      "created_at": "2025-08-30T05:39:05-04:00",
+      "updated_at": "2026-08-02T05:12:43-04:00",
+      "vendor": "NIPOGI",
+      "product_type": "",
+      "tags": [
+        "Budget",
+        "E1",
+        "Intel N150",
+        "Mini PC",
+        "Office"
+      ],
+      "variants": [
+        {
+          "id": 49937140449637,
+          "title": "\u0399ntel Twin Lake \u039d150 / 8GB+256GB",
+          "option1": "\u0399ntel Twin Lake \u039d150",
+          "option2": "8GB+256GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "237.96",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9625150456165,
+          "created_at": "2025-08-30T05:39:06-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49937140482405,
+          "title": "\u0399ntel Twin Lake \u039d150 / 16GB+512GB",
+          "option1": "\u0399ntel Twin Lake \u039d150",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "282.83",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 2,
+          "product_id": 9625150456165,
+          "created_at": "2025-08-30T05:39:06-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 58504008532325,
+          "created_at": "2025-08-30T05:38:45-04:00",
+          "position": 1,
+          "updated_at": "2025-08-30T05:38:46-04:00",
+          "product_id": 9625150456165,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/2cbaa4deccc4fffd2d.png",
+          "width": 1206,
+          "height": 736
+        },
+        {
+          "id": 58504000242021,
+          "created_at": "2025-08-30T05:36:22-04:00",
+          "position": 2,
+          "updated_at": "2025-08-30T05:36:23-04:00",
+          "product_id": 9625150456165,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/715D8II7KML._AC_SL1500_656782d5-7b49-46c9-885c-49649eda7a3b.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58504000536933,
+          "created_at": "2025-08-30T05:36:30-04:00",
+          "position": 3,
+          "updated_at": "2025-08-30T05:36:31-04:00",
+          "product_id": 9625150456165,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61hiejDRWzL._AC_SL1500_254d83fe-5da1-44eb-b7ba-9a3bb7a5b2f1.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58504001323365,
+          "created_at": "2025-08-30T05:36:44-04:00",
+          "position": 4,
+          "updated_at": "2025-08-30T05:36:45-04:00",
+          "product_id": 9625150456165,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71aLCr1e3vL._AC_SL1500_ee71f4b4-eb69-4d79-82ce-1011a908053d.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58504002339173,
+          "created_at": "2025-08-30T05:36:58-04:00",
+          "position": 5,
+          "updated_at": "2025-08-30T05:36:59-04:00",
+          "product_id": 9625150456165,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61ObsM3R7lL._AC_SL1500_f1bd463e-3fb3-4a18-959e-42832f698148.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58504003092837,
+          "created_at": "2025-08-30T05:37:10-04:00",
+          "position": 6,
+          "updated_at": "2025-08-30T05:37:11-04:00",
+          "product_id": 9625150456165,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71mwavxBSzL._AC_SL1500_1eac3dc4-decf-4d93-ae76-5792e6818530.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58504003453285,
+          "created_at": "2025-08-30T05:37:19-04:00",
+          "position": 7,
+          "updated_at": "2025-08-30T05:37:20-04:00",
+          "product_id": 9625150456165,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61RCACJIkkL._AC_SL1500_d9aea6f1-2653-4a52-97d1-4cf4ca5a299c.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58504003879269,
+          "created_at": "2025-08-30T05:37:28-04:00",
+          "position": 8,
+          "updated_at": "2025-08-30T05:37:29-04:00",
+          "product_id": 9625150456165,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71ifDb6n-IL._AC_SL1500_b550b932-193d-4373-92a6-d0107ee648bf.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58504004501861,
+          "created_at": "2025-08-30T05:37:34-04:00",
+          "position": 9,
+          "updated_at": "2025-08-30T05:37:36-04:00",
+          "product_id": 9625150456165,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71-UGaCJ7OL._AC_SL1500_a194bb01-b6c1-4c04-8728-ce92905106fc.webp",
+          "width": 600,
+          "height": 750
+        }
+      ],
+      "options": [
+        {
+          "name": "CPU",
+          "position": 1,
+          "values": [
+            "\u0399ntel Twin Lake \u039d150"
+          ]
+        },
+        {
+          "name": "RAM+SSD",
+          "position": 2,
+          "values": [
+            "8GB+256GB",
+            "16GB+512GB"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 9625069289829,
+      "title": "NiPoGi E1 Intel Alder Lake N97 Mini PC 16GB DDR4 1024GB SSD",
+      "handle": "nipogi-essenx-series-e1-mini-pc",
+      "body_html": "",
+      "published_at": "2025-08-30T04:03:11-04:00",
+      "created_at": "2025-08-30T04:03:08-04:00",
+      "updated_at": "2026-08-02T05:12:43-04:00",
+      "vendor": "NIPOGI",
+      "product_type": "",
+      "tags": [
+        "Budget",
+        "E1",
+        "Intel N97",
+        "Mini PC",
+        "Office"
+      ],
+      "variants": [
+        {
+          "id": 49937077436773,
+          "title": "\u0399ntel Alder Lake \u039d97 / 16GB+512GB",
+          "option1": "\u0399ntel Alder Lake \u039d97",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "270.72",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9625069289829,
+          "created_at": "2025-08-30T04:03:08-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49937077469541,
+          "title": "\u0399ntel Alder Lake \u039d97 / 16GB+1TB",
+          "option1": "\u0399ntel Alder Lake \u039d97",
+          "option2": "16GB+1TB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "373.79",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 2,
+          "product_id": 9625069289829,
+          "created_at": "2025-08-30T04:03:08-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49937077535077,
+          "title": "\u0399ntel Alder Lake \u039d95 / 16GB+512GB",
+          "option1": "\u0399ntel Alder Lake \u039d95",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": false,
+          "price": "152.73",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 3,
+          "product_id": 9625069289829,
+          "created_at": "2025-08-30T04:03:08-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49937077567845,
+          "title": "\u0399ntel Alder Lake \u039d95 / 16GB+1TB",
+          "option1": "\u0399ntel Alder Lake \u039d95",
+          "option2": "16GB+1TB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": false,
+          "price": "152.73",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 4,
+          "product_id": 9625069289829,
+          "created_at": "2025-08-30T04:03:08-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49937077600613,
+          "title": "\u0399ntel Alder Lake \u039d95 / 8GB+256GB",
+          "option1": "\u0399ntel Alder Lake \u039d95",
+          "option2": "8GB+256GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "152.73",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 5,
+          "product_id": 9625069289829,
+          "created_at": "2025-08-30T04:03:08-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 58503689568613,
+          "created_at": "2025-08-30T04:02:58-04:00",
+          "position": 1,
+          "updated_at": "2025-08-30T04:03:00-04:00",
+          "product_id": 9625069289829,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/2542551668.png",
+          "width": 600,
+          "height": 684
+        },
+        {
+          "id": 58503676658021,
+          "created_at": "2025-08-30T03:58:49-04:00",
+          "position": 2,
+          "updated_at": "2025-08-30T03:58:50-04:00",
+          "product_id": 9625069289829,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71sN0qmOZRL._AC_SL1500.webp",
+          "width": 600,
+          "height": 600
+        },
+        {
+          "id": 58503676854629,
+          "created_at": "2025-08-30T03:58:57-04:00",
+          "position": 3,
+          "updated_at": "2025-08-30T03:58:58-04:00",
+          "product_id": 9625069289829,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/81GfC_95UKL._AC_SL1500_374c46a9-d94f-45f6-bdd3-d47b76797ae2.webp",
+          "width": 600,
+          "height": 600
+        },
+        {
+          "id": 58503677378917,
+          "created_at": "2025-08-30T03:59:07-04:00",
+          "position": 4,
+          "updated_at": "2025-08-30T03:59:08-04:00",
+          "product_id": 9625069289829,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/81ZGuznn6RL._AC_SL1500_c6334a41-6b25-4432-8c21-5f9a294751ff.webp",
+          "width": 600,
+          "height": 600
+        },
+        {
+          "id": 58503678001509,
+          "created_at": "2025-08-30T03:59:18-04:00",
+          "position": 5,
+          "updated_at": "2025-08-30T03:59:19-04:00",
+          "product_id": 9625069289829,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/713kC0aMr7L._AC_SL1500_31dedc46-7f2b-40f5-9da6-fab594c56f6f.webp",
+          "width": 600,
+          "height": 600
+        },
+        {
+          "id": 58503679344997,
+          "created_at": "2025-08-30T03:59:28-04:00",
+          "position": 6,
+          "updated_at": "2025-08-30T03:59:29-04:00",
+          "product_id": 9625069289829,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71n-pYLLeVL._AC_SL1500.webp",
+          "width": 600,
+          "height": 600
+        },
+        {
+          "id": 58503680229733,
+          "created_at": "2025-08-30T03:59:43-04:00",
+          "position": 7,
+          "updated_at": "2025-08-30T03:59:44-04:00",
+          "product_id": 9625069289829,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71biXxRuDfL._AC_SL1500_04215ee8-eb98-481e-a01a-77a578c73722.webp",
+          "width": 600,
+          "height": 600
+        },
+        {
+          "id": 58503680590181,
+          "created_at": "2025-08-30T03:59:53-04:00",
+          "position": 8,
+          "updated_at": "2025-08-30T03:59:54-04:00",
+          "product_id": 9625069289829,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/81AFZhR81uL._AC_SL1500.webp",
+          "width": 600,
+          "height": 600
+        }
+      ],
+      "options": [
+        {
+          "name": "CPU",
+          "position": 1,
+          "values": [
+            "\u0399ntel Alder Lake \u039d97",
+            "\u0399ntel Alder Lake \u039d95"
+          ]
+        },
+        {
+          "name": "RAM+SSD",
+          "position": 2,
+          "values": [
+            "16GB+512GB",
+            "16GB+1TB",
+            "8GB+256GB"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 9625043272037,
+      "title": "NiPoGi Pinova E3B AMD Ryzen 5 7430U Mini PC 16GB RAM 512GB SSD WiFi 6",
+      "handle": "nipogi-pinova-series-e3b-d-ryzen-5-7430u",
+      "body_html": "",
+      "published_at": "2025-08-30T03:41:06-04:00",
+      "created_at": "2025-08-30T03:41:04-04:00",
+      "updated_at": "2026-08-02T05:12:43-04:00",
+      "vendor": "NIPOGI",
+      "product_type": "",
+      "tags": [
+        "Gaming Mini PC",
+        "Pinova E3B",
+        "Ryzen 5 7430U",
+        "WiFi 6"
+      ],
+      "variants": [
+        {
+          "id": 49937041391973,
+          "title": "AMD Ryzen 5 7430U / 16GB+512GB",
+          "option1": "AMD Ryzen 5 7430U",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": true,
+          "featured_image": null,
+          "available": true,
+          "price": "418.67",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9625043272037,
+          "created_at": "2025-08-30T03:41:04-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49937041424741,
+          "title": "AMD Ryzen 5 7430U / 32GB+512GB",
+          "option1": "AMD Ryzen 5 7430U",
+          "option2": "32GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": true,
+          "featured_image": null,
+          "available": true,
+          "price": "465.18",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 2,
+          "product_id": 9625043272037,
+          "created_at": "2025-08-30T03:41:04-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 58503610368357,
+          "created_at": "2025-08-30T03:40:54-04:00",
+          "position": 1,
+          "updated_at": "2025-08-30T03:40:55-04:00",
+          "product_id": 9625043272037,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/0cc71a5.png",
+          "width": 600,
+          "height": 546
+        },
+        {
+          "id": 58503599718757,
+          "created_at": "2025-08-30T03:38:18-04:00",
+          "position": 2,
+          "updated_at": "2025-08-30T03:38:19-04:00",
+          "product_id": 9625043272037,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71GkW1SNtUL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58503600308581,
+          "created_at": "2025-08-30T03:38:29-04:00",
+          "position": 3,
+          "updated_at": "2025-08-30T03:38:30-04:00",
+          "product_id": 9625043272037,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71PB5Ex0yaL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58503601324389,
+          "created_at": "2025-08-30T03:38:43-04:00",
+          "position": 4,
+          "updated_at": "2025-08-30T03:38:44-04:00",
+          "product_id": 9625043272037,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71vp6xhOi-L._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58503603028325,
+          "created_at": "2025-08-30T03:39:08-04:00",
+          "position": 5,
+          "updated_at": "2025-08-30T03:39:09-04:00",
+          "product_id": 9625043272037,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71g5A5jJBAL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58503603618149,
+          "created_at": "2025-08-30T03:39:19-04:00",
+          "position": 6,
+          "updated_at": "2025-08-30T03:39:20-04:00",
+          "product_id": 9625043272037,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71j2y7fW3xL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58503603913061,
+          "created_at": "2025-08-30T03:39:29-04:00",
+          "position": 7,
+          "updated_at": "2025-08-30T03:39:31-04:00",
+          "product_id": 9625043272037,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61NGQzjboaL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58503604404581,
+          "created_at": "2025-08-30T03:39:41-04:00",
+          "position": 8,
+          "updated_at": "2025-08-30T03:39:42-04:00",
+          "product_id": 9625043272037,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61ff2mKnAUL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58503605584229,
+          "created_at": "2025-08-30T03:39:55-04:00",
+          "position": 9,
+          "updated_at": "2025-08-30T03:39:56-04:00",
+          "product_id": 9625043272037,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71TcKzp1ebL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        }
+      ],
+      "options": [
+        {
+          "name": "CPU",
+          "position": 1,
+          "values": [
+            "AMD Ryzen 5 7430U"
+          ]
+        },
+        {
+          "name": "RAM+SSD",
+          "position": 2,
+          "values": [
+            "16GB+512GB",
+            "32GB+512GB"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 9625012928869,
+      "title": "NiPoGi GK3 Plus Mini PC Intel Alder Lake-N95 16GB DDR4 1024GB SSD",
+      "handle": "nipogi-gk3-plus",
+      "body_html": "",
+      "published_at": "2025-08-30T03:15:53-04:00",
+      "created_at": "2025-08-30T03:15:51-04:00",
+      "updated_at": "2026-08-02T05:12:43-04:00",
+      "vendor": "NIPOGI",
+      "product_type": "",
+      "tags": [
+        "Budget",
+        "GK3 Plus",
+        "Intel N95",
+        "Mini PC",
+        "Office"
+      ],
+      "variants": [
+        {
+          "id": 49937004495205,
+          "title": "\u039d95 / 8GB+256GB",
+          "option1": "\u039d95",
+          "option2": "8GB+256GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "191.75",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9625012928869,
+          "created_at": "2025-08-30T03:15:51-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49937004527973,
+          "title": "\u039d95 / 16GB+512GB",
+          "option1": "\u039d95",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "203.00",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 2,
+          "product_id": 9625012928869,
+          "created_at": "2025-08-30T03:15:51-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49937004560741,
+          "title": "\u039d95 / 16GB+1024GB",
+          "option1": "\u039d95",
+          "option2": "16GB+1024GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "273.14",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 3,
+          "product_id": 9625012928869,
+          "created_at": "2025-08-30T03:15:51-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 58503525728613,
+          "created_at": "2025-08-30T03:15:31-04:00",
+          "position": 1,
+          "updated_at": "2025-08-30T03:15:33-04:00",
+          "product_id": 9625012928869,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/a36993.png",
+          "width": 1206,
+          "height": 1351
+        },
+        {
+          "id": 58503509606757,
+          "created_at": "2025-08-30T03:10:23-04:00",
+          "position": 2,
+          "updated_at": "2025-08-30T03:10:25-04:00",
+          "product_id": 9625012928869,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71nAQnBuVgL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58503510131045,
+          "created_at": "2025-08-30T03:10:31-04:00",
+          "position": 3,
+          "updated_at": "2025-08-30T03:10:32-04:00",
+          "product_id": 9625012928869,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/712_NJjeolL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58503511572837,
+          "created_at": "2025-08-30T03:10:59-04:00",
+          "position": 4,
+          "updated_at": "2025-08-30T03:11:01-04:00",
+          "product_id": 9625012928869,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71liYzi8uhL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58503513964901,
+          "created_at": "2025-08-30T03:11:42-04:00",
+          "position": 5,
+          "updated_at": "2025-08-30T03:11:43-04:00",
+          "product_id": 9625012928869,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61I9Q_vg7lL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58503515144549,
+          "created_at": "2025-08-30T03:12:04-04:00",
+          "position": 6,
+          "updated_at": "2025-08-30T03:12:05-04:00",
+          "product_id": 9625012928869,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/719Tq9t6pmL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58503516914021,
+          "created_at": "2025-08-30T03:12:36-04:00",
+          "position": 7,
+          "updated_at": "2025-08-30T03:12:37-04:00",
+          "product_id": 9625012928869,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61_CYAEj4EL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58503517176165,
+          "created_at": "2025-08-30T03:12:49-04:00",
+          "position": 8,
+          "updated_at": "2025-08-30T03:12:50-04:00",
+          "product_id": 9625012928869,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71LE99uP0XL._AC_SL1500.webp",
+          "width": 600,
+          "height": 797
+        }
+      ],
+      "options": [
+        {
+          "name": "CPU",
+          "position": 1,
+          "values": [
+            "\u039d95"
+          ]
+        },
+        {
+          "name": "RAM+SSD",
+          "position": 2,
+          "values": [
+            "8GB+256GB",
+            "16GB+512GB",
+            "16GB+1024GB"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 9624498798949,
+      "title": "NiPoGi Hyper H1 AMD Ryzen 7 6800H Mini PC 16GB DDR5 1024GB NVMe",
+      "handle": "nipogi-hyper-series-h1",
+      "body_html": "",
+      "published_at": "2025-08-28T02:24:00-04:00",
+      "created_at": "2025-08-28T02:23:52-04:00",
+      "updated_at": "2026-08-02T05:12:43-04:00",
+      "vendor": "NIPOGI",
+      "product_type": "",
+      "tags": [
+        "Gaming Mini PC",
+        "Hyper H1",
+        "Office",
+        "Ryzen 7 6800H"
+      ],
+      "variants": [
+        {
+          "id": 49932148867429,
+          "title": "AMD Ryzen 7 6800H / 16GB+512GB",
+          "option1": "AMD Ryzen 7 6800H",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "499.92",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 1,
+          "product_id": 9624498798949,
+          "created_at": "2025-08-28T02:23:52-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49932148900197,
+          "title": "\u0399ntel Celeron N150 / 32GB+1TB",
+          "option1": "\u0399ntel Celeron N150",
+          "option2": "32GB+1TB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "499.92",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 2,
+          "product_id": 9624498798949,
+          "created_at": "2025-08-28T02:23:52-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        },
+        {
+          "id": 49932148932965,
+          "title": "\u0399ntel Celeron N150 / 16GB+512GB",
+          "option1": "\u0399ntel Celeron N150",
+          "option2": "16GB+512GB",
+          "option3": null,
+          "sku": null,
+          "requires_shipping": false,
+          "taxable": false,
+          "featured_image": null,
+          "available": true,
+          "price": "191.75",
+          "grams": 0,
+          "compare_at_price": null,
+          "position": 3,
+          "product_id": 9624498798949,
+          "created_at": "2025-08-28T02:23:52-04:00",
+          "updated_at": "2026-08-02T05:12:43-04:00"
+        }
+      ],
+      "images": [
+        {
+          "id": 58501272109413,
+          "created_at": "2025-08-28T05:49:10-04:00",
+          "position": 1,
+          "updated_at": "2025-08-28T05:49:54-04:00",
+          "product_id": 9624498798949,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/fcc737cc3d9b7345dcd0640834ab8f2f.png",
+          "width": 600,
+          "height": 436
+        },
+        {
+          "id": 58501072453989,
+          "created_at": "2025-08-28T02:25:42-04:00",
+          "position": 2,
+          "updated_at": "2025-08-28T05:49:54-04:00",
+          "product_id": 9624498798949,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/713XNRx1oyL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58501072519525,
+          "created_at": "2025-08-28T02:25:48-04:00",
+          "position": 3,
+          "updated_at": "2025-08-28T05:49:54-04:00",
+          "product_id": 9624498798949,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71saOt1RUsL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58501072552293,
+          "created_at": "2025-08-28T02:26:04-04:00",
+          "position": 4,
+          "updated_at": "2025-08-28T05:49:54-04:00",
+          "product_id": 9624498798949,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71_qdk_KpIL._AC_SL1500_dad1fcb6-ef67-4d0e-b04a-a0fd0db93524.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58501072617829,
+          "created_at": "2025-08-28T02:26:27-04:00",
+          "position": 5,
+          "updated_at": "2025-08-28T05:49:54-04:00",
+          "product_id": 9624498798949,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71Y409dx8mL._AC_SL1500_d54bf866-c232-4d90-acaa-ba03de6b9e0d.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58501072879973,
+          "created_at": "2025-08-28T02:26:36-04:00",
+          "position": 6,
+          "updated_at": "2025-08-28T05:49:54-04:00",
+          "product_id": 9624498798949,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71FObhBgGAL._AC_SL1500_a792b6e7-a94a-4087-951b-1b9ffd5fcbfd.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58501072912741,
+          "created_at": "2025-08-28T02:26:47-04:00",
+          "position": 7,
+          "updated_at": "2025-08-28T05:49:54-04:00",
+          "product_id": 9624498798949,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61w8Wq9hmsL._AC_SL1500_825df082-d0d5-4bef-9af6-1e3d6e1d4bec.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58501073142117,
+          "created_at": "2025-08-28T02:27:11-04:00",
+          "position": 8,
+          "updated_at": "2025-08-28T05:49:54-04:00",
+          "product_id": 9624498798949,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/61x35wJaFkL._AC_SL1500_14c0e9c9-8e27-4c16-b252-36fb5056f1cc.webp",
+          "width": 600,
+          "height": 750
+        },
+        {
+          "id": 58501073338725,
+          "created_at": "2025-08-28T02:27:16-04:00",
+          "position": 9,
+          "updated_at": "2025-08-28T05:49:54-04:00",
+          "product_id": 9624498798949,
+          "variant_ids": [],
+          "src": "https://cdn.shopify.com/s/files/1/0858/9079/3829/files/71nbRkEtcBL._AC_SL1500.webp",
+          "width": 600,
+          "height": 750
+        }
+      ],
+      "options": [
+        {
+          "name": "CPU",
+          "position": 1,
+          "values": [
+            "AMD Ryzen 7 6800H",
+            "\u0399ntel Celeron N150"
+          ]
+        },
+        {
+          "name": "RAM+SSD",
+          "position": 2,
+          "values": [
+            "16GB+512GB",
+            "32GB+1TB"
+          ]
+        }
+      ]
+    }
+  ]
+}

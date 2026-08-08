@@ -1,0 +1,17 @@
+# support_status: BROKEN — firebat.com products.json 404
+# Audited 2026-08-02. Do not enable without re-probe.
+# Firebat — UNVERIFIED from sandbox (limited egress). On your machine run:
+#   oem-radar probe https://firebat.com
+# If it reports 'shopify', set enabled: true below. If 'woocommerce' or
+# 'unknown', see docs/BIG_BRANDS.md (may need a different engine).
+manufacturer:
+  name: Firebat
+  country: CN
+sources:
+  - id: firebat-shopify
+    engine: shopify
+    base_url: https://firebat.com
+    min_interval: 12h
+    discovery: [products_json, sitemap]
+    currency_default: USD
+    enabled: false

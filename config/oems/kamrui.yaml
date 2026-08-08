@@ -1,0 +1,17 @@
+# KAMRUI — LIVE_VALIDATED 2026-08-02
+# Shopify products.json confirmed live (~60 products on page 1).
+# Fixture: tests/fixtures/shopify/kamrui_products_p1.json
+manufacturer:
+  name: KAMRUI
+  aliases: [Kamrui]
+  country: CN
+sources:
+  - id: kamrui-shopify
+    engine: shopify
+    base_url: https://kamrui.com
+    min_interval: 12h
+    discovery: [products_json, sitemap]
+    currency_default: USD
+    enabled: true
+    support_status: LIVE_VALIDATED
+    source_region: US

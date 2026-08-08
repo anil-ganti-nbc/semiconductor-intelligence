@@ -1,0 +1,4 @@
+{
+  "data_dir": ".",
+  "db_url": "sqlite:///semi_intel.db"
+}

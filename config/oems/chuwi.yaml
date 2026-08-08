@@ -1,0 +1,17 @@
+# Chuwi — store confirmed Shopify at us.chuwi.com (probe 2026-07-23; the
+# marketing site www.chuwi.com is a separate CMS, don't point at it).
+manufacturer:
+  name: Chuwi
+  aliases: [CHUWI]
+  country: CN
+sources:
+  - id: chuwi-shopify
+    engine: shopify
+    base_url: https://us.chuwi.com
+    min_interval: 8h
+    discovery: [products_json, sitemap]
+    currency_default: USD
+    category_map:
+      mini pc: mini_pc
+      laptop: laptop
+      tablet: tablet

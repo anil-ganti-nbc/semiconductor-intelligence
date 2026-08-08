@@ -1,0 +1,17 @@
+# Verified Shopify at bee-link.com (probe, 2026-07-18).
+
+manufacturer:
+  name: Beelink
+  aliases: [Bee-link, "零刻"]
+  country: CN
+
+sources:
+  - id: beelink-shopify
+    engine: shopify
+    base_url: https://www.bee-link.com
+    min_interval: 6h
+    discovery: [products_json, sitemap]
+    currency_default: USD
+    category_map:
+      nas pc: nas
+      mini pc: mini_pc

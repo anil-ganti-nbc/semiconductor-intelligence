@@ -1,0 +1,11 @@
+# Fixture subset in real pci.ids format
+10de  NVIDIA Corporation
+	2782  AD103 [GeForce RTX 4080]
+	2704  AD102 [GeForce RTX 4090]
+		1462 5001  Motherboard model (subvendor line, should be skipped)
+8086  Intel Corporation
+	a780  Raptor Lake-S GT1 [UHD Graphics 770]
+
+# start of device-class section -- parsing should stop before this
+C 00  Unclassified device
+	00  Non-VGA unclassified device

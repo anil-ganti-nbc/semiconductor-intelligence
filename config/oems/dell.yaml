@@ -1,0 +1,31 @@
+# Dell — first big-brand engine. Static HTML catalog (verified 2026-07-22),
+# no browser needed. Tracks MODEL-level products (one per Dell model code);
+# new models and unseen silicon are the signal, not per-config price churn.
+
+manufacturer:
+  name: Dell
+  aliases: [Dell Technologies, Alienware]
+  country: US
+
+sources:
+  - id: dell-us-laptops
+    engine: dell
+    base_url: https://www.dell.com
+    min_interval: 6h
+    region: us
+    currency_default: USD
+    category: laptop
+    category_paths:
+      - /en-us/shop/dell-laptops/sr/laptops
+      - /en-us/shop/gaming-laptops/sr/laptops/gaming-laptops
+      - /en-us/shop/desktop-computers/sr/desktops
+    # deep_crawl fetches each model's static spec page for EXACT silicon/RAM/
+    # storage/display (the "unannounced Core Ultra 9 275HX" signal). Costs one
+    # extra polite request per model. Start OFF; flip true once you've watched
+    # a baseline and want the deeper signal. deep_crawl_limit caps fetches/run.
+    deep_crawl: false
+    deep_crawl_limit: 60
+
+# Per-source severity note: for Dell, price changes are config churn, not news.
+# The global radar.yaml already silences price moves <15%; if Dell is still too
+# chatty, add a source-scoped rule dropping dell price_changed to severity 1.

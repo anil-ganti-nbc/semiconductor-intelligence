@@ -1,0 +1,17 @@
+# support_status: BLOCKED_BOT — kingnovy.com returns lander redirect HTML
+# Audited 2026-08-02. Do not enable without re-probe.
+# Kingnovy — UNVERIFIED from sandbox (limited egress). On your machine run:
+#   oem-radar probe https://kingnovy.com
+# If it reports 'shopify', set enabled: true below. If 'woocommerce' or
+# 'unknown', see docs/BIG_BRANDS.md (may need a different engine).
+manufacturer:
+  name: Kingnovy
+  country: CN
+sources:
+  - id: kingnovy-shopify
+    engine: shopify
+    base_url: https://kingnovy.com
+    min_interval: 12h
+    discovery: [products_json, sitemap]
+    currency_default: USD
+    enabled: false

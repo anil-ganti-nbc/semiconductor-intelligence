@@ -1,0 +1,3754 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Semiconductor Intelligence Platform</title>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    body {
+      font-family: -apple-system, Segoe UI, Helvetica, Arial, sans-serif;
+      background: #0f1115;
+      color: #e6e6e6;
+      margin: 0;
+    }
+
+    header {
+      padding: 16px 24px;
+      border-bottom: 1px solid #262a33;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    header p {
+      margin: 4px 0 0;
+      color: #9aa0ab;
+      font-size: 13px;
+    }
+
+    nav {
+      display: flex;
+      gap: 4px;
+      padding: 0 24px;
+      border-bottom: 1px solid #262a33;
+    }
+
+    nav button {
+      background: none;
+      border: none;
+      color: #9aa0ab;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      border-bottom: 2px solid transparent;
+    }
+
+    nav button.active {
+      color: #e6e6e6;
+      border-bottom-color: #4f8cff;
+    }
+
+    main {
+      padding: 20px 24px;
+    }
+
+    section {
+      display: none;
+    }
+
+    section.active {
+      display: block;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid #1c2028;
+      vertical-align: top;
+    }
+
+    th {
+      color: #9aa0ab;
+      font-weight: 500;
+    }
+
+    tr:hover td {
+      background: #171a21;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+    }
+
+    .status-open {
+      background: #2a3a55;
+      color: #8ab4ff;
+    }
+
+    .status-confirmed {
+      background: #1f4a2f;
+      color: #6fd88a;
+    }
+
+    .status-debunked {
+      background: #4a1f1f;
+      color: #ff8a8a;
+    }
+
+    .status-retracted {
+      background: #3a3a3a;
+      color: #bbb;
+    }
+
+    .conf-bar {
+      display: inline-block;
+      width: 60px;
+      height: 6px;
+      background: #262a33;
+      border-radius: 3px;
+      overflow: hidden;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    .conf-fill {
+      height: 100%;
+      background: #4f8cff;
+    }
+
+    .muted {
+      color: #6f7580;
+    }
+
+    .reasons {
+      color: #9aa0ab;
+      font-size: 12px;
+    }
+
+    #detail {
+      margin-top: 16px;
+      padding: 12px;
+      background: #171a21;
+      border-radius: 6px;
+      display: none;
+    }
+
+    #detail.active {
+      display: block;
+    }
+
+    .row-click {
+      cursor: pointer;
+    }
+
+    .row-click:focus {
+      outline: 2px solid #4f8cff;
+      outline-offset: 2px;
+    }
+
+    .report-card {
+      border-left: 3px solid #3b5277;
+      padding-left: 12px;
+      margin: 12px 0;
+    }
+
+    .report-excerpt {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      max-height: 180px;
+      overflow: auto;
+      color: #c8ced8;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .empty-action {
+      border: 1px dashed #3b5277;
+      border-radius: 8px;
+      padding: 18px;
+      color: #9aa0ab;
+      margin: 10px 0;
+    }
+
+    input[type=text],
+    input[type=search],
+    input[type=number],
+    select,
+    textarea {
+      background: #171a21;
+      border: 1px solid #262a33;
+      color: #e6e6e6;
+      padding: 6px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+      margin-bottom: 10px;
+      width: 260px;
+      font-family: inherit;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 60px;
+      resize: vertical;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: #9aa0ab;
+      margin-bottom: 2px;
+      margin-top: 6px;
+    }
+
+    .card {
+      background: #171a21;
+      border: 1px solid #262a33;
+      border-radius: 6px;
+      padding: 14px;
+      margin-bottom: 16px;
+      max-width: 420px;
+    }
+
+    .forms-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    button.primary {
+      background: #4f8cff;
+      color: #0f1115;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button.secondary {
+      background: #262a33;
+      color: #e6e6e6;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      margin-right: 6px;
+    }
+
+    button.danger {
+      background: #4a1f1f;
+      color: #ff8a8a;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .msg {
+      font-size: 12px;
+      margin-top: 6px;
+      min-height: 14px;
+    }
+
+    .msg.ok {
+      color: #6fd88a;
+    }
+
+    .msg.err {
+      color: #ff8a8a;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .toolbar select,
+    .toolbar input {
+      width: auto;
+      margin: 0;
+    }
+
+    .topic-chip {
+      display: inline-block;
+      background: #26354e;
+      color: #a9c8ff;
+      border-radius: 12px;
+      padding: 2px 8px;
+      margin: 2px;
+      font-size: 11px;
+    }
+
+    .score {
+      color: #7fb0ff;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .story-headline {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .story-card {
+      border: 1px solid #262a33;
+      background: #14171d;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+
+    .story-card:hover {
+      border-color: #3b5277;
+    }
+
+    .story-meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 6px 0;
+      color: #9aa0ab;
+      font-size: 12px;
+    }
+
+    .wide-card {
+      max-width: none;
+    }
+
+    .summary-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .summary-card {
+      min-width: 130px;
+      padding: 10px 12px;
+      border: 1px solid #262a33;
+      border-radius: 6px;
+      background: #14171d;
+    }
+
+    .summary-card strong {
+      display: block;
+      color: #8ab4ff;
+      font-size: 20px;
+    }
+
+    .summary-card span {
+      color: #9aa0ab;
+      font-size: 11px;
+    }
+
+    .inline {
+      display: inline-block;
+    }
+
+    input[type=checkbox] {
+      accent-color: #4f8cff;
+    }
+
+    .trend-row {
+      display: grid;
+      grid-template-columns: minmax(150px, 1fr) 2fr 56px;
+      gap: 8px;
+      align-items: center;
+      margin: 7px 0;
+      font-size: 12px;
+    }
+
+    .trend-track {
+      height: 7px;
+      background: #262a33;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .trend-fill {
+      height: 100%;
+      background: #4f8cff;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 14px;
+      margin: 4px 0 10px;
+    }
+
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: #c8ced8;
+      margin: 0;
+      white-space: nowrap;
+    }
+
+    dialog#saved-view-dialog {
+      background: #171a21;
+      color: #e6e6e6;
+      border: 1px solid #262a33;
+      border-radius: 8px;
+      padding: 18px;
+      width: min(520px, 92vw);
+      max-height: 85vh;
+      overflow: auto;
+    }
+
+    dialog#saved-view-dialog::backdrop {
+      background: rgba(6, 8, 12, 0.6);
+    }
+
+    dialog#saved-view-dialog h4 {
+      margin: 0 0 10px;
+    }
+
+    dialog.workflow-dialog {
+      background: #171a21;
+      color: #e6e6e6;
+      border: 1px solid #3b5277;
+      border-radius: 8px;
+      padding: 18px;
+      width: min(620px, 92vw);
+      max-height: 85vh;
+      overflow: auto;
+    }
+
+    dialog.workflow-dialog::backdrop {
+      background: rgba(6, 8, 12, 0.72);
+    }
+
+    dialog.workflow-dialog input,
+    dialog.workflow-dialog select,
+    dialog.workflow-dialog textarea {
+      box-sizing: border-box;
+      width: 100%;
+    }
+
+    .saved-view-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid #1c2028;
+      flex-wrap: wrap;
+    }
+
+    .saved-view-row:last-child {
+      border-bottom: none;
+    }
+
+    .saved-view-name {
+      font-size: 13px;
+    }
+
+    .saved-view-desc {
+      color: #9aa0ab;
+      font-size: 11px;
+    }
+
+    .active-view-banner {
+      border: 1px solid #2a3a55;
+      background: #141b2a;
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin: 8px 0;
+      font-size: 12px;
+    }
+
+    .active-view-banner strong {
+      color: #8ab4ff;
+    }
+
+    .active-view-modified {
+      color: #e8c26a;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Semiconductor Intelligence Platform</h1>
+    <p>Your automated editorial inbox for semiconductor and PC-hardware reporting.</p>
+  </header>
+
+  <nav>
+    <button data-tab="stories" class="active">Editorial Inbox</button>
+    <button data-tab="radar">Signal Radar</button>
+    <button data-tab="notifications">Alerts &amp; Digest</button>
+    <button data-tab="operations">Automation &amp; Health</button>
+    <button data-tab="topics">Monitored Topics</button>
+    <button data-tab="source-suggestions">Suggested Sources</button>
+    <button data-tab="discovery">Discovery Activity</button>
+    <button data-tab="claims">Claims &amp; Evidence</button>
+    <button data-tab="sources">Source Rankings</button>
+    <button data-tab="entities">Entities</button>
+    <button data-tab="suggestions">Claim Matches</button>
+    <button data-tab="add">Add</button>
+  </nav>
+
+  <main>
+    <section id="stories" class="active">
+      <div class="toolbar">
+        <select id="story-state" onchange="loadStories()">
+          <option value="unseen" selected>Unseen</option>
+          <option value="seen">Seen</option>
+          <option value="all">All</option>
+        </select>
+        <select id="story-topic" onchange="loadStories()">
+          <option value="">All topics</option>
+        </select>
+        <select id="story-sort" onchange="loadStories()">
+          <option value="interest">Highest interest</option>
+          <option value="newest">Newest</option>
+          <option value="coverage">Most coverage</option>
+          <option value="oldest">Oldest</option>
+        </select>
+        <label class="inline">Minimum score <input id="story-min-score" type="number" min="0" max="1" step=".05"
+            value="0" onchange="loadStories()"></label>
+        <button class="secondary" onclick="runBackfill()">Refresh discovery</button>
+        <button class="secondary" onclick="markSelected(true)">Mark selected seen</button>
+        <span id="story-msg" class="msg"></span>
+      </div>
+      <div id="stories-body"></div>
+      <div id="story-detail"></div>
+      <h3>Radar candidates awaiting editorial review</h3>
+      <p class="reasons">These are ranked suggestions, including items below automatic-promotion thresholds. Nothing is
+        published or promoted without your decision.</p>
+      <div class="toolbar">
+        <select id="editorial-radar-state" onchange="loadEditorialRadarShortlist()">
+          <option value="unseen">Unseen</option>
+          <option value="active">All active</option>
+        </select>
+        <select id="editorial-radar-age" aria-label="Editorial Radar age" onchange="loadEditorialRadarShortlist()">
+          <option value="current" selected>Current</option>
+          <option value="older">Older</option>
+          <option value="all">All ages</option>
+        </select>
+        <select id="editorial-radar-age-days" aria-label="Editorial Radar age window"
+          onchange="loadEditorialRadarShortlist()">
+          <option value="3">3 days</option>
+          <option value="7" selected>7 days</option>
+          <option value="14">14 days</option>
+          <option value="30">30 days</option>
+        </select>
+        <select id="editorial-radar-topic" onchange="loadEditorialRadarShortlist()">
+          <option value="">All topics</option>
+        </select>
+        <select id="editorial-radar-sort" onchange="loadEditorialRadarShortlist()">
+          <option value="score">Highest attention</option>
+          <option value="newest">Newest activity</option>
+          <option value="oldest">Oldest</option>
+        </select>
+        <label class="inline">Minimum score <input id="editorial-radar-min-score" type="number" min="0" max="1"
+            step=".05" value="0" onchange="loadEditorialRadarShortlist()"></label>
+      </div>
+      <div id="editorial-radar-shortlist" class="muted">Loading Radar candidates…</div>
+    </section>
+
+    <section id="radar">
+      <div class="card wide-card" id="radar-overview"></div>
+
+      <div class="toolbar">
+        <select id="radar-state" onchange="loadRadarCandidates()">
+          <option value="unseen" selected>Unseen</option>
+          <option value="active">Active</option>
+          <option value="stale">Stale</option>
+          <option value="snoozed">Snoozed</option>
+          <option value="dismissed">Dismissed</option>
+          <option value="promoted">Promoted</option>
+          <option value="all">All</option>
+        </select>
+        <select id="radar-age" aria-label="Candidate age" onchange="loadRadarCandidates()">
+          <option value="current" selected>Current</option>
+          <option value="older">Older</option>
+          <option value="all">All ages</option>
+        </select>
+        <select id="radar-age-days" aria-label="Current age window" onchange="loadRadarCandidates()">
+          <option value="3">3 days</option>
+          <option value="7" selected>7 days</option>
+          <option value="14">14 days</option>
+          <option value="30">30 days</option>
+        </select>
+        <select id="radar-sort" onchange="loadRadarCandidates()">
+          <option value="score" selected>Highest attention</option>
+          <option value="newest">Newest activity</option>
+          <option value="oldest">Oldest</option>
+        </select>
+        <label class="inline">Minimum score <input id="radar-min-score" type="number" min="0" max="1" step=".05"
+            value="0" onchange="loadRadarCandidates()"></label>
+        <button class="secondary" onclick="runRadarCluster()">Recluster &amp; rescore now</button>
+        <span id="radar-msg" class="msg"></span>
+      </div>
+      <div id="radar-candidates-body"></div>
+      <div id="radar-candidate-detail"></div>
+
+      <dialog id="radar-claim-dialog" class="workflow-dialog">
+        <form id="radar-claim-form" onsubmit="return submitRadarClaim(event)">
+          <h3>Create a claim from Signal Radar</h3>
+          <p id="radar-claim-context" class="reasons"></p>
+          <input type="hidden" name="candidate_id">
+          <input type="hidden" name="signal_item_id">
+          <label>Claim statement</label>
+          <textarea name="statement" required
+            placeholder="Write one falsifiable assertion. Review and edit the suggested wording."></textarea>
+          <label>Subject entity (optional)</label>
+          <input type="search" placeholder="Filter canonical entities…"
+            oninput="filterEntitySelector(this, 'radar-claim-entity')">
+          <select id="radar-claim-entity" name="subject_entity_id">
+            <option value="">No subject entity</option>
+          </select>
+          <label>Evidence stance</label>
+          <select name="stance">
+            <option value="supports">Supports</option>
+            <option value="weakens">Weakens / context</option>
+            <option value="contradicts">Contradicts</option>
+          </select>
+          <label>Link note (optional)</label><textarea name="note"></textarea>
+          <div><button class="primary" type="submit">Create claim</button><button class="secondary" type="button"
+              onclick="closeRadarClaimDialog()">Cancel</button></div>
+          <div class="msg" data-msg></div>
+        </form>
+      </dialog>
+
+      <dialog id="radar-promotion-dialog" class="workflow-dialog">
+        <form id="radar-promotion-form" onsubmit="return submitRadarPromotion(event)">
+          <h3>Promote to Editorial Inbox</h3>
+          <input type="hidden" name="candidate_id">
+          <div id="radar-promotion-context" class="reasons"></div>
+          <label>Editorial headline</label><input type="text" name="headline" required maxlength="500">
+          <p class="reasons">This is an explicit editorial decision. It does not enable automatic promotion.</p>
+          <div><button class="primary" type="submit">Confirm promotion</button><button class="secondary" type="button"
+              onclick="closeRadarPromotionDialog()">Cancel</button></div>
+          <div class="msg" data-msg></div>
+        </form>
+      </dialog>
+
+      <h3>Import an older Signal Radar database</h3>
+      <div class="card wide-card">
+        <p class="reasons">Choose the old <code>signal_radar.db</code> file. Preview is read-only. Imported sources
+          start with automatic polling off, and old Radar stories/scores are deliberately ignored so this version can
+          reassess the raw posts safely.</p>
+        <label>Legacy database file</label>
+        <input id="legacy-import-file" type="file" accept=".db,.sqlite,.sqlite3,application/vnd.sqlite3">
+        <div class="toolbar" id="legacy-import-categories">
+          <label class="inline"><input type="checkbox" value="sources" checked> Sources</label>
+          <label class="inline"><input type="checkbox" value="posts" checked> Raw posts</label>
+          <label class="inline"><input type="checkbox" value="media" checked> Media metadata</label>
+          <label class="inline"><input type="checkbox" value="provider_runs" checked> Provider history</label>
+          <label class="inline"><input type="checkbox" value="source_suggestions" checked> Source suggestions</label>
+        </div>
+        <button class="secondary" type="button" onclick="previewLegacyImport()">Preview import</button>
+        <button class="primary" id="legacy-import-apply" type="button" onclick="applyLegacyImport()" disabled>Import
+          reviewed items</button>
+        <span id="legacy-import-msg" class="msg"></span>
+        <div id="legacy-import-report"></div>
+      </div>
+
+      <h3>Sources</h3>
+      <div class="forms-grid">
+        <form class="card wide-card" onsubmit="return submitAddRadarSource(event)">
+          <label>Paste a feed URL or an X handle (e.g. @IanCutress)</label>
+          <input type="text" name="handle_or_url" required placeholder="https://videocardz.com/feed or @handle">
+          <label>Display name (optional)</label>
+          <input type="text" name="display_name">
+          <label>Priority (1-5, higher polls more often)</label>
+          <input type="number" name="priority" value="3" min="1" max="5">
+          <label class="inline"><input type="checkbox" name="polling_enabled"> Enable automatic collection for this
+            source</label>
+          <div><button class="primary" type="submit">Add source</button></div>
+          <div class="msg" data-msg></div>
+        </form>
+      </div>
+      <div class="toolbar" id="radar-source-actions">
+        <label class="inline"><input type="checkbox" id="radar-source-select-all"
+            onchange="toggleAllRadarSources(this.checked)"> Select all</label>
+        <button class="secondary" type="button" id="radar-collect-selected"
+          onclick="collectSelectedRadarSources()">Collect selected (0)</button>
+        <button class="secondary" type="button" onclick="collectAllRadarSources()">Collect all enabled</button>
+        <button class="danger" type="button" id="radar-collect-cancel" onclick="cancelRadarCollection()" disabled>Cancel
+          remaining</button>
+        <button class="secondary" type="button" onclick="switchTab('source-suggestions')">Review suggested
+          sources</button>
+        <span id="radar-collection-progress" class="msg"></span>
+      </div>
+      <div id="radar-sources-body"></div>
+
+      <dialog id="radar-source-dialog">
+        <form id="radar-source-edit-form" onsubmit="return saveRadarSource(event)">
+          <h4>Edit source</h4>
+          <input type="hidden" name="source_id">
+          <label>Display name</label><input type="text" name="display_name" maxlength="255" required>
+          <label id="radar-source-identity-label">Feed URL or X handle</label>
+          <input type="text" name="handle_or_url" maxlength="2048" required>
+          <label>Priority (1-5)</label><input type="number" name="priority" min="1" max="5" required>
+          <label>Trust weight (0-1)</label><input type="number" name="trust_weight" min="0" max="1" step=".05" required>
+          <label class="inline"><input type="checkbox" name="enabled"> Source enabled</label>
+          <label class="inline"><input type="checkbox" name="polling_enabled"> Automatic polling enabled</label>
+          <div class="toolbar">
+            <button class="primary" type="submit">Save source</button>
+            <button class="secondary" type="button" onclick="closeRadarSourceEditor()">Cancel</button>
+          </div>
+          <div class="msg" data-msg></div>
+        </form>
+      </dialog>
+
+      <h3>Settings</h3>
+      <form class="card wide-card" id="radar-settings-form" onsubmit="return submitRadarSettings(event)">
+        <div class="forms-grid">
+          <div>
+            <label class="inline"><input type="checkbox" name="collection_enabled"> Collection enabled (RSS/social
+              polling)</label>
+            <label class="inline"><input type="checkbox" name="x_provider_enabled"> X collection enabled (separate
+              opt-in, requires an imported session)</label>
+            <label class="inline"><input type="checkbox" name="media_download_enabled"> Media download enabled</label>
+            <label class="inline"><input type="checkbox" name="ocr_enabled"> OCR enabled</label>
+            <label>Startup stagger (seconds)</label>
+            <input type="number" name="startup_stagger_seconds" min="0" max="600">
+          </div>
+          <div>
+            <label>Attention score weights (normalized automatically)</label>
+            <label class="inline">Topic relevance <input type="number" name="weight_topic_relevance" step=".01" min="0"
+                max="1"></label>
+            <label class="inline">Novelty <input type="number" name="weight_novelty" step=".01" min="0" max="1"></label>
+            <label class="inline">Momentum <input type="number" name="weight_momentum" step=".01" min="0"
+                max="1"></label>
+            <label class="inline">Source diversity <input type="number" name="weight_source_diversity" step=".01"
+                min="0" max="1"></label>
+            <label class="inline">Artifact strength <input type="number" name="weight_artifact_strength" step=".01"
+                min="0" max="1"></label>
+            <label class="inline">Source quality <input type="number" name="weight_source_quality" step=".01" min="0"
+                max="1"></label>
+            <label>Momentum window (hours)</label>
+            <input type="number" name="momentum_window_hours" min="1" max="168">
+            <label>Staleness (days)</label>
+            <input type="number" name="staleness_days" min="1" max="90">
+          </div>
+          <div>
+            <label class="inline"><input type="checkbox" name="automatic_promotion_enabled"> Automatic promotion enabled
+              (default off)</label>
+            <label class="inline"><input type="checkbox" name="required_topic_match"> Require monitored-topic match to
+              auto-promote</label>
+            <label>Minimum attention score</label>
+            <input type="number" name="minimum_attention_score" step=".01" min="0" max="1">
+            <label>Maximum candidate age (hours)</label>
+            <input type="number" name="maximum_candidate_age_hours" min="1" max="2000">
+            <label>Hourly promotion budget</label>
+            <input type="number" name="hourly_promotion_budget" min="1" max="50">
+          </div>
+        </div>
+        <div><button class="primary" type="submit">Save settings</button></div>
+        <div class="msg" data-msg></div>
+      </form>
+    </section>
+
+    <section id="notifications">
+      <div class="card wide-card" id="notification-overview"></div>
+      <div class="forms-grid">
+        <div class="card">
+          <strong>Notification quality</strong>
+          <label>Preset</label>
+          <select id="notification-preset">
+            <option value="quiet">Quiet</option>
+            <option value="balanced">Balanced</option>
+            <option value="breaking_news">Breaking news</option>
+          </select>
+          <button class="secondary" onclick="previewNotificationPreset()">Preview changes</button>
+          <button class="primary" onclick="applyNotificationPreset()">Apply preset</button>
+          <div id="notification-preset-preview" class="reasons"></div>
+        </div>
+        <div class="card">
+          <strong>External delivery</strong>
+          <div id="notification-delivery-state" class="reasons"></div>
+          <button class="secondary" onclick="previewWebhook()">Preview safe test</button>
+          <button class="secondary" onclick="testWebhook()">Send synthetic test</button>
+          <button class="primary" id="notification-delivery-enable" onclick="toggleWebhookDelivery()" disabled>Enable
+            delivery</button>
+          <button class="secondary" id="notification-delivery-retry" onclick="deliverPendingNotifications()"
+            disabled>Deliver pending now</button>
+          <div id="notification-webhook-preview" class="reasons"></div>
+        </div>
+        <div class="card wide-card" style="flex:1; min-width:360px">
+          <strong>Saved views</strong>
+          <div id="saved-view-active" class="active-view-banner muted">No saved view is active. Use the manual filters
+            below, or open a saved view.</div>
+          <div id="saved-notification-views" class="reasons">Loading saved views…</div>
+          <div style="margin-top:10px">
+            <button class="secondary" type="button" onclick="openSavedViewEditor()">New view</button>
+            <button class="secondary" type="button" onclick="clearActiveSavedView()">Clear view</button>
+          </div>
+          <div id="saved-view-msg" class="msg"></div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <select id="notification-state" onchange="manualFilterChanged()">
+          <option value="unread">Unread</option>
+          <option value="read">Read</option>
+          <option value="dismissed">Dismissed</option>
+          <option value="all">All</option>
+        </select>
+        <select id="notification-type" onchange="manualFilterChanged()">
+          <option value="">All alert types</option>
+          <option value="high_attention">High attention</option>
+          <option value="score_increase">Score increase</option>
+          <option value="independent_corroboration">Independent corroboration</option>
+          <option value="promotion_ready">Ready for review</option>
+          <option value="candidate_promoted">Promoted</option>
+          <option value="topic_activity">Topic activity</option>
+          <option value="source_suggestion">Source suggestion</option>
+          <option value="provider_failure">Provider failure</option>
+          <option value="provider_recovery">Provider recovery</option>
+        </select>
+        <select id="notification-severity" onchange="manualFilterChanged()">
+          <option value="">All importance levels</option>
+          <option value="informational">Informational</option>
+          <option value="notable">Notable</option>
+          <option value="important">Important</option>
+          <option value="urgent">Urgent</option>
+        </select>
+        <select id="notification-topic" onchange="manualFilterChanged()">
+          <option value="">All monitored topics</option>
+        </select>
+        <label class="inline">From <input id="notification-from" type="date" onchange="manualFilterChanged()"></label>
+        <label class="inline">To <input id="notification-to" type="date" onchange="manualFilterChanged()"></label>
+        <input id="notification-search" type="text" placeholder="Search alerts…" oninput="manualFilterChanged()">
+        <button class="secondary" onclick="generateNotifications()">Check for new alerts</button>
+        <button class="secondary" onclick="markAllNotificationsRead()">Mark shown as read</button>
+        <button class="secondary" onclick="sendTestNotification()">Create test alert</button>
+        <span id="notification-msg" class="msg"></span>
+      </div>
+      <div id="notification-list"></div>
+
+      <dialog id="saved-view-dialog">
+        <form id="saved-view-form">
+          <h4 id="saved-view-dialog-title">New saved view</h4>
+          <label>Name</label>
+          <input id="sv-name" type="text" maxlength="120" placeholder="e.g. Unread important alerts" style="width:100%">
+          <label>Notification state</label>
+          <select id="sv-state" style="width:100%">
+            <option value="unread">Unread</option>
+            <option value="read">Read</option>
+            <option value="dismissed">Dismissed</option>
+            <option value="all">All</option>
+          </select>
+          <label>Event types <span class="reasons">(none checked = any)</span></label>
+          <div id="sv-event-types" class="checkbox-group">
+            <label><input type="checkbox" value="high_attention"> High attention</label>
+            <label><input type="checkbox" value="score_increase"> Score increase</label>
+            <label><input type="checkbox" value="independent_corroboration"> Independent corroboration</label>
+            <label><input type="checkbox" value="promotion_ready"> Ready for review</label>
+            <label><input type="checkbox" value="candidate_promoted"> Promoted</label>
+            <label><input type="checkbox" value="topic_activity"> Topic activity</label>
+            <label><input type="checkbox" value="source_suggestion"> Source suggestion</label>
+            <label><input type="checkbox" value="provider_failure"> Provider failure</label>
+            <label><input type="checkbox" value="provider_recovery"> Provider recovery</label>
+          </div>
+          <label>Severities <span class="reasons">(none checked = any)</span></label>
+          <div id="sv-severities" class="checkbox-group">
+            <label><input type="checkbox" value="informational"> Informational</label>
+            <label><input type="checkbox" value="notable"> Notable</label>
+            <label><input type="checkbox" value="important"> Important</label>
+            <label><input type="checkbox" value="urgent"> Urgent</label>
+          </div>
+          <label>Monitored topics <span class="reasons">(none checked = any)</span></label>
+          <div id="sv-topics" class="checkbox-group">No monitored topics yet.</div>
+          <label>Date window</label>
+          <select id="sv-date-window" style="width:100%">
+            <option value="">Any time</option>
+            <option value="1">Last 1 day</option>
+            <option value="3">Last 3 days</option>
+            <option value="7">Last 7 days</option>
+            <option value="14">Last 14 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+          </select>
+          <label>Search text</label>
+          <input id="sv-search" type="text" maxlength="500" style="width:100%">
+          <label>Sort order</label>
+          <select id="sv-sort" style="width:100%">
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="severity">Severity</option>
+          </select>
+          <div style="margin-top:12px">
+            <button class="primary" type="button" onclick="saveSavedViewFromEditor()">Save</button>
+            <button class="secondary" type="button" onclick="closeSavedViewEditor()">Cancel</button>
+          </div>
+          <div id="saved-view-form-msg" class="msg"></div>
+        </form>
+      </dialog>
+
+      <div class="forms-grid">
+        <div class="card wide-card" style="flex:2; min-width:520px">
+          <div class="toolbar"><strong>Daily intelligence digest</strong>
+            <button class="secondary" onclick="generateDigest(false)">Refresh now</button>
+            <button class="primary" id="notification-digest-deliver" onclick="generateDigest(true)" disabled>Refresh and
+              deliver</button>
+          </div>
+          <div id="notification-digest-meta" class="reasons"></div>
+          <pre id="notification-digest" style="white-space:pre-wrap;color:#c8ced8"></pre>
+        </div>
+        <div class="card" style="flex:1">
+          <strong>Provider health</strong>
+          <div id="notification-incidents" class="reasons"></div>
+        </div>
+      </div>
+
+      <h3>Alert settings</h3>
+      <form class="card wide-card" id="notification-settings-form" onsubmit="return saveNotificationSettings(event)">
+        <div class="forms-grid">
+          <div>
+            <label class="inline"><input type="checkbox" name="in_app_enabled"> Show in-app alerts</label>
+            <label class="inline"><input type="checkbox" name="daily_digest_enabled"> Build a daily digest</label>
+            <label>Digest time</label><input type="text" name="digest_time" placeholder="08:00">
+            <label>Timezone</label><input type="text" name="timezone" placeholder="Asia/Kolkata">
+            <label>Keep read alerts (days)</label><input type="number" name="retention_days" min="1" max="730">
+          </div>
+          <div>
+            <label>High-attention threshold</label><input type="number" name="minimum_attention_score" step=".01"
+              min="0" max="1">
+            <label>Meaningful score increase</label><input type="number" name="minimum_score_increase" step=".01"
+              min="0" max="1">
+            <label>Independent groups required</label><input type="number" name="required_independent_group_count"
+              min="1" max="20">
+            <label class="inline"><input type="checkbox" name="required_topic_match"> Require a monitored-topic
+              match</label>
+            <label>Provider failures before alerting</label><input type="number" name="provider_failure_threshold"
+              min="1" max="20">
+          </div>
+          <div>
+            <label>Quiet hours start</label><input type="text" name="quiet_hours_start" placeholder="22:00">
+            <label>Quiet hours end</label><input type="text" name="quiet_hours_end" placeholder="07:00">
+            <label>Immediate alert cap per hour</label><input type="number" name="maximum_immediate_per_hour" min="1"
+              max="100">
+            <label class="inline"><input type="checkbox" name="windows_desktop_notifications_enabled"> Show Windows
+              desktop notifications</label>
+            <div id="windows-desktop-status" class="reasons">Checking Windows notification support…</div>
+            <button class="secondary" type="button" id="windows-desktop-test"
+              onclick="testWindowsDesktopNotification()">Send test notification</button>
+            <span id="windows-desktop-msg" class="msg"></span>
+            <label class="inline"><input type="checkbox" name="provider_health_enabled"> Provider health alerts</label>
+            <label class="inline"><input type="checkbox" name="source_suggestion_enabled"> Suggested-source
+              alerts</label>
+            <p class="reasons">External delivery remains off until a delivery adapter is configured. In-app alerts and
+              digests work locally.</p>
+          </div>
+        </div>
+        <button class="primary" type="submit">Save alert settings</button>
+        <span class="msg" data-msg></span>
+        <div id="notification-muted-settings" class="reasons" style="margin-top:12px"></div>
+      </form>
+    </section>
+
+    <section id="operations">
+      <div class="card wide-card" id="operations-overview">Loading operational health…</div>
+      <div class="card wide-card">
+        <div class="toolbar">
+          <strong>Recent trends</strong>
+          <select id="operations-trend-window" onchange="loadOperationalTrends()">
+            <option value="7">Last 7 days</option>
+            <option value="30" selected>Last 30 days</option>
+            <option value="90">Last 90 days</option>
+          </select>
+        </div>
+        <div id="operations-trends" class="muted">Loading recent trends…</div>
+      </div>
+      <div class="toolbar">
+        <button class="primary" id="automation-toggle" onclick="toggleAutomation()">Enable automation</button>
+        <button class="secondary" onclick="runOperationalJob('pipeline')">Run pipeline now</button>
+        <button class="secondary" onclick="runOperationalJob('daily_digest')">Generate digest now</button>
+        <button class="secondary" onclick="runOperationalJob('backup')">Create backup now</button>
+        <button class="secondary" onclick="runOperationalJob('health_check')">Run health check</button>
+        <button class="secondary" id="operations-reconcile-stale" onclick="reconcileStaleJobs()" disabled>Reconcile
+          stale runs</button>
+        <button class="secondary" onclick="createDiagnostics()">Create diagnostics</button>
+        <span id="operations-msg" class="msg"></span>
+      </div>
+      <div class="forms-grid">
+        <div class="card wide-card" style="flex:2;min-width:520px">
+          <strong>Recent job history</strong>
+          <div id="operations-jobs" class="muted">Loading recent jobs…</div>
+        </div>
+        <div class="card" style="flex:1">
+          <strong>Verified backups</strong>
+          <div id="operations-backups" class="reasons">Loading backups…</div>
+          <button class="secondary" onclick="previewBackupPrune()">Preview pruning</button>
+          <div id="backup-prune-preview" class="reasons"></div>
+        </div>
+      </div>
+      <div class="card wide-card">
+        <strong>Windows scheduling</strong>
+        <p class="reasons">Automation uses a bounded Windows Task Scheduler cycle; the dashboard does not need to stay
+          open. The exact command is always shown before an OS change.</p>
+        <div id="operations-windows-task" class="reasons">Checking Windows Task Scheduler…</div>
+        <button class="secondary" id="operations-task-install" onclick="installWindowsTask()" disabled>Install or repair
+          task</button>
+        <button class="secondary" onclick="loadOperations()">Retry status</button>
+      </div>
+    </section>
+
+    <section id="topics">
+      <div class="forms-grid">
+        <form id="topic-form" class="card" onsubmit="return saveTopic(event)">
+          <h4 id="topic-form-title">Add monitored topic</h4>
+          <input type="hidden" name="id">
+          <label>Display name</label><input type="text" name="name" required>
+          <label>Primary keyword</label><input type="text" name="keyword" placeholder="Defaults to display name">
+          <label>Aliases (one per line)</label><textarea name="aliases"></textarea>
+          <label>Category</label><input type="text" name="category">
+          <label>Priority (0–1)</label><input type="number" name="priority" min="0" max="1" step=".05" value=".5">
+          <label><input type="checkbox" name="enabled" checked> Enabled</label>
+          <label>Notes</label><textarea name="notes"></textarea>
+          <button class="primary" type="submit">Save topic</button>
+          <button class="secondary" type="button" onclick="resetTopicForm()">Cancel edit</button>
+          <div id="topic-form-msg" class="msg"></div>
+        </form>
+        <div class="card wide-card" style="flex:1; min-width:560px">
+          <div class="toolbar"><input id="topic-search" type="text" placeholder="Search topics..."
+              oninput="loadTopics()"></div>
+          <table>
+            <thead>
+              <tr>
+                <th>Topic</th>
+                <th>Category</th>
+                <th>Priority</th>
+                <th>Matches</th>
+                <th>State</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="topics-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="source-suggestions">
+      <div class="toolbar">
+        <select id="source-suggestion-state" onchange="loadSourceSuggestions()">
+          <option value="pending">To review</option>
+          <option value="ignored">Ignored</option>
+          <option value="blocked">Blocked</option>
+          <option value="added">Added</option>
+        </select>
+        <select id="source-suggestion-provider" onchange="renderSourceSuggestions()">
+          <option value="all">All providers</option>
+          <option value="x">X handles</option>
+          <option value="website">Websites</option>
+          <option value="forum">Forums</option>
+          <option value="reddit">Reddit</option>
+          <option value="github">GitHub</option>
+          <option value="unsupported">Unsupported</option>
+        </select>
+        <span id="source-suggestion-counts" class="reasons"></span>
+        <button class="secondary" type="button" onclick="refreshHandleSuggestions(this)">Refresh handle suggestions</button>
+        <button class="secondary" type="button" onclick="discoverSourceSuggestions(this)">Discover source suggestions</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th>Provider</th>
+            <th>Score</th>
+            <th>Evidence</th>
+            <th>Feed / Handle</th>
+            <th>Review</th>
+          </tr>
+        </thead>
+        <tbody id="source-suggestions-body"></tbody>
+      </table>
+    </section>
+
+    <section id="discovery">
+      <div class="forms-grid">
+        <form id="discovery-settings-form" class="card" onsubmit="return saveDiscoverySettings(event)">
+          <h4>Bounded discovery settings</h4>
+          <label><input type="checkbox" name="enabled"> Discovery enabled</label>
+          <label><input type="checkbox" name="automatic"> Run automatically after ingestion</label>
+          <label>Minimum interest score</label><input type="number" name="minimum_interest_score" min="0" max="1"
+            step=".05">
+          <label>Maximum story age (hours)</label><input type="number" name="maximum_story_age_hours" min="1" max="168">
+          <label>Cooldown per story (hours)</label><input type="number" name="cooldown_hours" min="1" max="72">
+          <label>Maximum cycles per story</label><input type="number" name="maximum_cycles_per_story" min="1" max="10">
+          <label>Global cycles per hour</label><input type="number" name="global_cycles_per_hour" min="1" max="50">
+          <label>Provider requests per hour</label><input type="number" name="provider_requests_per_hour" min="1"
+            max="150">
+          <label>Results per query</label><input type="number" name="results_per_query" min="1" max="30">
+          <button class="primary" type="submit">Save discovery settings</button>
+          <div id="discovery-settings-msg" class="msg"></div>
+        </form>
+        <div class="card wide-card" style="flex:1;min-width:620px">
+          <h4>Recent bounded searches</h4>
+          <div id="discovery-budget" class="story-meta"></div>
+          <table>
+            <thead>
+              <tr>
+                <th>Run</th>
+                <th>Story</th>
+                <th>Status</th>
+                <th>Requests</th>
+                <th>Results</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody id="discovery-runs-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="claims">
+      <div class="toolbar">
+        <select id="claim-status-filter" onchange="loadClaims()">
+          <option value="">All claim states</option>
+          <option value="open">Open</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="debunked">Debunked</option>
+          <option value="retracted">Retracted</option>
+        </select>
+        <input id="claim-search" type="text" placeholder="Search claims…" oninput="loadClaims()">
+        <button class="primary" type="button" onclick="focusClaimForm()">Create your first claim</button>
+        <button class="secondary" type="button" onclick="switchTab('radar')">Create from Signal Radar</button>
+        <button class="secondary" type="button" onclick="focusEvidenceForm()">Add evidence</button>
+      </div>
+      <div class="forms-grid">
+        <form id="workspace-claim-form" class="card" onsubmit="return submitWorkspaceClaim(event)">
+          <h4>Create claim</h4>
+          <label>Falsifiable statement</label><textarea name="statement" required></textarea>
+          <label>Subject entity (optional)</label>
+          <input type="search" placeholder="Filter canonical entities…"
+            oninput="filterEntitySelector(this, 'workspace-claim-entity')">
+          <select id="workspace-claim-entity" name="subject_entity_id">
+            <option value="">No subject entity</option>
+          </select>
+          <button class="primary" type="submit">Create claim</button>
+          <div class="msg" data-msg></div>
+        </form>
+        <form id="workspace-evidence-form" class="card" onsubmit="return submitWorkspaceEvidence(event)">
+          <h4>Add evidence manually</h4>
+          <label>Source ID</label><input type="number" name="source_id" required min="1">
+          <label>Title</label><input type="text" name="title" required>
+          <label>Content or excerpt</label><textarea name="content" required></textarea>
+          <label>Original URL (optional)</label><input type="text" name="url">
+          <button class="primary" type="submit">Capture evidence</button>
+          <div class="msg" data-msg></div>
+        </form>
+      </div>
+      <div class="forms-grid">
+        <div class="card wide-card" style="flex:1;min-width:520px">
+          <h3>Claims</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Statement</th>
+                <th>Status</th>
+                <th>Confidence</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody id="claims-body"></tbody>
+          </table>
+        </div>
+        <div class="card wide-card" style="flex:1;min-width:420px">
+          <h3>Evidence library</h3>
+          <div id="evidence-workspace-body"></div>
+        </div>
+      </div>
+      <div id="detail"></div>
+    </section>
+
+    <section id="evidence">
+      <div class="empty-action">Evidence now lives beside its claims in <button class="secondary"
+          onclick="switchTab('claims')">Claims &amp; Evidence</button>.</div>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Title</th>
+            <th>Source</th>
+            <th>Entity</th>
+            <th>Collected</th>
+          </tr>
+        </thead>
+        <tbody id="evidence-body"></tbody>
+      </table>
+    </section>
+
+    <section id="sources">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Overall accuracy</th>
+            <th>By company</th>
+          </tr>
+        </thead>
+        <tbody id="sources-body"></tbody>
+      </table>
+    </section>
+
+    <section id="entities">
+      <div id="entity-summary" class="summary-grid"></div>
+      <div class="forms-grid">
+        <form id="entity-workspace-form" class="card" onsubmit="return submitEntityWorkspace(event)">
+          <h3>Create canonical entity</h3>
+          <p class="reasons">Radar proposals remain non-canonical until you explicitly resolve them.</p>
+          <label>Canonical name</label><input name="name" required maxlength="255">
+          <label>Type</label><select name="type" required>
+            <option value="product">Product</option>
+            <option value="company">Company</option>
+            <option value="person">Person</option>
+            <option value="architecture">Architecture</option>
+            <option value="foundry_node">Foundry node</option>
+            <option value="packaging_tech">Packaging technology</option>
+            <option value="memory_tech">Memory technology</option>
+            <option value="benchmark">Benchmark</option>
+            <option value="other">Other</option>
+          </select>
+          <label>Aliases (one per line)</label><textarea name="aliases"></textarea>
+          <label>Attributes (one <code>key=value</code> per line, optional)</label><textarea
+            name="attributes"></textarea>
+          <button class="primary" type="submit">Create entity</button>
+          <div class="msg" data-msg></div>
+        </form>
+        <div class="card wide-card" style="flex:1;min-width:620px">
+          <h3>Canonical entities</h3>
+          <div class="toolbar"><input type="search" id="entity-filter" placeholder="Search name or alias…">
+            <select id="entity-type-filter">
+              <option value="">All types</option>
+              <option value="product">Product</option>
+              <option value="company">Company</option>
+              <option value="person">Person</option>
+              <option value="architecture">Architecture</option>
+              <option value="foundry_node">Foundry node</option>
+              <option value="packaging_tech">Packaging technology</option>
+              <option value="memory_tech">Memory technology</option>
+              <option value="benchmark">Benchmark</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div id="entities-body"></div>
+        </div>
+      </div>
+      <div id="entity-detail"></div>
+      <div class="card wide-card">
+        <h3>Unresolved Radar mentions</h3>
+        <p class="reasons">Ranked extracted phrases awaiting human review. Nothing here becomes canonical automatically.
+        </p>
+        <div class="toolbar"><input type="search" id="mention-filter" placeholder="Search proposals…">
+          <select id="mention-type-filter">
+            <option value="">All proposed types</option>
+            <option value="company">Company</option>
+            <option value="product">Product</option>
+            <option value="codename">Codename</option>
+            <option value="benchmark">Benchmark</option>
+            <option value="version">Version</option>
+            <option value="retailer">Retailer</option>
+            <option value="pci_id">PCI ID</option>
+          </select>
+        </div>
+        <div id="mention-proposals-body"></div>
+      </div>
+      <dialog id="mention-resolution-dialog" class="workflow-dialog">
+        <form id="mention-resolution-form" onsubmit="return submitMentionResolution(event)">
+          <h3>Resolve Radar mention</h3>
+          <p id="mention-resolution-context" class="reasons"></p>
+          <input type="hidden" name="candidate_text"><input type="hidden" name="proposed_entity_type">
+          <label>Resolution</label><select name="mode" onchange="toggleMentionResolutionMode(this.value)">
+            <option value="new">Create new canonical entity</option>
+            <option value="existing">Use existing entity</option>
+          </select>
+          <div data-new-fields><label>Canonical name</label><input name="name" maxlength="255"><label>Canonical
+              type</label><select name="type">
+              <option value="product">Product</option>
+              <option value="company">Company</option>
+              <option value="person">Person</option>
+              <option value="architecture">Architecture</option>
+              <option value="foundry_node">Foundry node</option>
+              <option value="packaging_tech">Packaging technology</option>
+              <option value="memory_tech">Memory technology</option>
+              <option value="benchmark">Benchmark</option>
+              <option value="other">Other</option>
+            </select></div>
+          <div data-existing-fields style="display:none"><label>Existing entity</label><select name="entity_id">
+              <option value="">Choose entity…</option>
+            </select></div>
+          <label class="inline"><input type="checkbox" name="add_observed_as_alias"> Add observed spelling as alias when
+            different</label>
+          <div><button class="primary" type="submit">Resolve group</button><button class="secondary" type="button"
+              onclick="el('mention-resolution-dialog').close()">Cancel</button></div>
+          <div class="msg" data-msg></div>
+        </form>
+      </dialog>
+    </section>
+
+    <section id="suggestions">
+      <div class="empty-action">This scanner compares canonical evidence with open claims. It proposes potentially
+        relevant links; it does not decide whether evidence supports or contradicts a claim.</div>
+      <div id="suggestion-readiness" class="summary-grid"></div>
+      <div id="suggestion-readiness-help"></div>
+      <div class="toolbar"><button id="suggestion-scan-button" class="primary" onclick="runSuggestionScan()">Scan for
+          new claim matches</button>
+        <select id="suggestion-status-filter" onchange="loadSuggestions()">
+          <option value="pending">Pending</option>
+          <option value="accepted">Accepted</option>
+          <option value="rejected">Rejected</option>
+          <option value="">All</option>
+        </select>
+        <input id="suggestion-search" type="search" placeholder="Search claim, evidence, source…"
+          oninput="loadSuggestions()">
+        <select id="suggestion-entity-filter" onchange="loadSuggestions()">
+          <option value="">All subject entities</option>
+        </select>
+        <span id="suggestions-scan-msg" class="msg" style="display:inline"></span>
+      </div>
+      <div id="suggestions-body"></div>
+    </section>
+
+    <section id="add">
+      <div class="forms-grid">
+        <form class="card" onsubmit="return submitForm(event, 'source')">
+          <h4>New Source</h4>
+          <label>Name</label>
+          <input type="text" name="name" required>
+          <label>Type</label>
+          <select name="type" required>
+            <option value="manual" selected>manual</option>
+            <option value="rss">rss</option>
+            <option value="forum">forum</option>
+            <option value="social">social</option>
+            <option value="retail">retail</option>
+            <option value="regulatory">regulatory</option>
+            <option value="kernel">kernel</option>
+            <option value="registry">registry</option>
+            <option value="patent">patent</option>
+            <option value="other">other</option>
+          </select>
+          <label>URL (optional)</label>
+          <input type="text" name="url">
+          <label>Trust weight (0-1)</label>
+          <input type="number" name="trust_weight" step="0.05" min="0" max="1" value="0.5">
+          <div><button class="primary" type="submit">Create source</button></div>
+          <div class="msg" data-msg></div>
+        </form>
+
+        <form class="card" onsubmit="return submitForm(event, 'entity')">
+          <h4>New Entity</h4>
+          <label>Name</label>
+          <input type="text" name="name" required>
+          <label>Type</label>
+          <select name="type" required>
+            <option value="product">product</option>
+            <option value="company">company</option>
+            <option value="person">person</option>
+            <option value="architecture">architecture</option>
+            <option value="foundry_node">foundry_node</option>
+            <option value="packaging_tech">packaging_tech</option>
+            <option value="memory_tech">memory_tech</option>
+            <option value="benchmark">benchmark</option>
+            <option value="other">other</option>
+          </select>
+          <div><button class="primary" type="submit">Create entity</button></div>
+          <div class="msg" data-msg></div>
+        </form>
+
+        <form class="card" onsubmit="return submitForm(event, 'evidence')">
+          <h4>New Evidence</h4>
+          <label>Source ID</label>
+          <input type="number" name="source_id" required min="1">
+          <label>Entity ID (optional)</label>
+          <input type="number" name="entity_id" min="1">
+          <label>Title</label>
+          <input type="text" name="title" required>
+          <label>Content</label>
+          <textarea name="content" required></textarea>
+          <label>URL (optional)</label>
+          <input type="text" name="url">
+          <div><button class="primary" type="submit">Capture evidence</button></div>
+          <div class="msg" data-msg></div>
+        </form>
+
+        <form class="card" onsubmit="return submitForm(event, 'claim')">
+          <h4>New Claim</h4>
+          <label>Statement</label>
+          <textarea name="statement" required></textarea>
+          <label>Subject entity ID (optional)</label>
+          <input type="number" name="subject_entity_id" min="1">
+          <div><button class="primary" type="submit">Create claim</button></div>
+          <div class="msg" data-msg></div>
+        </form>
+      </div>
+      <p class="muted">Memory-configuration claims (with the built-in GDDR consistency check) are CLI-only for now:
+        <code>semi-intel claim create-memory-spec</code>.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+    const esc = (value) => String(value ?? "").replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+
+    function statusBadge(status) {
+      return `<span class="badge status-${status}">${status}</span>`;
+    }
+
+    function confBar(conf) {
+      const pct = Math.round(conf * 100);
+      return `<span class="conf-bar"><span class="conf-fill" style="width:${pct}%"></span></span>${pct}%`;
+    }
+
+    function fmtDate(value) {
+      return value ? new Date(value).toLocaleString() : "—";
+    }
+
+    async function fetchJSON(url) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`${url} -> ${res.status}`);
+      return res.json();
+    }
+
+    async function postJSON(url, body) {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      let data = {};
+      try { data = await res.json(); } catch (e) { /* no body */ }
+      if (!res.ok) {
+        const detail = (data && data.detail) ? data.detail : `${url} -> ${res.status}`;
+        throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
+      }
+      return data;
+    }
+
+    async function requestJSON(url, method, body) {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+      if (res.status === 204) return {};
+      let data = {};
+      try { data = await res.json(); } catch (e) { }
+      if (!res.ok) throw new Error(data.detail || `${url} -> ${res.status}`);
+      return data;
+    }
+
+    // Builds a plain object from a <form>, coercing named fields to Number and
+    // omitting blank fields entirely so optional server-side defaults apply.
+    function formToObject(form, numberFields = []) {
+      const data = {};
+      new FormData(form).forEach((value, key) => {
+        if (value === "") return;
+        data[key] = numberFields.includes(key) ? Number(value) : value;
+      });
+      return data;
+    }
+
+    const formEndpoints = {
+      source: { url: "/api/sources", numberFields: ["trust_weight"] },
+      entity: { url: "/api/entities", numberFields: [] },
+      evidence: { url: "/api/evidence", numberFields: ["source_id", "entity_id"] },
+      claim: { url: "/api/claims", numberFields: ["subject_entity_id"] },
+    };
+
+    async function submitForm(event, kind) {
+      event.preventDefault();
+      const form = event.target;
+      const msg = form.querySelector("[data-msg]");
+      const { url, numberFields } = formEndpoints[kind];
+      const body = formToObject(form, numberFields);
+      msg.textContent = "";
+      msg.className = "msg";
+      try {
+        const created = await postJSON(url, body);
+        msg.textContent = `Created #${created.id}.`;
+        msg.className = "msg ok";
+        form.reset();
+        if (kind === "source") loadSources();
+        if (kind === "entity") loadEntities("");
+        if (kind === "evidence") loadEvidence();
+        if (kind === "claim") loadClaims();
+      } catch (err) {
+        msg.textContent = err.message;
+        msg.className = "msg err";
+      }
+      return false;
+    }
+
+    async function submitLinkEvidence(event, claimId) {
+      event.preventDefault();
+      const form = event.target;
+      const msg = form.querySelector("[data-msg]");
+      const button = form.querySelector("button[type=submit]");
+      const body = formToObject(form, ["evidence_id"]);
+      button.disabled = true;
+      try {
+        await postJSON(`/api/claims/${claimId}/link-evidence`, body);
+        msg.textContent = "Linked.";
+        msg.className = "msg ok";
+        form.reset();
+        showClaim(claimId);
+        loadClaims();
+      } catch (err) {
+        msg.textContent = err.message;
+        msg.className = "msg err";
+      }
+      finally { button.disabled = false; }
+      return false;
+    }
+
+    async function submitResolve(event, claimId) {
+      event.preventDefault();
+      const form = event.target;
+      const msg = form.querySelector("[data-msg]");
+      const body = formToObject(form, []);
+      try {
+        await postJSON(`/api/claims/${claimId}/resolve`, body);
+        msg.textContent = "Resolved.";
+        msg.className = "msg ok";
+        showClaim(claimId);
+        loadClaims();
+      } catch (err) {
+        msg.textContent = err.message;
+        msg.className = "msg err";
+      }
+      return false;
+    }
+
+    async function loadStories() {
+      const params = new URLSearchParams({
+        state: el("story-state").value,
+        sort: el("story-sort").value,
+        min_score: el("story-min-score").value || "0",
+      });
+      if (el("story-topic").value) params.set("topic_id", el("story-topic").value);
+      const rows = await fetchJSON(`/api/editorial/stories?${params}`);
+      el("stories-body").innerHTML = rows.map(story => `
+    <article class="story-card">
+      <div style="display:flex; gap:12px">
+        <input class="story-select" type="checkbox" value="${story.id}" aria-label="Select story">
+        <div style="flex:1;cursor:pointer" onclick="showStory(${story.id})">
+          <div class="story-headline">${esc(story.headline)}</div>
+          <div>${story.topics.map(t => `<span class="topic-chip">${esc(t.name)}</span>`).join("")}</div>
+          <div class="story-meta">
+            <span>${story.coverage_count} article${story.coverage_count === 1 ? "" : "s"}</span>
+            <span>${story.sources.map(s => esc(s.name)).join(", ") || "Unknown source"}</span>
+            <span>${new Date(story.latest_at).toLocaleString()}</span>
+            ${story.new_coverage_count ? `<span>● ${story.new_coverage_count} new coverage</span>` : ""}
+          </div>
+          <div class="reasons">${story.reasons.map(esc).join(" · ")}</div>
+        </div>
+        <div style="text-align:right"><div class="score">${story.interest_score.toFixed(2)}</div>
+          <button class="secondary" onclick="event.stopPropagation();setStorySeen(${story.id}, ${!story.seen})">${story.seen ? "Mark unseen" : "Mark seen"}</button>
+        </div>
+      </div>
+    </article>
+  `).join("") || `<div class="empty-action"><strong>No stories have been promoted yet.</strong><br>Review the strongest Signal Radar candidates below; lower-ranked items remain visible for human editorial judgment.</div>`;
+      await loadEditorialRadarShortlist();
+    }
+
+    async function loadStoryTopicFilter() {
+      const topics = await fetchJSON("/api/topics?enabled=true");
+      el("story-topic").innerHTML = `<option value="">All topics</option>` +
+        topics.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join("");
+      el("editorial-radar-topic").innerHTML = `<option value="">All topics</option>` +
+        topics.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join("");
+    }
+
+    function candidateCard(c, openHandler = "showRadarCandidate") {
+      const why = (c.why_interesting || []).map(esc).join(" · ");
+      const ageBadges = `${c.age_classification === "older" ? ` <span class="badge muted">Older</span>` : ""}${c.resurfaced ? ` <span class="badge status-confirmed">Resurfaced</span>` : ""}`;
+      const activityAt = c.meaningful_activity_at || c.latest_observed_at;
+      return `<article class="story-card row-click" role="button" tabindex="0"
+      aria-label="Open ${esc(c.title)} and view ${c.item_count} reports"
+      onclick="${openHandler}(${c.id})"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${openHandler}(${c.id})}">
+    <div style="display:flex; gap:12px">
+      <div style="flex:1">
+        <div class="story-headline">${esc(c.title)} <span class="badge status-open">${esc(c.state)}</span>${c.seen ? "" : ` <span class="badge status-confirmed">unseen</span>`}${ageBadges}</div>
+        <div class="story-meta">
+          <span>${c.item_count} report${c.item_count === 1 ? "" : "s"}</span>
+          <span>${c.distinct_source_count} source(s), ${c.independent_source_group_count} independent group(s)</span>
+          ${c.primary_topic ? `<span class="topic-chip">${esc(c.primary_topic)}</span>` : ""}
+          ${c.strongest_artifact_type ? `<span class="topic-chip">${esc(c.strongest_artifact_type)}</span>` : ""}
+          <span title="Meaningful activity used for age classification">${activityAt ? new Date(activityAt).toLocaleString() : "Activity time unavailable"}</span>
+        </div>
+        ${why ? `<div class="reasons">${why}</div>` : ""}
+        <div class="reasons">${esc(c.age_reason || "")}</div>
+        <div class="reasons"><strong>View ${c.item_count} report${c.item_count === 1 ? "" : "s"} →</strong></div>
+      </div>
+      <div style="text-align:right"><div class="score">${c.attention_score.toFixed(2)}</div>
+        <button class="secondary" onclick="event.stopPropagation();setCandidateSeen(${c.id}, ${!c.seen})">${c.seen ? "Mark unseen" : "Mark seen"}</button>
+      </div>
+    </div>
+  </article>`;
+    }
+
+    async function loadEditorialRadarShortlist() {
+      const target = el("editorial-radar-shortlist");
+      if (!target) return;
+      target.textContent = "Loading ranked Radar candidates…";
+      const params = new URLSearchParams({
+        state: el("editorial-radar-state").value,
+        age: el("editorial-radar-age").value,
+        age_days: el("editorial-radar-age-days").value,
+        sort: el("editorial-radar-sort").value,
+        min_score: el("editorial-radar-min-score").value || "0",
+        limit: "20",
+      });
+      if (el("editorial-radar-topic").value) params.set("topic_id", el("editorial-radar-topic").value);
+      try {
+        const rows = await fetchJSON(`/api/radar/candidates?${params}`);
+        const ageMode = el("editorial-radar-age").value;
+        const days = el("editorial-radar-age-days").value;
+        target.innerHTML = rows.map(c => candidateCard(c, "openEditorialRadarCandidate")).join("") ||
+          (ageMode === "current" ? `<div class="empty-action">No current candidates within the last ${days} days. Choose Older or All ages to review historical coverage.</div>` :
+            `<div class="empty-action">No unpromoted Radar candidates match these filters. Try another age or state filter.</div>`);
+      } catch (err) {
+        target.innerHTML = `<div class="msg err">Could not load Radar suggestions: ${esc(err.message)}</div>`;
+      }
+    }
+
+    async function openEditorialRadarCandidate(id) {
+      switchTab("radar");
+      await showRadarCandidate(id);
+    }
+
+    async function setStorySeen(id, seen) {
+      await postJSON("/api/editorial/stories/seen", { story_ids: [id], seen });
+      loadStories();
+    }
+
+    async function markSelected(seen) {
+      const ids = [...document.querySelectorAll(".story-select:checked")].map(box => Number(box.value));
+      if (!ids.length) return;
+      await postJSON("/api/editorial/stories/seen", { story_ids: ids, seen });
+      loadStories();
+    }
+
+    async function runBackfill() {
+      const msg = el("story-msg");
+      msg.textContent = "Refreshing…";
+      try {
+        const result = await postJSON("/api/editorial/backfill", {});
+        msg.textContent = `Scanned ${result.evidence_scanned}; created ${result.stories_created} stories.`;
+        msg.className = "msg ok";
+        loadStories();
+      } catch (err) { msg.textContent = err.message; msg.className = "msg err"; }
+    }
+
+    async function showStory(id) {
+      const story = await fetchJSON(`/api/editorial/stories/${id}`);
+      const panel = el("story-detail");
+      panel.innerHTML = `<div class="card wide-card">
+    <button class="secondary" style="float:right" onclick="el('story-detail').innerHTML=''">Close</button>
+    <h2>${esc(story.headline)}</h2>
+    <p>${story.topics.map(t => `<span class="topic-chip">${esc(t.name)} via “${esc(t.matched_text)}”</span>`).join("")}</p>
+    <p class="reasons">${story.reasons.map(esc).join(" · ")}</p>
+    <button class="secondary" onclick="setStorySeen(${story.id}, ${!story.seen})">${story.seen ? "Mark unseen" : "Mark seen"}</button>
+    <h3>Targeted discovery ring</h3>
+    <div class="story-card">
+      <strong>${story.discovery.eligible ? "Eligible" : "Not currently eligible"}</strong>
+      <div class="reasons">${esc(story.discovery.reason)}</div>
+      <div class="story-meta">
+        <span>Cycles ${story.discovery.budget.cycles_used}/${story.discovery.budget.cycles_limit}</span>
+        <span>Provider requests ${story.discovery.budget.provider_requests_used}/${story.discovery.budget.provider_requests_limit}</span>
+        ${story.discovery.latest_run ? `<span>Last run: ${esc(story.discovery.latest_run.status)}</span>` : ""}
+      </div>
+      <button class="primary" onclick="runStoryDiscovery(${story.id})" ${story.discovery.eligible ? "" : "disabled"}>Search nearby coverage</button>
+      <span id="story-discovery-msg" class="msg"></span>
+      ${story.discovery.latest_run ? `<div class="reasons">Queries: ${story.discovery.latest_run.queries.map(esc).join(" · ")}</div>` : ""}
+    </div>
+    ${story.discovery.results.length ? `<h4>Discovered nearby coverage</h4>${story.discovery.results.map(result => `<div class="story-card">
+      <div class="story-headline"><a href="${esc(result.url)}" target="_blank" style="color:#9ec0ff">${esc(result.title)}</a></div>
+      <div class="story-meta">${esc(result.publication_name || result.domain)} · relevance ${result.relevance_score.toFixed(2)} · ${esc(result.relationship)}</div>
+      <div class="reasons">${result.explanation.map(esc).join(" · ")}</div>
+      <button class="danger" onclick="blockDiscoveredDomain('${esc(result.domain)}', ${story.id})">Block domain</button>
+    </div>`).join("")}` : `<p class="muted">No accepted external coverage yet.</p>`}
+    <h3>Coverage timeline</h3>
+    ${story.articles.map(article => `<div class="story-card">
+      <div class="story-headline">${article.url ? `<a href="${esc(article.url)}" target="_blank" style="color:#9ec0ff">${esc(article.title)}</a>` : esc(article.title)}</div>
+      <div class="story-meta">${esc(article.source_name)} · ${esc(article.observed_at || article.collected_at)}</div>
+      ${article.citations.length ? `<div class="reasons">Cites: ${article.citations.map(c => `<a href="${esc(c.url)}" target="_blank" style="color:#9ec0ff">${esc(c.domain)}</a>`).join(", ")}</div>` : ""}
+    </div>`).join("")}
+  </div>`;
+      panel.scrollIntoView({ behavior: "smooth" });
+    }
+
+    async function runStoryDiscovery(id) {
+      const msg = el("story-discovery-msg");
+      msg.textContent = "Running bounded search…";
+      try {
+        const run = await postJSON(`/api/editorial/stories/${id}/discover`, {});
+        msg.textContent = `${run.status}: ${run.accepted_result_count} accepted, ${run.filtered_result_count} filtered.`;
+        msg.className = "msg ok";
+        await showStory(id);
+      } catch (err) { msg.textContent = err.message; msg.className = "msg err"; }
+    }
+
+    async function blockDiscoveredDomain(domain, storyId) {
+      if (!confirm(`Block ${domain} from discovery and source suggestions?`)) return;
+      await postJSON("/api/discovery/block-domain", { domain });
+      showStory(storyId);
+    }
+
+    async function loadClaims() {
+      await ensureEntityCache();
+      const params = new URLSearchParams();
+      if (el("claim-status-filter").value) params.set("status", el("claim-status-filter").value);
+      if (el("claim-search").value.trim()) params.set("q", el("claim-search").value.trim());
+      const rows = await fetchJSON(`/api/claims?${params}`);
+      el("claims-body").innerHTML = rows.map(c => `
+    <tr class="row-click" role="button" tabindex="0" onclick="showClaim(${c.id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showClaim(${c.id})}">
+      <td>#${c.id}</td>
+      <td>${esc(c.statement)}</td>
+      <td>${statusBadge(c.status)}</td>
+      <td>${confBar(c.confidence)}</td>
+      <td class="muted">${c.created_at.slice(0, 10)}</td>
+    </tr>
+  `).join("") || `<tr><td colspan="5"><div class="empty-action"><strong>No claims match this view.</strong><br>Create your first claim manually, or open Signal Radar and create one from a report.</div></td></tr>`;
+      await loadEvidenceWorkspace();
+    }
+
+    async function showClaim(id) {
+      const c = await fetchJSON(`/api/claims/${id}`);
+      const allEvidence = await fetchJSON("/api/evidence");
+      const detail = el("detail");
+      detail.classList.add("active");
+      const linkedIds = new Set(c.evidence_links.map(link => link.evidence_id));
+      const available = allEvidence.filter(evidence => !linkedIds.has(evidence.id));
+      const evRows = c.evidence_links.map(l => {
+        const evidence = l.evidence;
+        const candidateId = evidence && evidence.radar_candidate_ids && evidence.radar_candidate_ids[0];
+        return `<article class="report-card">
+      <div class="story-headline">${evidence && evidence.url ? `<a href="${esc(evidence.url)}" target="_blank" rel="noopener noreferrer" style="color:#9ec0ff">${esc(evidence.title)}</a>` : esc(evidence ? evidence.title : "Missing evidence")}</div>
+      ${evidence ? `<div class="story-meta"><span>Evidence #${evidence.id}</span><span>${esc(evidence.source_name || `Source #${evidence.source_id}`)}</span><span>${evidence.observed_at ? new Date(evidence.observed_at).toLocaleString() : new Date(evidence.collected_at).toLocaleString()}</span></div><div class="report-excerpt">${esc(evidence.raw_content)}</div>` : ""}
+      <div class="toolbar">
+        <select id="claim-link-stance-${l.id}" aria-label="Evidence stance"><option value="supports" ${l.stance === "supports" ? "selected" : ""}>Supports</option><option value="weakens" ${l.stance === "weakens" ? "selected" : ""}>Weakens / context</option><option value="contradicts" ${l.stance === "contradicts" ? "selected" : ""}>Contradicts</option></select>
+        <input id="claim-link-note-${l.id}" type="text" value="${esc(l.note || "")}" placeholder="Link note">
+        <button class="secondary" onclick="updateEvidenceLink(${c.id}, ${l.evidence_id}, ${l.id})">Save link</button>
+        <button class="danger" onclick="unlinkEvidence(${c.id}, ${l.evidence_id})">Remove link</button>
+        ${candidateId ? `<button class="secondary" onclick="openEvidenceCandidate(${candidateId})">Open Radar candidate</button>` : ""}
+      </div>
+    </article>`;
+      }).join("");
+      const timelineRows = c.timeline.map(e => `
+    <li>${e.created_at.slice(0, 19)} — ${e.event_type}${e.confidence_after != null ? ` (conf=${e.confidence_after})` : ""}${e.note ? `: ${e.note}` : ""}</li>
+  `).join("");
+      detail.innerHTML = `
+    <button class="secondary" style="float:right" onclick="el('detail').classList.remove('active')">Close</button>
+    <h3>Claim #${c.id} ${statusBadge(c.status)}</h3>
+    <p>${esc(c.statement)}</p>
+    <p>${confBar(c.confidence)}</p>
+    <h4>Linked evidence</h4>
+    ${evRows || `<div class="empty-action">No evidence is linked yet. Attach an existing item below, or create evidence from a Signal Radar report.</div>`}
+    <h4>Timeline</h4>
+    <ul>${timelineRows || "<li class=muted>no events</li>"}</ul>
+    <h4>Add to this claim</h4>
+    <div class="forms-grid">
+      <form class="card" onsubmit="return submitLinkEvidence(event, ${c.id})">
+        <h4>Attach existing evidence</h4>
+        <label>Evidence</label>
+        <select name="evidence_id" required>${available.map(e => `<option value="${e.id}">#${e.id} ${esc(e.title)} — ${esc(e.source_name || `source #${e.source_id}`)}</option>`).join("") || `<option value="">No unlinked evidence available</option>`}</select>
+        <label>Stance</label>
+        <select name="stance" required>
+          <option value="supports">supports</option>
+          <option value="weakens">weakens</option>
+          <option value="contradicts">contradicts</option>
+        </select>
+        <label>Note (optional)</label>
+        <input type="text" name="note">
+        <div><button class="primary" type="submit">Link evidence</button></div>
+        <div class="msg" data-msg></div>
+      </form>
+      <form class="card" onsubmit="return submitResolve(event, ${c.id})">
+        <label>Status</label>
+        <select name="status" required>
+          <option value="confirmed">confirmed</option>
+          <option value="debunked">debunked</option>
+          <option value="retracted">retracted</option>
+          <option value="open">open</option>
+        </select>
+        <label>Note (optional)</label>
+        <input type="text" name="note">
+        <div><button class="primary" type="submit">Resolve claim</button></div>
+        <div class="msg" data-msg></div>
+      </form>
+    </div>
+  `;
+      detail.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    async function loadEvidence() {
+      const rows = await fetchJSON("/api/evidence");
+      el("evidence-body").innerHTML = rows.map(e => `
+    <tr>
+      <td>#${e.id}</td>
+      <td>${esc(e.title)}</td>
+      <td>${esc(e.source_name || e.source_id)}</td>
+      <td>${e.entity_id ?? "<span class=muted>-</span>"}</td>
+      <td class="muted">${e.collected_at.slice(0, 10)}</td>
+    </tr>
+  `).join("") || `<tr><td colspan="5" class="muted">No evidence yet.</td></tr>`;
+    }
+
+    async function loadEvidenceWorkspace() {
+      const rows = await fetchJSON("/api/evidence");
+      el("evidence-workspace-body").innerHTML = rows.map(e => `<article class="report-card">
+    <div class="story-headline">${e.url ? `<a href="${esc(e.url)}" target="_blank" rel="noopener noreferrer" style="color:#9ec0ff">${esc(e.title)}</a>` : esc(e.title)}</div>
+    <div class="story-meta"><span>#${e.id}</span><span>${esc(e.source_name || `Source #${e.source_id}`)}</span><span>${new Date(e.observed_at || e.collected_at).toLocaleString()}</span></div>
+    <div class="report-excerpt">${esc(e.raw_content)}</div>
+    ${e.radar_candidate_ids && e.radar_candidate_ids.length ? `<button class="secondary" onclick="openEvidenceCandidate(${e.radar_candidate_ids[0]})">Open originating Radar candidate</button>` : ""}
+  </article>`).join("") || `<div class="empty-action"><strong>No evidence yet.</strong><br>Use “Add evidence” above or choose “Use as evidence” on a Signal Radar report.</div>`;
+    }
+
+    function focusClaimForm() { el("workspace-claim-form").scrollIntoView({ behavior: "smooth" }); el("workspace-claim-form").elements.statement.focus(); }
+    function focusEvidenceForm() { el("workspace-evidence-form").scrollIntoView({ behavior: "smooth" }); el("workspace-evidence-form").elements.title.focus(); }
+
+    async function submitWorkspaceClaim(event) {
+      event.preventDefault(); const form = event.target; const msg = form.querySelector("[data-msg]"); const button = form.querySelector("button[type=submit]"); button.disabled = true;
+      try { const claim = await postJSON("/api/claims", formToObject(form, ["subject_entity_id"])); msg.textContent = `Created claim #${claim.id}.`; msg.className = "msg ok"; form.reset(); await loadClaims(); await showClaim(claim.id); }
+      catch (err) { msg.textContent = err.message; msg.className = "msg err"; }
+      finally { button.disabled = false; }
+      return false;
+    }
+
+    async function submitWorkspaceEvidence(event) {
+      event.preventDefault(); const form = event.target; const msg = form.querySelector("[data-msg]"); const button = form.querySelector("button[type=submit]"); button.disabled = true;
+      try { const evidence = await postJSON("/api/evidence", formToObject(form, ["source_id"])); msg.textContent = `Created evidence #${evidence.id}.`; msg.className = "msg ok"; form.reset(); await loadClaims(); }
+      catch (err) { msg.textContent = err.message; msg.className = "msg err"; }
+      finally { button.disabled = false; }
+      return false;
+    }
+
+    async function updateEvidenceLink(claimId, evidenceId, linkId) {
+      const stance = el(`claim-link-stance-${linkId}`).value; const note = el(`claim-link-note-${linkId}`).value;
+      await requestJSON(`/api/claims/${claimId}/evidence/${evidenceId}`, "PUT", { evidence_id: evidenceId, stance, note: note || null });
+      await showClaim(claimId); await loadClaims();
+    }
+
+    async function unlinkEvidence(claimId, evidenceId) {
+      if (!confirm("Remove this evidence link? The evidence itself will be kept.")) return;
+      await requestJSON(`/api/claims/${claimId}/evidence/${evidenceId}`, "DELETE");
+      await showClaim(claimId); await loadClaims();
+    }
+
+    async function openEvidenceCandidate(candidateId) { switchTab("radar"); await showRadarCandidate(candidateId); }
+
+    async function loadSources() {
+      const rows = await fetchJSON("/api/sources/rank");
+      el("sources-body").innerHTML = rows.map(r => {
+        const overall = r.overall.accuracy != null
+          ? `${Math.round(r.overall.accuracy * 100)}% (${r.overall.correct}/${r.overall.total})`
+          : `<span class="muted">no track record yet</span>`;
+        const byCompany = Object.entries(r.by_company).map(([company, b]) =>
+          `${company}: ${b.accuracy != null ? Math.round(b.accuracy * 100) + "%" : "-"} (${b.correct}/${b.total})`
+        ).join(", ");
+        return `
+      <tr>
+        <td>#${r.source_id}</td>
+        <td>${r.source_name}</td>
+        <td>${overall}</td>
+        <td class="muted">${byCompany}</td>
+      </tr>
+    `;
+      }).join("") || `<tr><td colspan="4" class="muted">No sources yet.</td></tr>`;
+    }
+
+    let entityCache = [];
+    let mentionProposalCache = [];
+    const canonicalEntityTypes = ["product", "company", "person", "architecture", "foundry_node", "packaging_tech", "memory_tech", "benchmark", "other"];
+
+    function parseAttributes(text) {
+      const result = {};
+      text.split(/\r?\n/).map(line => line.trim()).filter(Boolean).forEach(line => {
+        const split = line.indexOf("="); if (split < 1) throw new Error(`Attribute must be key=value: ${line}`);
+        result[line.slice(0, split).trim()] = line.slice(split + 1).trim();
+      });
+      return result;
+    }
+
+    async function ensureEntityCache() {
+      entityCache = await fetchJSON("/api/entities");
+      refreshEntitySelectors();
+    }
+
+    function refreshEntitySelectors() {
+      const optionHtml = `<option value="">No subject entity</option>` + entityCache.map(e =>
+        `<option value="${e.id}" data-name="${esc(e.name.toLowerCase())}">${esc(e.name)} · ${esc(e.type)}</option>`).join("");
+      ["workspace-claim-entity", "radar-claim-entity"].forEach(id => { const node = el(id); if (node) { const current = node.value; node.innerHTML = optionHtml; node.value = current; } });
+      const filter = el("suggestion-entity-filter"); if (filter) { const current = filter.value; filter.innerHTML = `<option value="">All subject entities</option>` + entityCache.map(e => `<option value="${e.id}">${esc(e.name)}</option>`).join(""); filter.value = current; }
+    }
+
+    function filterEntitySelector(input, selectId) {
+      const select = el(selectId), needle = input.value.toLowerCase().trim();
+      Array.from(select.options).forEach((option, index) => { option.hidden = index > 0 && needle && !option.text.toLowerCase().includes(needle); });
+    }
+
+    async function loadEntities() {
+      const summary = await fetchJSON("/api/entities/summary");
+      el("entity-summary").innerHTML = [["Canonical entities", summary.canonical_entities], ["Unresolved mentions", summary.unresolved_mentions], ["Resolved mentions", summary.resolved_mentions], ["Rejected mentions", summary.rejected_mentions]].map(([label, value]) => `<div class="summary-card"><strong>${value}</strong><span>${label}</span></div>`).join("");
+      const params = new URLSearchParams(); const search = el("entity-filter").value.trim(), type = el("entity-type-filter").value;
+      if (search) params.set("search", search); if (type) params.set("type", type);
+      const displayRows = await fetchJSON(`/api/entities?${params}`); await ensureEntityCache();
+      el("entities-body").innerHTML = displayRows.length ? `<table><thead><tr><th>Name</th><th>Type</th><th>Aliases</th><th>Radar</th><th>Claims</th><th>Evidence</th></tr></thead><tbody>${displayRows.map(e => `<tr class="row-click" role="button" tabindex="0" onclick="showEntity(${e.id})" onkeydown="if(event.key==='Enter'){showEntity(${e.id})}"><td><strong>${esc(e.name)}</strong></td><td>${esc(e.type)}</td><td class="reasons">${e.aliases.map(esc).join(", ") || "—"}</td><td>${e.resolved_mention_count}</td><td>${e.open_claim_count}</td><td>${e.evidence_count}</td></tr>`).join("")}</tbody></table>` : `<div class="empty-action"><strong>No canonical entities yet.</strong><br>Review a Radar mention below or create a deliberately curated entity. Extracted phrases are never promoted automatically.</div>`;
+      await loadMentionProposals();
+    }
+
+    async function showEntity(id) {
+      const e = await fetchJSON(`/api/entities/${id}`); const attrs = Object.entries(e.attributes).map(([k, v]) => `${esc(k)}: ${esc(v)}`).join(" · ") || "No attributes";
+      el("entity-detail").innerHTML = `<div class="card wide-card"><button class="secondary" style="float:right" onclick="el('entity-detail').innerHTML=''">Close</button><h2>${esc(e.name)}</h2><p>${statusBadge(e.type)} ${e.aliases.map(a => `<span class="topic-chip">${esc(a)}</span>`).join("")}</p><p class="reasons">${attrs}</p><h4>Relationships</h4>${e.relationships.length ? e.relationships.map(r => `<div>${esc(r.direction)} · ${esc(r.relation_type)} · ${esc(r.other_entity_name || `#${r.other_entity_id}`)}</div>`).join("") : `<p class="muted">No relationships recorded.</p>`}<h4>Claims</h4>${e.claims.map(c => `<button class="secondary" onclick="switchTab('claims');showClaim(${c.id})">#${c.id} ${esc(c.statement)}</button>`).join("") || `<p class="muted">No claims use this subject.</p>`}<h4>Evidence</h4>${e.evidence.map(v => `<div>#${v.id} ${esc(v.title)}</div>`).join("") || `<p class="muted">No directly assigned evidence.</p>`}<h4>Recent Radar provenance</h4>${e.recent_mentions.map(m => `<div class="reasons">Report #${m.signal_item_id} · ${esc(m.candidate_text)} · ${esc(m.title || "")}</div>`).join("") || `<p class="muted">No resolved Radar mentions yet.</p>`}</div>`; el("entity-detail").scrollIntoView({ behavior: "smooth" });
+    }
+
+    async function submitEntityWorkspace(event) {
+      event.preventDefault(); const form = event.target, msg = form.querySelector("[data-msg]");
+      try { const body = { name: form.elements.name.value.trim(), type: form.elements.type.value, aliases: form.elements.aliases.value.split(/\r?\n/).map(v => v.trim()).filter(Boolean), attributes: parseAttributes(form.elements.attributes.value) }; const created = await postJSON("/api/entities", body); msg.textContent = `Created ${created.name}.`; msg.className = "msg ok"; form.reset(); await loadEntities(); }
+      catch (err) { msg.textContent = err.message; msg.className = "msg err"; } return false;
+    }
+
+    async function loadMentionProposals() {
+      const params = new URLSearchParams({ limit: "50" }); const search = el("mention-filter").value.trim(), type = el("mention-type-filter").value; if (search) params.set("search", search); if (type) params.set("proposed_type", type);
+      const result = await fetchJSON(`/api/entities/mention-proposals?${params}`); mentionProposalCache = result.items;
+      el("mention-proposals-body").innerHTML = result.items.map((p, index) => `<div class="story-card"><div class="story-headline"><strong>${esc(p.candidate_text)}</strong> <span class="badge">${esc(p.proposed_entity_type)}</span></div><div class="story-meta">${p.distinct_report_count} reports · ${p.mention_count} mentions · confidence ${p.highest_confidence.toFixed(2)}</div><div class="reasons">${p.extractors.map(esc).join(" · ")}</div>${p.examples.map(x => `<div class="reasons">#${x.signal_item_id} · ${esc(x.source || "Unknown source")} · ${esc(x.title || "Untitled report")}</div>`).join("")}<button class="primary" onclick="openMentionResolutionByIndex(${index})">Resolve…</button><button class="secondary" onclick="disposeMentionByIndex(${index},'ignored')">Ignore</button><button class="danger" onclick="disposeMentionByIndex(${index},'rejected')">Reject</button></div>`).join("") || `<div class="empty-action">No unresolved mentions match this view.</div>`;
+    }
+
+    function proposedCanonicalType(value) { return ({ company: "company", product: "product", benchmark: "benchmark", codename: "architecture" })[value] || "other"; }
+    function openMentionResolutionByIndex(index) { const p = mentionProposalCache[index]; if (p) openMentionResolution(p.candidate_text, p.proposed_entity_type); }
+    function openMentionResolution(text, type) { const f = el("mention-resolution-form"); f.reset(); f.elements.candidate_text.value = text; f.elements.proposed_entity_type.value = type; f.elements.name.value = text; f.elements.type.value = proposedCanonicalType(type); f.elements.entity_id.innerHTML = `<option value="">Choose entity…</option>` + entityCache.map(e => `<option value="${e.id}">${esc(e.name)} · ${esc(e.type)}</option>`).join(""); el("mention-resolution-context").textContent = `Resolve every unresolved exact normalized “${text}” mention proposed as ${type}.`; toggleMentionResolutionMode("new"); el("mention-resolution-dialog").showModal(); }
+    function toggleMentionResolutionMode(mode) { el("mention-resolution-form").querySelector("[data-new-fields]").style.display = mode === "new" ? "block" : "none"; el("mention-resolution-form").querySelector("[data-existing-fields]").style.display = mode === "existing" ? "block" : "none"; }
+    async function submitMentionResolution(event) { event.preventDefault(); const f = event.target, msg = f.querySelector("[data-msg]"); const body = { candidate_text: f.elements.candidate_text.value, proposed_entity_type: f.elements.proposed_entity_type.value, add_observed_as_alias: f.elements.add_observed_as_alias.checked }; if (f.elements.mode.value === "existing") body.entity_id = Number(f.elements.entity_id.value); else { body.name = f.elements.name.value.trim(); body.type = f.elements.type.value; } try { const r = await postJSON("/api/entities/mention-proposals/resolve", body); msg.textContent = `Resolved ${r.mentions_updated} mentions.`; msg.className = "msg ok"; el("mention-resolution-dialog").close(); await loadEntities(); if (currentRadarCandidate) await showRadarCandidate(currentRadarCandidate.id, false); } catch (err) { msg.textContent = err.message; msg.className = "msg err"; } return false; }
+    async function disposeMention(text, type, action) { if (!confirm(`${action} every unresolved exact “${text}” mention proposed as ${type}?`)) return; await postJSON("/api/entities/mention-proposals/disposition", { candidate_text: text, proposed_entity_type: type, action }); await loadEntities(); if (currentRadarCandidate) await showRadarCandidate(currentRadarCandidate.id, false); }
+    function disposeMentionByIndex(index, action) { const p = mentionProposalCache[index]; if (p) return disposeMention(p.candidate_text, p.proposed_entity_type, action); }
+
+    async function loadSuggestionReadiness() {
+      const r = await fetchJSON("/api/suggestions/readiness"); el("suggestion-readiness").innerHTML = [["Entities", r.canonical_entities], ["Open claims", r.open_claims], ["Evidence", r.canonical_evidence], ["Existing links", r.existing_evidence_links], ["Pending matches", r.pending_suggestions]].map(([l, v]) => `<div class="summary-card"><strong>${v}</strong><span>${l}</span></div>`).join("");
+      const help = []; if (!r.canonical_entities) help.push(`<button class="secondary" onclick="switchTab('entities')">Review or create canonical entities</button>`); if (!r.open_claims) help.push(`<button class="secondary" onclick="switchTab('claims');focusClaimForm()">Create an open claim</button>`); if (!r.canonical_evidence) help.push(`<button class="secondary" onclick="switchTab('radar')">Promote or convert a Radar report</button>`); if (r.open_claims && r.claims_without_subject_entities === r.open_claims) help.push(`<span class="reasons">All open claims lack a subject entity, so only deliberately conservative keyword matching is available.</span>`); el("suggestion-readiness-help").innerHTML = help.join(" ");
+    }
+
+    async function loadSuggestions() {
+      await Promise.all([loadSuggestionReadiness(), ensureEntityCache()]); const params = new URLSearchParams(); const status = el("suggestion-status-filter").value, q = el("suggestion-search").value.trim(), entity = el("suggestion-entity-filter").value; if (status) params.set("status", status); if (q) params.set("q", q); if (entity) params.set("subject_entity_id", entity); const rows = await fetchJSON(`/api/suggestions?${params}`);
+      el("suggestions-body").innerHTML = rows.map(s => `<div class="story-card"><div class="story-headline"><strong>${esc(s.claim_statement || `Claim #${s.claim_id}`)}</strong> ${statusBadge(s.status)} <span class="badge">${s.score.toFixed(2)}</span></div><div class="story-meta">${esc(s.subject_entity_name || "No subject entity")} · ${esc(s.source_name || "Unknown source")} · Evidence #${s.evidence_id}</div><h4>${esc(s.evidence_title || "Untitled evidence")}</h4><p>${esc(s.evidence_excerpt || "")}</p><div class="reasons">${s.reasons.map(esc).join(" · ") || "No scoring reasons recorded"}</div>${s.evidence_url ? `<a href="${esc(s.evidence_url)}" target="_blank" rel="noopener noreferrer">Open original report</a>` : ""}${s.origin_candidate_id ? ` <button class="secondary" onclick="openEvidenceCandidate(${s.origin_candidate_id})">Open Radar provenance</button>` : ""}${s.status === "pending" ? `<div><select id="stance-${s.id}"><option value="supports">Supports</option><option value="weakens">Weakens / context</option><option value="contradicts">Contradicts</option></select><button class="primary" onclick="acceptSuggestion(${s.id})">Accept link</button><button class="danger" onclick="rejectSuggestion(${s.id})">Reject</button></div>` : `<div class="reasons">Resolved ${esc(s.resolved_at || "")} ${esc(s.resolved_note || "")}</div>`}<div class="msg" id="suggestion-msg-${s.id}"></div></div>`).join("") || `<div class="empty-action"><strong>No claim matches in this view.</strong><br>Check the readiness guidance above, then run the deterministic scanner.</div>`;
+    }
+
+    async function acceptSuggestion(id) {
+      const stance = el(`stance-${id}`).value;
+      const msg = el(`suggestion-msg-${id}`);
+      try {
+        await postJSON(`/api/suggestions/${id}/accept`, { stance });
+        loadSuggestions();
+      } catch (err) {
+        msg.textContent = err.message;
+        msg.className = "msg err";
+      }
+    }
+
+    async function rejectSuggestion(id) {
+      const msg = el(`suggestion-msg-${id}`);
+      try {
+        await postJSON(`/api/suggestions/${id}/reject`, {});
+        loadSuggestions();
+      } catch (err) {
+        msg.textContent = err.message;
+        msg.className = "msg err";
+      }
+    }
+
+    async function runSuggestionScan() {
+      const msg = el("suggestions-scan-msg");
+      const button = el("suggestion-scan-button"); button.disabled = true; msg.textContent = "Scanning…";
+      msg.className = "msg";
+      try {
+        const result = await postJSON("/api/suggestions/run", {});
+        msg.textContent = `Loaded ${result.entities_loaded} entities and ${result.open_claims} open claims; scanned ${result.evidence_scanned} evidence, evaluated ${result.pairs_evaluated} pairs, created ${result.suggestions_created}, skipped ${result.skipped_existing_pairs} existing suggestions and ${result.skipped_existing_links} existing links, with ${result.pairs_below_threshold} below threshold.`;
+        msg.className = "msg ok";
+        await loadSuggestions();
+      } catch (err) {
+        msg.textContent = err.message;
+        msg.className = "msg err";
+      } finally { button.disabled = false; }
+    }
+
+    let topicCache = [];
+    async function loadTopics() {
+      const query = el("topic-search")?.value || "";
+      topicCache = await fetchJSON(`/api/topics?search=${encodeURIComponent(query)}`);
+      el("topics-body").innerHTML = topicCache.map(topic => `<tr>
+    <td><strong>${esc(topic.name)}</strong><div class="reasons">${topic.aliases.map(esc).join(", ") || "No aliases"}</div></td>
+    <td>${esc(topic.category || "Uncategorized")}</td>
+    <td>${topic.priority.toFixed(2)}</td>
+    <td>${topic.match_count}<div class="reasons">${topic.last_matched_at ? new Date(topic.last_matched_at).toLocaleString() : "Never"}</div></td>
+    <td>${topic.enabled ? '<span class="badge status-confirmed">enabled</span>' : '<span class="badge status-retracted">disabled</span>'}</td>
+    <td><button class="secondary" onclick="editTopic(${topic.id})">Edit</button>
+      <button class="danger" onclick="removeTopic(${topic.id})">Delete</button></td>
+  </tr>`).join("");
+    }
+
+    function editTopic(id) {
+      const topic = topicCache.find(item => item.id === id);
+      const form = el("topic-form");
+      form.elements.id.value = topic.id;
+      form.name.value = topic.name;
+      form.keyword.value = topic.keyword;
+      form.aliases.value = topic.aliases.join("\n");
+      form.category.value = topic.category || "";
+      form.priority.value = topic.priority;
+      form.enabled.checked = topic.enabled;
+      form.notes.value = topic.notes || "";
+      el("topic-form-title").textContent = `Edit ${topic.name}`;
+      form.scrollIntoView({ behavior: "smooth" });
+    }
+
+    function resetTopicForm() {
+      const form = el("topic-form");
+      form.reset();
+      form.elements.id.value = "";
+      form.enabled.checked = true;
+      form.priority.value = ".5";
+      el("topic-form-title").textContent = "Add monitored topic";
+    }
+
+    async function saveTopic(event) {
+      event.preventDefault();
+      const form = event.target;
+      const id = form.elements.id.value;
+      const body = {
+        name: form.name.value.trim(),
+        keyword: form.keyword.value.trim() || null,
+        aliases: form.aliases.value.split(/\r?\n|,/).map(v => v.trim()).filter(Boolean),
+        category: form.category.value.trim() || null,
+        priority: Number(form.priority.value),
+        enabled: form.enabled.checked,
+        notes: form.notes.value.trim() || null,
+      };
+      const msg = el("topic-form-msg");
+      try {
+        await requestJSON(id ? `/api/topics/${id}` : "/api/topics", id ? "PUT" : "POST", body);
+        msg.textContent = id ? "Topic updated." : "Topic added.";
+        msg.className = "msg ok";
+        resetTopicForm();
+        await loadTopics();
+        await loadStoryTopicFilter();
+      } catch (err) { msg.textContent = err.message; msg.className = "msg err"; }
+      return false;
+    }
+
+    async function removeTopic(id) {
+      const name = topicCache.find(item => item.id === id)?.name || "this topic";
+      if (!confirm(`Delete monitored topic “${name}”? Existing stories will remain.`)) return;
+      await requestJSON(`/api/topics/${id}`, "DELETE");
+      loadTopics();
+      loadStoryTopicFilter();
+    }
+
+    let sourceSuggestionCache = [];
+
+    async function loadSourceSuggestions() {
+      const state = el("source-suggestion-state").value;
+      sourceSuggestionCache = await fetchJSON(`/api/source-suggestions?status=${state}`);
+      renderSourceSuggestions();
+    }
+
+    const SOURCE_SUGGESTION_BADGES = {
+      x: "X", website: "Website", forum: "Forum", reddit: "Reddit",
+      github: "GitHub", unsupported: "Unsupported",
+    };
+    // Reddit/GitHub/website/forum all persist as kind="domain" and share
+    // the exact same Find-Feed/Add-source workflow -- only X (kind=
+    // "handle", provider-created directly) and unsupported (no working
+    // action) diverge. See semi_intel/signals/source_discovery.py's
+    // module docstring for why Reddit/GitHub aren't a separate kind.
+    const DOMAIN_LIKE_GROUPS = ["website", "forum", "reddit", "github"];
+
+    function sourceSuggestionProviderGroup(item) {
+      const platform = (item.platform || "").toLowerCase();
+      if (item.kind === "domain") {
+        if (platform === "forum") return "forum";
+        if (platform === "reddit") return "reddit";
+        if (platform === "github") return "github";
+        return "website";
+      }
+      if (platform === "x" || platform === "twitter") return "x";
+      return "unsupported";
+    }
+
+    function sourceSuggestionProfileUrl(item, group) {
+      if (group === "reddit") return `https://www.reddit.com/r/${esc(item.provider_key || "")}`;
+      if (group === "github") return `https://github.com/${esc(item.provider_key || "")}`;
+      if (group === "website" || group === "forum") return `https://${esc(item.domain)}`;
+      if (group === "x") return `https://x.com/${esc(item.provider_key || item.inferred_name)}`;
+      return null;
+    }
+
+    function renderSourceSuggestions() {
+      const state = el("source-suggestion-state").value;
+      const filter = el("source-suggestion-provider").value;
+      const rows = sourceSuggestionCache.filter(
+        item => filter === "all" || sourceSuggestionProviderGroup(item) === filter
+      );
+      el("source-suggestions-body").innerHTML = rows.map(item => sourceSuggestionRow(item, state)).join("") ||
+        `<tr><td colspan="6" class="muted">No suggestions in this review state${filter === "all" ? "" : " for this provider"} yet.</td></tr>`;
+      const counts = {};
+      sourceSuggestionCache.forEach(item => {
+        const g = sourceSuggestionProviderGroup(item);
+        counts[g] = (counts[g] || 0) + 1;
+      });
+      el("source-suggestion-counts").textContent = Object.keys(SOURCE_SUGGESTION_BADGES)
+        .filter(g => counts[g])
+        .map(g => `${SOURCE_SUGGESTION_BADGES[g]}: ${counts[g]}`)
+        .join(" · ");
+    }
+
+    function sourceSuggestionRow(item, state) {
+      const group = sourceSuggestionProviderGroup(item);
+      const badge = SOURCE_SUGGESTION_BADGES[group];
+      const profileUrl = sourceSuggestionProfileUrl(item, group);
+
+      let titleCell;
+      if (group === "website" || group === "forum") {
+        titleCell = `<strong><a href="${profileUrl}" target="_blank" style="color:#9ec0ff">${esc(item.inferred_name)}</a></strong>
+      <div class="reasons">${esc(item.domain)}</div>`;
+      } else if (group === "reddit") {
+        titleCell = `<strong><a href="${profileUrl}" target="_blank" style="color:#9ec0ff">r/${esc(item.provider_key || "")}</a></strong>
+      <div class="reasons">subreddit</div>`;
+      } else if (group === "github") {
+        titleCell = `<strong><a href="${profileUrl}" target="_blank" style="color:#9ec0ff">${esc(item.provider_key || "")}</a></strong>
+      <div class="reasons">GitHub repository</div>`;
+      } else if (group === "x") {
+        const handle = item.provider_key || item.inferred_name;
+        titleCell = `<strong><a href="${profileUrl}" target="_blank" style="color:#9ec0ff">${esc(item.inferred_name)}</a></strong>
+      <div class="reasons">@${esc(handle)}</div>`;
+      } else {
+        titleCell = `<strong>${esc(item.inferred_name)}</strong>
+      <div class="reasons">Unclear source type -- needs manual review</div>`;
+      }
+
+      let feedCell;
+      if (DOMAIN_LIKE_GROUPS.includes(group)) {
+        feedCell = `${item.feed_url ? esc(item.feed_url) : '<span class="muted">Not detected</span>'}
+      ${state === "pending" ? `<div><button class="secondary" onclick="discoverFeed(${item.id}, this)">Find feed</button></div>` : ""}`;
+      } else if (group === "x") {
+        feedCell = `<span class="muted">@${esc(item.provider_key || "")}</span>`;
+      } else {
+        feedCell = `<span class="muted">Not supported automatically</span>`;
+      }
+
+      let reviewCell;
+      if (state === "pending") {
+        let primary;
+        if (DOMAIN_LIKE_GROUPS.includes(group)) {
+          primary = `<button class="primary" onclick="addSuggestedSource(${item.id})" ${item.feed_url ? "" : "disabled"}>Add source</button>`;
+        } else if (group === "x") {
+          primary = `<button class="primary" onclick="acceptHandleSuggestion(${item.id}, this)">Add X source</button>`;
+        } else {
+          primary = `<span class="muted">Unsupported source type</span>`;
+        }
+        reviewCell = `${primary}
+      <button class="secondary" onclick="reviewSource(${item.id},'ignore')">Ignore</button>
+      <button class="danger" onclick="reviewSource(${item.id},'block')">Block</button>`;
+      } else {
+        reviewCell = `<button class="secondary" onclick="reviewSource(${item.id},'restore')">Restore</button>`;
+      }
+
+      return `<tr>
+    <td>${titleCell}</td>
+    <td>${badge}</td>
+    <td>${item.score.toFixed(2)}</td>
+    <td>${item.appearances} references · ${item.story_count} stories · ${item.topic_count} topics
+      <div class="reasons">${item.reasons.map(esc).join(" · ")}</div></td>
+    <td>${feedCell}</td>
+    <td>${reviewCell}</td>
+  </tr>`;
+    }
+
+    async function acceptHandleSuggestion(id, btn) {
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "Adding…";
+      try {
+        await postJSON(`/api/radar/source-suggestions/${id}/review`, { action: "accept" });
+      } catch (err) {
+        alert(err.message);
+        btn.disabled = false;
+        btn.textContent = originalText;
+        return;
+      }
+      loadSourceSuggestions();
+      loadSources();
+    }
+
+    async function refreshHandleSuggestions(btn) {
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "Refreshing…";
+      try {
+        const result = await postJSON("/api/radar/source-suggestions/refresh", {});
+        loadSourceSuggestions();
+        if (!result.handle_suggestions_created_or_updated) {
+          alert("No new or updated handle suggestions found from collected signal text.");
+        }
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    }
+
+    async function discoverSourceSuggestions(btn) {
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "Discovering…";
+      try {
+        const report = await postJSON("/api/radar/source-suggestions/discover", {});
+        loadSourceSuggestions();
+        const created = Object.values(report.generators).reduce((sum, g) => sum + g.created, 0);
+        const failed = Object.entries(report.generators).filter(([, g]) => g.status === "FAILED").map(([name]) => name);
+        let message = `Discovery ${report.overall_status.toLowerCase()}: ${created} new suggestion(s) created.`;
+        if (failed.length) message += ` Failed: ${failed.join(", ")}.`;
+        alert(message);
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    }
+
+    async function reviewSource(id, action) {
+      await postJSON(`/api/source-suggestions/${id}/review`, { action });
+      loadSourceSuggestions();
+    }
+
+    async function discoverFeed(id, btn) {
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "Searching…";
+      try {
+        const result = await postJSON(`/api/source-suggestions/${id}/discover-feed`, {});
+        if (!result.selected) {
+          alert("No feed could be found automatically for this site. You can add the source manually with a known feed URL instead.");
+        }
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        loadSourceSuggestions();
+      }
+    }
+
+    async function addSuggestedSource(id) {
+      try {
+        await postJSON(`/api/source-suggestions/${id}/add`, {});
+      } catch (err) {
+        alert(err.message);
+        return;
+      }
+      loadSourceSuggestions();
+      loadSources();
+    }
+
+    async function loadDiscovery() {
+      const [settings, status] = await Promise.all([
+        fetchJSON("/api/discovery/settings"),
+        fetchJSON("/api/discovery/status"),
+      ]);
+      const form = el("discovery-settings-form");
+      form.elements.enabled.checked = settings.enabled;
+      form.elements.automatic.checked = settings.automatic;
+      [
+        "minimum_interest_score", "maximum_story_age_hours", "cooldown_hours",
+        "maximum_cycles_per_story", "global_cycles_per_hour",
+        "provider_requests_per_hour", "results_per_query",
+      ].forEach(name => form.elements[name].value = settings[name]);
+      el("discovery-budget").innerHTML =
+        `<span>Provider: ${esc(status.provider)}</span>` +
+        `<span>Cycles ${status.budget.cycles_used}/${status.budget.cycles_limit}</span>` +
+        `<span>Requests ${status.budget.provider_requests_used}/${status.budget.provider_requests_limit}</span>`;
+      el("discovery-runs-body").innerHTML = status.recent_runs.map(run => `<tr>
+    <td>#${run.id}</td><td>#${run.story_id}</td><td>${esc(run.status)}</td>
+    <td>${run.request_count}${run.cache_hit ? " (cache)" : ""}</td>
+    <td>${run.accepted_result_count} accepted · ${run.filtered_result_count} filtered</td>
+    <td class="reasons">${esc(run.eligibility_reason)}${run.error ? ` · ${esc(run.error)}` : ""}</td>
+  </tr>`).join("") || `<tr><td colspan="6" class="muted">No targeted discovery runs yet.</td></tr>`;
+    }
+
+    async function saveDiscoverySettings(event) {
+      event.preventDefault();
+      const form = event.target;
+      const body = {
+        enabled: form.elements.enabled.checked,
+        automatic: form.elements.automatic.checked,
+        minimum_interest_score: Number(form.elements.minimum_interest_score.value),
+        maximum_story_age_hours: Number(form.elements.maximum_story_age_hours.value),
+        cooldown_hours: Number(form.elements.cooldown_hours.value),
+        maximum_cycles_per_story: Number(form.elements.maximum_cycles_per_story.value),
+        global_cycles_per_hour: Number(form.elements.global_cycles_per_hour.value),
+        provider_requests_per_hour: Number(form.elements.provider_requests_per_hour.value),
+        results_per_query: Number(form.elements.results_per_query.value),
+      };
+      const msg = el("discovery-settings-msg");
+      try {
+        await requestJSON("/api/discovery/settings", "PUT", body);
+        msg.textContent = "Discovery settings saved.";
+        msg.className = "msg ok";
+        loadDiscovery();
+      } catch (err) { msg.textContent = err.message; msg.className = "msg err"; }
+      return false;
+    }
+
+    // --- Signal Radar ---------------------------------------------------------
+
+    async function loadRadar() {
+      await Promise.all([loadRadarOverview(), loadRadarCandidates(), loadRadarSources(), loadRadarSettings()]);
+    }
+
+    async function loadRadarOverview() {
+      const status = await fetchJSON("/api/radar/status");
+      const c = status.counts;
+      el("radar-overview").innerHTML = `
+    <div class="story-meta">
+      <span>Collection: ${status.collection_enabled ? "<b>enabled</b>" : "disabled"}</span>
+      <span>X collection: ${status.x_provider_enabled ? "<b>enabled</b>" : "disabled"}</span>
+      <span>Automatic promotion: ${status.automatic_promotion_enabled ? "<b>enabled</b>" : "disabled"}</span>
+    </div>
+    <div class="story-meta">
+      <span>${c.unseen_active} unseen active</span>
+      <span>${c.high_attention} high-attention (&ge;0.6)</span>
+      <span>${c.active} active</span>
+      <span>${c.stale} stale</span>
+      <span>${c.snoozed} snoozed</span>
+      <span>${c.dismissed} dismissed</span>
+      <span>${c.promoted} promoted</span>
+      <span>${c.promoted_last_24h} promoted in last 24h</span>
+    </div>
+    ${status.recent_provider_runs.length ? `<h4>Recent collection runs</h4><table><tbody>${status.recent_provider_runs.map(r => `<tr>
+        <td class="muted">${esc(r.provider)}</td>
+        <td>${r.status === "ok" ? "OK" : `<span class="muted">${esc(r.status)}</span>`}</td>
+        <td>${r.items_collected} item(s)</td>
+        <td class="muted">${new Date(r.started_at).toLocaleString()}</td>
+        <td class="reasons">${r.error ? esc(r.error) : ""}</td>
+      </tr>`).join("")
+          }</tbody></table>` : `<div class="muted">No collection runs yet.</div>`}
+  `;
+    }
+
+    async function runRadarCluster() {
+      const msg = el("radar-msg");
+      msg.textContent = "Reclustering…";
+      try {
+        const result = await postJSON("/api/radar/cluster", {});
+        msg.textContent = `${result.analyzed} analyzed, ${result.attached_to_existing} attached, ${result.new_candidates} new, ${result.suppressed_no_topic_or_artifact} suppressed. Rescored ${result.rescored}.`;
+        msg.className = "msg ok";
+        loadRadarCandidates();
+        loadRadarOverview();
+      } catch (err) { msg.textContent = err.message; msg.className = "msg err"; }
+    }
+
+    let legacyImportPreviewKey = null;
+
+    function legacyImportSelection() {
+      const file = el("legacy-import-file").files[0];
+      const categories = [...document.querySelectorAll("#legacy-import-categories input:checked")].map(field => field.value);
+      if (!file) throw new Error("Choose your old signal_radar.db file first.");
+      if (!categories.length) throw new Error("Choose at least one type of data to import.");
+      return {
+        file,
+        categories,
+        key: `${file.name}:${file.size}:${file.lastModified}:${categories.join(",")}`,
+      };
+    }
+
+    async function uploadLegacyDatabase(endpoint, selection) {
+      const params = new URLSearchParams({ categories: selection.categories.join(",") });
+      const response = await fetch(`${endpoint}?${params}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/vnd.sqlite3" },
+        body: selection.file,
+      });
+      let body = {};
+      try { body = await response.json(); } catch (err) { }
+      if (!response.ok) throw new Error(body.detail || `Import failed (${response.status}).`);
+      return body;
+    }
+
+    function renderLegacyImportReport(report) {
+      const rows = Object.entries(report.categories).map(([name, count]) => `<tr>
+    <td>${esc(name.replaceAll("_", " "))}</td>
+    <td>${count.detected}</td><td>${count.importable}</td><td>${count.duplicate}</td>
+    <td>${count.invalid}</td><td>${count.imported}</td>
+  </tr>`).join("");
+      const unsupported = Object.entries(report.unsupported || {})
+        .filter(([, count]) => count)
+        .map(([name, count]) => `${esc(name)} (${count})`).join(", ");
+      el("legacy-import-report").innerHTML = `
+    <table><thead><tr><th>Data</th><th>Found</th><th>Ready</th><th>Already present</th><th>Invalid</th><th>Imported</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    ${unsupported ? `<p class="reasons"><strong>Not imported by design:</strong> ${unsupported}. These are old derived editorial records, not raw observations.</p>` : ""}
+    ${(report.warnings || []).map(warning => `<p class="reasons">${esc(warning)}</p>`).join("")}
+  `;
+    }
+
+    async function previewLegacyImport() {
+      const msg = el("legacy-import-msg");
+      el("legacy-import-apply").disabled = true;
+      legacyImportPreviewKey = null;
+      try {
+        const selection = legacyImportSelection();
+        msg.textContent = "Inspecting the database…";
+        msg.className = "msg";
+        const report = await uploadLegacyDatabase("/api/radar/import/preview", selection);
+        renderLegacyImportReport(report);
+        legacyImportPreviewKey = selection.key;
+        el("legacy-import-apply").disabled = false;
+        msg.textContent = "Preview complete. Review the counts, then import when ready.";
+        msg.className = "msg ok";
+      } catch (err) {
+        msg.textContent = err.message;
+        msg.className = "msg err";
+      }
+    }
+
+    async function applyLegacyImport() {
+      const msg = el("legacy-import-msg");
+      try {
+        const selection = legacyImportSelection();
+        if (selection.key !== legacyImportPreviewKey) {
+          throw new Error("The file or selections changed. Preview again before importing.");
+        }
+        if (!confirm("Import the reviewed raw data? Existing records will be reused, and automatic polling will remain off.")) return;
+        el("legacy-import-apply").disabled = true;
+        msg.textContent = "Importing…";
+        msg.className = "msg";
+        const report = await uploadLegacyDatabase("/api/radar/import/apply", selection);
+        renderLegacyImportReport(report);
+        msg.textContent = "Import complete. Use “Recluster & rescore now” to analyze the newly imported posts.";
+        msg.className = "msg ok";
+        legacyImportPreviewKey = null;
+        loadRadarOverview();
+        loadRadarSources();
+      } catch (err) {
+        msg.textContent = err.message;
+        msg.className = "msg err";
+        el("legacy-import-apply").disabled = false;
+      }
+    }
+
+    async function loadRadarCandidates() {
+      const params = new URLSearchParams({
+        state: el("radar-state").value,
+        age: el("radar-age").value,
+        age_days: el("radar-age-days").value,
+        sort: el("radar-sort").value,
+        min_score: el("radar-min-score").value || "0",
+      });
+      const rows = await fetchJSON(`/api/radar/candidates?${params}`);
+      const ageMode = el("radar-age").value;
+      const days = el("radar-age-days").value;
+      el("radar-candidates-body").innerHTML = rows.map(c => candidateCard(c)).join("") ||
+        (ageMode === "current" ? `<div class="empty-action">No current candidates within the last ${days} days. Choose Older or All ages to review historical coverage.</div>` : `<div class="empty-action">Nothing matches this Radar view.</div>`);
+    }
+
+    async function setCandidateSeen(id, seen) {
+      await postJSON("/api/radar/candidates/seen", { candidate_ids: [id], seen });
+      await loadRadarCandidates();
+      await loadEditorialRadarShortlist();
+      if (currentRadarCandidate && currentRadarCandidate.id === id) await showRadarCandidate(id, false);
+    }
+
+    let currentRadarCandidate = null;
+
+    async function showRadarCandidate(id, scroll = true) {
+      const panel = el("radar-candidate-detail");
+      panel.innerHTML = `<div class="card wide-card muted">Loading the reports behind this candidate…</div>`;
+      if (scroll) panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      let c;
+      const ageDays = el("radar-age-days") ? el("radar-age-days").value : "7";
+      try { c = await fetchJSON(`/api/radar/candidates/${id}?age_days=${encodeURIComponent(ageDays)}`); await ensureEntityCache(); }
+      catch (err) { panel.innerHTML = `<div class="card wide-card msg err">Could not load candidate details: ${esc(err.message)}</div>`; return; }
+      currentRadarCandidate = c;
+      const comps = c.score_explanation.components || {};
+      const compRows = Object.entries(comps).map(([name, v]) => `
+    <div class="story-meta"><span style="width:140px;display:inline-block">${esc(name)}</span>${confBar(v.raw_value)} <span class="muted">weight ${v.weight.toFixed(2)} · ${esc(v.detail)}</span></div>
+  `).join("");
+      const timelineRows = c.timeline.map(item => {
+        const groups = (item.independence_groups || []).map(g => {
+          const label = g.reason === "independent" ? "Independent report" :
+            g.reason === "citation" ? "Appears to cite an earlier report" : g.reason.replaceAll("_", " ");
+          return `${esc(label)}${g.origin_signal_item_id && g.origin_signal_item_id !== item.signal_item_id ? ` (origin report #${g.origin_signal_item_id})` : ""}`;
+        });
+        return `<article class="report-card" id="radar-report-${item.signal_item_id}">
+      <div class="story-headline">${item.url ? `<a href="${esc(item.url)}" target="_blank" rel="noopener noreferrer" style="color:#9ec0ff">${esc(item.title || item.text.slice(0, 100))}</a>` : esc(item.title || item.text.slice(0, 100))}</div>
+      <div class="story-meta"><strong>${esc(item.source)}</strong><span>${esc(item.provider.toUpperCase())}</span><span>${item.posted_at ? new Date(item.posted_at).toLocaleString() : "Time unavailable"}</span><span>Report #${item.signal_item_id}</span></div>
+      <div class="report-excerpt">${esc(item.text)}</div>
+      ${(item.topics || []).length ? `<div>${item.topics.map(t => `<span class="topic-chip">${esc(t.name)} via “${esc(t.matched_text)}”</span>`).join("")}</div>` : ""}
+      ${item.attach_reasons.length ? `<div class="reasons"><strong>Why attached:</strong> ${item.attach_reasons.map(esc).join(" · ")}</div>` : ""}
+      ${groups.length ? `<div class="reasons"><strong>Independence:</strong> ${groups.join(" · ")}</div>` : ""}
+      ${item.mentions.length ? `<div class="reasons">Mentions: ${item.mentions.map(m => `${esc(m.text)} (${esc(m.type)}/${esc(m.status)})`).join(", ")}</div>` : ""}
+      ${item.labels.length ? `<div class="reasons">Labels: ${item.labels.map(l => esc(l.label)).join(", ")}</div>` : ""}
+      <div style="margin-top:8px">
+        <button class="primary" onclick="openRadarClaimDialog(${c.id}, ${item.signal_item_id})">Create claim from this report</button>
+        <button class="secondary" onclick="useRadarItemAsEvidence(${c.id}, ${item.signal_item_id})">${item.origin_evidence_id ? `Open evidence #${item.origin_evidence_id}` : "Use as evidence"}</button>
+      </div>
+    </article>`;
+      }).join("");
+      const groupRows = c.independence_groups.map(g => `
+    <li>Group (${esc(g.reason)}): items ${g.member_signal_item_ids.join(", ")}</li>
+  `).join("");
+      const elig = c.automatic_promotion_eligibility;
+
+      const groupedMentions = {};
+      c.timeline.forEach(item => {
+        (item.mentions || []).forEach(m => {
+          const key = m.text + "\0" + m.type;
+          if (!groupedMentions[key]) {
+            groupedMentions[key] = {
+              text: m.text, type: m.type, status: m.status,
+              count: 0, items: [], max_conf: m.confidence,
+              resolved_entity_id: m.resolved_entity_id
+            };
+          }
+          groupedMentions[key].count++;
+          if (m.confidence > groupedMentions[key].max_conf) groupedMentions[key].max_conf = m.confidence;
+          if (!groupedMentions[key].items.includes(item.signal_item_id)) groupedMentions[key].items.push(item.signal_item_id);
+        });
+      });
+
+      let unresolvedCount = 0;
+      const mentionRows = Object.values(groupedMentions).map(m => {
+        const isCandidate = m.status === 'candidate';
+        if (isCandidate) unresolvedCount++;
+        const entityLabel = m.resolved_entity_id ? `Resolved entity #${m.resolved_entity_id}` : `Suggested type: ${esc(m.type)}`;
+        return `
+      <div class="story-card" style="margin-bottom: 12px; padding: 12px;">
+        <div style="font-weight: bold; font-size: 1.1em;">${esc(m.text)} <span class="badge ${isCandidate ? 'status-open' : 'status-confirmed'}">${esc(m.status)}</span></div>
+        <div class="story-meta">
+          <span>Mentioned ${m.count} time(s) in ${m.items.length} report(s) (e.g. #${m.items[0]})</span>
+          <span>Highest confidence: ${m.max_conf.toFixed(2)}</span>
+          <span>${entityLabel}</span>
+        </div>
+        ${isCandidate ? `
+        <div style="margin-top: 8px;">
+          <button class="primary" onclick="openMentionResolution('${esc(m.text).replace(/'/g, "\\'")}', '${esc(m.type)}')">Resolve…</button>
+          <button class="secondary" onclick="disposeMention('${esc(m.text).replace(/'/g, "\\'")}', '${esc(m.type)}', 'ignored')">Ignore</button>
+          <button class="danger" onclick="disposeMention('${esc(m.text).replace(/'/g, "\\'")}', '${esc(m.type)}', 'rejected')">Reject</button>
+        </div>` : ""}
+      </div>
+    `;
+      }).join("");
+
+      panel.innerHTML = `<div class="card wide-card" tabindex="-1" id="radar-candidate-detail-card">
+    <button class="secondary" style="float:right" onclick="closeRadarCandidateDetail()" aria-label="Close candidate details">Close</button>
+    <h2>${esc(c.title)} <span class="badge status-open">${esc(c.state)}</span>${c.age_classification === "older" ? ` <span class="badge muted">Older</span>` : ""}${c.resurfaced ? ` <span class="badge status-confirmed">Resurfaced</span>` : ""}</h2>
+    <div class="story-meta"><span class="score">${c.attention_score.toFixed(2)}</span><span>${c.item_count} reports</span><span>${c.distinct_source_count} sources</span><span>${c.independent_source_group_count} independent groups</span>${c.primary_topic ? `<span class="topic-chip">${esc(c.primary_topic)}</span>` : ""}<span>${new Date(c.first_observed_at).toLocaleString()} → ${new Date(c.latest_observed_at).toLocaleString()}</span></div>
+    <div class="reasons"><strong>Radar age:</strong> ${esc(c.age_reason)} · meaningful activity ${new Date(c.meaningful_activity_at).toLocaleString()}</div>
+    ${compRows}
+    <div class="story-meta">
+      <button class="secondary" onclick="setCandidateSeen(${c.id}, ${!c.seen})">${c.seen ? "Mark unseen" : "Mark seen"}</button>
+      <button class="secondary" onclick="openRadarClaimDialog(${c.id})">Create claim</button>
+      ${c.state !== "promoted" ? `<button class="primary" onclick="promoteRadarCandidate(${c.id})">Promote to Editorial Inbox</button>` : `<button class="primary" onclick="openEditorialStory(${c.promoted_story_id})">Open editorial story #${c.promoted_story_id}</button>`}
+      ${c.state === "dismissed" ? `<button class="secondary" onclick="restoreRadarCandidate(${c.id})">Restore</button>` : `<button class="danger" onclick="dismissRadarCandidate(${c.id})">Dismiss</button>`}
+      <button class="secondary" onclick="snoozeRadarCandidate(${c.id})">Snooze 3 days</button>
+    </div>
+    <div class="reasons">
+      <strong>Automatic promotion eligibility:</strong> ${elig.eligible ? "Eligible" : esc(elig.reasons.join("; "))}<br>
+      <strong>Manual promotion availability:</strong> Available. ${c.state !== "promoted" ? "Manual promotion is an explicit operator decision." : "Already promoted."}
+    </div>
+    <span id="radar-candidate-msg" class="msg"></span>
+    <h3>Candidate Intelligence</h3>
+    <div id="radar-candidate-intelligence">
+      <button class="secondary" onclick="loadCandidateIntelligence(${c.id})">Load candidate intelligence</button>
+    </div>
+    <h3>Extracted entity mentions</h3>
+    ${unresolvedCount > 0 ? `<div class="msg warn">This candidate contains ${unresolvedCount} unresolved entity mention${unresolvedCount === 1 ? '' : 's'}. Promotion should remain an explicit operator decision.</div>` : ""}
+    ${mentionRows || `<div class="empty-action">No entity mentions extracted for this candidate.</div>`}
+    <h3>Reports that created this candidate</h3>
+    ${timelineRows || `<div class="empty-action">No contributing reports were found.</div>`}
+    <h3>Independence groups</h3>
+    <ul>${groupRows || "<li class=muted>none computed yet</li>"}</ul>
+  </div>`;
+      if (scroll) panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      el("radar-candidate-detail-card").focus({ preventScroll: true });
+    }
+
+    const TIMELINE_STAGE_LABELS = {
+      rumor: "Rumor", emerging: "Emerging", corroborated: "Corroborated", pre_launch: "Pre-launch",
+      confirmed: "Confirmed", released: "Released", corrected: "Corrected", disproven: "Disproven",
+    };
+
+    function intelligenceComponentRows(scoreBlock) {
+      return Object.entries(scoreBlock.components || {}).map(([name, v]) => `
+    <div class="story-meta"><span style="width:170px;display:inline-block">${esc(name.replace(/_/g, " "))}</span>
+      ${confBar(v.raw_value)} <span class="muted">weight ${v.weight.toFixed(2)} · ${esc(v.detail)}</span></div>
+  `).join("");
+    }
+
+    async function loadCandidateIntelligence(id) {
+      const container = el("radar-candidate-intelligence");
+      container.innerHTML = `<span class="muted">Loading…</span>`;
+      let intel;
+      try {
+        intel = await fetchJSON(`/api/radar/candidates/${id}/intelligence`);
+      } catch (err) {
+        container.innerHTML = `<div class="msg err">${esc(err.message)}</div>`;
+        return;
+      }
+
+      const og = intel.origin_graph;
+      const originBlock = og.origin ? `
+    <div class="story-meta">
+      <span><strong>Origin:</strong> ${esc(og.origin.source_name)}${og.origin.url ? ` (<a href="${esc(og.origin.url)}" target="_blank" style="color:#9ec0ff">link</a>)` : ""}</span>
+      <span>${og.independent_confirmations} independent confirmation(s)</span>
+      <span>${og.echoes} echo(es)</span>
+    </div>` : `<div class="muted">No origin data yet.</div>`;
+
+      const claimRows = intel.claims.map(c => `
+    <div class="story-meta"><span style="width:140px;display:inline-block">${esc(c.claim_type.replace(/_/g, " "))}</span>
+      <span>${c.value}${esc(c.unit)}</span> <span class="muted">${esc(c.source_name)} · "${esc(c.snippet)}"</span></div>
+  `).join("") || `<div class="muted">No extractable claims (core count / memory size / clock speed) found.</div>`;
+
+      const noveltyRows = intel.novelty.map(n => `
+    <div class="story-meta"><span class="badge ${n.status === 'first_appearance' ? 'status-confirmed' : n.status === 'updated' ? 'status-open' : 'muted'}">${esc(n.status.replace(/_/g, " "))}</span>
+      <span>${esc(n.reason)}</span></div>
+  `).join("") || `<div class="muted">No prior candidates on this topic to compare against.</div>`;
+
+      const contradictionRows = intel.contradictions.map(c => `
+    <div class="msg warn"><strong>${esc(c.claim_type.replace(/_/g, " "))}:</strong> ${esc(c.reason)}</div>
+  `).join("") || `<div class="muted">No contradictions detected in current evidence.</div>`;
+
+      const checklistRows = intel.verification_checklist.map(s => `
+    <li>${esc(s.step)} <span class="muted">— ${esc(s.reason)}</span></li>
+  `).join("");
+
+      container.innerHTML = `
+    <div class="story-meta"><span class="badge status-open">${esc(TIMELINE_STAGE_LABELS[intel.timeline_stage.stage] || intel.timeline_stage.stage)}</span>
+      <span class="muted">${esc(intel.timeline_stage.reason)}</span></div>
+    <h4>Origin &amp; confirmations</h4>
+    ${originBlock}
+    <details open><summary><strong>Confidence: ${intel.confidence.score}/100</strong> — how likely this is to be correct</summary>
+      ${intelligenceComponentRows(intel.confidence)}
+      ${intel.confidence.penalties && intel.confidence.penalties.contradictions ? `<div class="reasons">Contradiction penalty: ${intel.confidence.penalties.contradictions.toFixed(2)}</div>` : ""}
+    </details>
+    <details open><summary><strong>Editorial value: ${intel.editorial_value.score}/100</strong> — should an editor care</summary>
+      ${intelligenceComponentRows(intel.editorial_value)}
+    </details>
+    <details><summary><strong>Extracted claims</strong> (${intel.claims.length})</summary>${claimRows}</details>
+    <details><summary><strong>Novelty</strong> (${intel.novelty.length})</summary>${noveltyRows}</details>
+    <details ${intel.contradictions.length ? "open" : ""}><summary><strong>Contradictions</strong> (${intel.contradictions.length})</summary>${contradictionRows}</details>
+    <details open><summary><strong>Verification checklist</strong> (${intel.verification_checklist.length})</summary><ul>${checklistRows}</ul></details>
+    <div class="reasons">${esc(og.summary)}</div>
+  `;
+    }
+
+    async function promoteRadarCandidate(id) {
+      if (!currentRadarCandidate || currentRadarCandidate.id !== id) currentRadarCandidate = await fetchJSON(`/api/radar/candidates/${id}`);
+      const c = currentRadarCandidate;
+      const form = el("radar-promotion-form");
+      form.reset(); form.elements.candidate_id.value = c.id; form.elements.headline.value = c.title;
+      el("radar-promotion-context").innerHTML = `<strong>${esc(c.title)}</strong><div>${c.item_count} reports · ${c.independent_source_group_count} independent groups · attention ${c.attention_score.toFixed(2)}</div><div>${c.automatic_promotion_eligibility.eligible ? "Meets automatic rules" : `Automatic rules would not promote it: ${esc(c.automatic_promotion_eligibility.reasons.join("; "))}`}</div>`;
+      el("radar-promotion-dialog").showModal();
+    }
+
+    function closeRadarCandidateDetail() { el("radar-candidate-detail").innerHTML = ""; currentRadarCandidate = null; }
+    function closeRadarPromotionDialog() { el("radar-promotion-dialog").close(); }
+
+    async function submitRadarPromotion(event) {
+      event.preventDefault(); const form = event.target; const msg = form.querySelector("[data-msg]"); const button = form.querySelector("button[type=submit]");
+      button.disabled = true; msg.textContent = "Promoting…";
+      try {
+        const id = Number(form.elements.candidate_id.value);
+        const result = await postJSON(`/api/radar/candidates/${id}/promote`, { by: "human:web", headline: form.elements.headline.value });
+        closeRadarPromotionDialog(); await loadStories(); await loadRadarCandidates(); await showRadarCandidate(id);
+        el("radar-candidate-msg").textContent = `Promoted to editorial story #${result.story_id}.`;
+        el("radar-candidate-msg").className = "msg ok";
+      } catch (err) { msg.textContent = err.message; msg.className = "msg err"; }
+      finally { button.disabled = false; }
+      return false;
+    }
+
+    async function openEditorialStory(id) { switchTab("stories"); await loadStories(); await showStory(id); }
+
+    async function openRadarClaimDialog(candidateId, signalItemId = null) {
+      const c = currentRadarCandidate;
+      if (!c || c.id !== candidateId) return;
+      await ensureEntityCache();
+      const item = signalItemId ? c.timeline.find(row => row.signal_item_id === signalItemId) : null;
+      const selection = window.getSelection ? window.getSelection().toString().trim() : "";
+      const form = el("radar-claim-form"); form.reset();
+      const relevantIds = new Set((c.resolved_entities || []).map(entity => entity.id));
+      const ordered = [...entityCache].sort((a, b) => Number(relevantIds.has(b.id)) - Number(relevantIds.has(a.id)) || a.name.localeCompare(b.name));
+      form.elements.subject_entity_id.innerHTML = `<option value="">No subject entity</option>` + ordered.map(entity => `<option value="${entity.id}">${esc(entity.name)} · ${esc(entity.type)}${relevantIds.has(entity.id) ? " · from this candidate" : ""}</option>`).join("");
+      form.elements.candidate_id.value = candidateId; form.elements.signal_item_id.value = signalItemId || "";
+      form.elements.statement.value = selection || (item ? (item.title || "") : c.title);
+      el("radar-claim-context").textContent = item ? `From ${item.source}: ${item.title || `report #${item.signal_item_id}`}` : `From candidate “${c.title}”. No evidence will be attached until you select a report.`;
+      el("radar-claim-dialog").showModal(); form.elements.statement.focus();
+    }
+
+    function closeRadarClaimDialog() { el("radar-claim-dialog").close(); }
+
+    async function submitRadarClaim(event) {
+      event.preventDefault(); const form = event.target; const msg = form.querySelector("[data-msg]"); const button = form.querySelector("button[type=submit]");
+      button.disabled = true; msg.textContent = "Creating claim…";
+      const body = formToObject(form, ["signal_item_id", "subject_entity_id"]); const candidateId = Number(form.elements.candidate_id.value); delete body.candidate_id;
+      try {
+        const result = await postJSON(`/api/radar/candidates/${candidateId}/claims`, body);
+        closeRadarClaimDialog(); switchTab("claims"); await loadClaims(); await showClaim(result.claim.id);
+      } catch (err) { msg.textContent = err.message; msg.className = "msg err"; }
+      finally { button.disabled = false; }
+      return false;
+    }
+
+    async function useRadarItemAsEvidence(candidateId, signalItemId) {
+      const msg = el("radar-candidate-msg"); msg.textContent = "Saving evidence…";
+      try {
+        const result = await postJSON(`/api/radar/items/${signalItemId}/evidence`, { candidate_id: candidateId });
+        msg.textContent = result.created ? `Created evidence #${result.evidence.id}.` : `Evidence #${result.evidence.id} already exists.`;
+        msg.className = "msg ok"; await showRadarCandidate(candidateId, false);
+      } catch (err) { msg.textContent = err.message; msg.className = "msg err"; }
+    }
+
+    async function dismissRadarCandidate(id) {
+      const reason = prompt("Reason for dismissing this candidate?");
+      if (reason === null) return;
+      await postJSON(`/api/radar/candidates/${id}/dismiss`, { reason: reason || "not relevant" });
+      showRadarCandidate(id);
+      loadRadarCandidates();
+    }
+
+    async function restoreRadarCandidate(id) {
+      await postJSON(`/api/radar/candidates/${id}/restore`, {});
+      showRadarCandidate(id);
+      loadRadarCandidates();
+    }
+
+    async function snoozeRadarCandidate(id) {
+      const until = new Date(Date.now() + 3 * 86400000).toISOString();
+      await postJSON(`/api/radar/candidates/${id}/snooze`, { until });
+      showRadarCandidate(id);
+      loadRadarCandidates();
+    }
+
+    let radarSources = [];
+    let selectedRadarSourceIds = new Set();
+    let radarCollectionRunning = false;
+    let cancelRadarCollectionRequested = false;
+
+    const sourceHealthLabels = {
+      untested: "untested", healthy: "healthy", timed_out: "timed out",
+      authentication_required: "authentication required", rate_limited: "rate limited",
+      challenged: "challenge detected", http_error: "HTTP error", invalid_feed: "invalid feed",
+      disabled: "disabled", failed: "error",
+    };
+
+    function radarSourceHealthBadge(source) {
+      const state = source.health.state;
+      const good = state === "healthy";
+      const neutral = ["untested", "disabled"].includes(state);
+      const css = good ? "status-confirmed" : (neutral ? "status-open" : "status-debunked");
+      const detail = source.health.error_summary ? `<div class="reasons">${esc(source.health.error_summary)}</div>` : "";
+      return `<span class="badge ${css}">${esc(sourceHealthLabels[state] || state)}</span>${detail}`;
+    }
+
+    function updateRadarSourceSelectionControls() {
+      const enabledIds = radarSources.filter(source => source.enabled).map(source => source.id);
+      el("radar-collect-selected").textContent = `Collect selected (${selectedRadarSourceIds.size})`;
+      el("radar-collect-selected").disabled = radarCollectionRunning || !selectedRadarSourceIds.size;
+      el("radar-source-select-all").checked = Boolean(enabledIds.length) && enabledIds.every(id => selectedRadarSourceIds.has(id));
+      el("radar-source-select-all").disabled = radarCollectionRunning || !enabledIds.length;
+    }
+
+    async function loadRadarSources() {
+      radarSources = await fetchJSON("/api/radar/sources");
+      const validIds = new Set(radarSources.filter(source => source.enabled).map(source => source.id));
+      selectedRadarSourceIds = new Set([...selectedRadarSourceIds].filter(id => validIds.has(id)));
+      el("radar-sources-body").innerHTML = radarSources.length ? `<table><thead><tr>
+      <th></th><th>Name</th><th>Provider</th><th>Enabled</th><th>Polling</th><th>Priority</th><th>Last success</th><th>Status</th><th></th>
+    </tr></thead><tbody>${radarSources.map(source => `
+    <tr>
+      <td><input type="checkbox" aria-label="Select ${esc(source.name)}" ${selectedRadarSourceIds.has(source.id) ? "checked" : ""}
+        ${!source.enabled || radarCollectionRunning ? "disabled" : ""} onchange="toggleRadarSourceSelection(${source.id}, this.checked)"></td>
+      <td><strong>${esc(source.name)}</strong></td>
+      <td class="muted">${esc(source.provider)}</td>
+      <td>${source.enabled ? "yes" : "no"}</td>
+      <td>${source.polling_enabled ? "on" : "off"}</td>
+      <td>${source.priority}</td>
+      <td class="muted">${source.last_success_at ? new Date(source.last_success_at).toLocaleString() : "never"}</td>
+      <td>${radarSourceHealthBadge(source)}</td>
+      <td><button class="secondary" onclick="openRadarSourceEditor(${source.id})">Edit</button>
+        <button class="secondary" ${!source.enabled || radarCollectionRunning ? "disabled" : ""} onclick="collectRadarSource(${source.id})">Collect now</button></td>
+    </tr>`).join("")}</tbody></table>` : `<div class="muted">No signal sources yet.</div>`;
+      updateRadarSourceSelectionControls();
+    }
+
+    function toggleRadarSourceSelection(id, checked) {
+      if (checked) selectedRadarSourceIds.add(id); else selectedRadarSourceIds.delete(id);
+      updateRadarSourceSelectionControls();
+    }
+
+    function toggleAllRadarSources(checked) {
+      selectedRadarSourceIds = checked
+        ? new Set(radarSources.filter(source => source.enabled).map(source => source.id))
+        : new Set();
+      loadRadarSources();
+    }
+
+    function openRadarSourceEditor(id) {
+      const source = radarSources.find(row => row.id === id);
+      if (!source) return;
+      const form = el("radar-source-edit-form");
+      form.elements.source_id.value = source.id;
+      form.elements.display_name.value = source.name;
+      form.elements.handle_or_url.value = source.provider_key || source.url || "";
+      form.elements.priority.value = source.priority;
+      form.elements.trust_weight.value = source.trust_weight;
+      form.elements.enabled.checked = source.enabled;
+      form.elements.polling_enabled.checked = source.polling_enabled;
+      form.querySelector("[data-msg]").textContent = "";
+      el("radar-source-identity-label").textContent = source.provider === "x" ? "X handle" : "Feed URL";
+      el("radar-source-dialog").showModal();
+    }
+
+    function closeRadarSourceEditor() { el("radar-source-dialog").close(); }
+
+    async function saveRadarSource(event) {
+      event.preventDefault();
+      const form = event.target, msg = form.querySelector("[data-msg]");
+      const body = formToObject(form, ["priority", "trust_weight"]);
+      delete body.source_id;
+      body.enabled = form.elements.enabled.checked;
+      body.polling_enabled = form.elements.polling_enabled.checked;
+      try {
+        await requestJSON(`/api/radar/sources/${form.elements.source_id.value}`, "PUT", body);
+        closeRadarSourceEditor();
+        await loadRadarSources();
+      } catch (err) { msg.textContent = err.message; msg.className = "msg err"; }
+      return false;
+    }
+
+    function cancelRadarCollection() {
+      cancelRadarCollectionRequested = true;
+      el("radar-collection-progress").textContent = "Stopping after the current source…";
+    }
+
+    async function collectRadarSource(id) {
+      const source = radarSources.find(row => row.id === id);
+      if (source) await collectRadarSourceBatch([source]);
+    }
+
+    async function collectSelectedRadarSources() {
+      await collectRadarSourceBatch(radarSources.filter(source => selectedRadarSourceIds.has(source.id)));
+    }
+
+    async function collectAllRadarSources() {
+      await collectRadarSourceBatch(radarSources.filter(source => source.enabled));
+    }
+
+    async function collectRadarSourceBatch(sources) {
+      if (radarCollectionRunning) return;
+      const enabled = sources.filter(source => source.enabled);
+      if (!enabled.length) { el("radar-collection-progress").textContent = "No enabled sources selected."; return; }
+      const rss = enabled.filter(source => source.provider !== "x");
+      const xSources = enabled.filter(source => source.provider === "x");
+      if (xSources.length) {
+        const status = await fetchJSON("/api/radar/status");
+        if (!status.x_provider_enabled) {
+          el("radar-collection-progress").textContent = "X collection is disabled. Enable it in Radar settings first.";
+          return;
+        }
+        if (!confirm(`This batch contains ${rss.length} RSS source(s) and ${xSources.length} X account(s). X accounts will run sequentially and may trigger rate limits or a session challenge. Continue?`)) return;
+      }
+      const queue = [...rss, ...xSources];
+      radarCollectionRunning = true;
+      cancelRadarCollectionRequested = false;
+      el("radar-collect-cancel").disabled = false;
+      await loadRadarSources();
+      const totals = { items: 0, duplicates: 0, failed: 0, completed: 0 };
+      let stopX = false;
+      try {
+        for (const source of queue) {
+          if (cancelRadarCollectionRequested) break;
+          if (source.provider === "x" && stopX) continue;
+          el("radar-collection-progress").textContent = `${totals.completed} of ${queue.length} complete · collecting ${source.name}…`;
+          try {
+            const result = await postJSON(`/api/radar/sources/${source.id}/collect`, {});
+            totals.items += result.items_collected || 0;
+            totals.duplicates += result.duplicates_skipped || 0;
+            if (result.status === "failed") {
+              totals.failed += 1;
+              const error = String(result.error || "").toLowerCase();
+              if (source.provider === "x" && ["rate limit", "429", "challenge", "captcha", "session", "authenticated"].some(marker => error.includes(marker))) stopX = true;
+            }
+          } catch (err) {
+            totals.failed += 1;
+            const error = String(err.message || "").toLowerCase();
+            if (source.provider === "x" && ["rate limit", "429", "challenge", "captcha", "session", "authenticated"].some(marker => error.includes(marker))) stopX = true;
+          }
+          totals.completed += 1;
+          await loadRadarSources();
+        }
+        if (totals.completed) await postJSON("/api/radar/cluster", {});
+        const stopped = cancelRadarCollectionRequested ? " Cancelled before remaining sources." : (stopX ? " Remaining X accounts were stopped for safety." : "");
+        el("radar-collection-progress").textContent = `${totals.completed} completed · ${totals.items} new · ${totals.duplicates} duplicate(s) · ${totals.failed} failed.${stopped}`;
+      } finally {
+        radarCollectionRunning = false;
+        el("radar-collect-cancel").disabled = true;
+        await Promise.all([loadRadarSources(), loadRadarCandidates(), loadRadarOverview()]);
+      }
+    }
+
+    async function submitAddRadarSource(event) {
+      event.preventDefault();
+      const form = event.target;
+      const msg = form.querySelector("[data-msg]");
+      const body = formToObject(form, ["priority"]);
+      body.priority = body.priority || 3;
+      body.polling_enabled = form.elements.polling_enabled.checked;
+      try {
+        const result = await postJSON("/api/radar/sources", body);
+        msg.textContent = result.already_existed ? `Already registered as "${result.name}".` : `Added "${result.name}" (${result.provider}).`;
+        msg.className = "msg ok";
+        form.reset();
+        loadRadarSources();
+      } catch (err) { msg.textContent = err.message; msg.className = "msg err"; }
+      return false;
+    }
+
+    async function loadRadarSettings() {
+      const s = await fetchJSON("/api/radar/settings");
+      const form = el("radar-settings-form");
+      for (const [key, value] of Object.entries(s)) {
+        const field = form.elements[key];
+        if (!field) continue;
+        if (field.type === "checkbox") field.checked = value; else field.value = value;
+      }
+    }
+
+    async function submitRadarSettings(event) {
+      event.preventDefault();
+      const form = event.target;
+      const msg = form.querySelector("[data-msg]");
+      const checkboxNames = ["collection_enabled", "x_provider_enabled", "media_download_enabled", "ocr_enabled", "automatic_promotion_enabled", "required_topic_match"];
+      const numberNames = ["startup_stagger_seconds", "momentum_window_hours", "staleness_days", "maximum_candidate_age_hours", "hourly_promotion_budget",
+        "weight_topic_relevance", "weight_novelty", "weight_momentum", "weight_source_diversity", "weight_artifact_strength", "weight_source_quality", "minimum_attention_score"];
+      const body = formToObject(form, numberNames);
+      checkboxNames.forEach(k => body[k] = form.elements[k].checked);
+      try {
+        await requestJSON("/api/radar/settings", "PUT", body);
+        msg.textContent = "Radar settings saved.";
+        msg.className = "msg ok";
+        loadRadarOverview();
+      } catch (err) { msg.textContent = err.message; msg.className = "msg err"; }
+      return false;
+    }
+
+    // --- Alerts & Digest ------------------------------------------------------
+
+    let notificationSettings = null;
+    let shownNotificationIds = [];
+    let notificationTopics = [];
+    let savedNotificationViews = [];
+    let activeSavedView = null;
+    let activeSavedViewModified = false;
+    let editingSavedViewId = null;
+
+    const DATE_WINDOW_LABELS = {
+      1: "Last 1 day", 3: "Last 3 days", 7: "Last 7 days",
+      14: "Last 14 days", 30: "Last 30 days", 90: "Last 90 days",
+    };
+
+    async function loadNotifications() {
+      notificationTopics = await fetchJSON("/api/topics");
+      el("notification-topic").innerHTML = `<option value="">All monitored topics</option>` +
+        notificationTopics.map(topic => `<option value="${topic.id}">${esc(topic.name)}</option>`).join("");
+      el("sv-topics").innerHTML = notificationTopics.length
+        ? notificationTopics.map(topic => `<label><input type="checkbox" value="${topic.id}"> ${esc(topic.name)}</label>`).join("")
+        : "No monitored topics yet.";
+      await Promise.all([
+        loadNotificationOverview(), loadNotificationList(), loadNotificationDigest(),
+        loadNotificationIncidents(), loadNotificationSettings(), loadNotificationQuality(),
+      ]);
+    }
+
+    async function loadNotificationOverview() {
+      const status = await fetchJSON("/api/notifications/status");
+      const c = status.counts;
+      el("notification-overview").innerHTML = `
+    <strong>${c.unread} unread alert${c.unread === 1 ? "" : "s"}</strong>
+    <span class="story-meta">${c.total} retained · ${c.dismissed} dismissed ·
+    ${c.open_incidents} open provider incident${c.open_incidents === 1 ? "" : "s"}</span>
+    <div class="reasons">${esc(status.delivery.message)}</div>`;
+    }
+
+    async function loadNotificationList() {
+      const params = new URLSearchParams({ state: el("notification-state").value });
+      const optionalFilters = {
+        event_type: el("notification-type").value,
+        severity: el("notification-severity").value,
+        topic_id: el("notification-topic").value,
+        date_from: el("notification-from").value,
+        date_to: el("notification-to").value ? `${el("notification-to").value}T23:59:59` : "",
+        search: el("notification-search").value,
+      };
+      Object.entries(optionalFilters).forEach(([key, value]) => { if (value) params.set(key, value); });
+      const rows = await fetchJSON(`/api/notifications?${params}`);
+      renderNotificationRows(rows);
+    }
+
+    // Manual toolbar filters and an applied saved view are two different ways to
+    // populate the same list. When a view is active and unmodified, mutations
+    // (mark read, dismiss, ...) re-apply that view so the list stays consistent
+    // with what the operator is looking at; otherwise they fall back to the
+    // manual toolbar filters.
+    async function refreshNotificationList() {
+      if (activeSavedView && !activeSavedViewModified) {
+        await applySavedNotificationView(activeSavedView.id, { silent: true });
+      } else {
+        await loadNotificationList();
+      }
+    }
+
+    // Manual filter controls always mean "ordinary manual filters" per the
+    // active-view design: editing them while a view is active marks that view
+    // as modified-but-not-resaved rather than silently overwriting it.
+    function manualFilterChanged() {
+      if (activeSavedView) {
+        activeSavedViewModified = true;
+        renderActiveViewBanner();
+      }
+      loadNotificationList();
+    }
+
+    function renderNotificationRows(rows) {
+      shownNotificationIds = rows.map(row => row.id);
+      el("notification-list").innerHTML = rows.length ? rows.map(row => `
+    <div class="story-card ${row.read_at ? "muted" : ""}">
+      <div class="story-headline">${esc(row.title)}
+        <span class="badge status-open">${esc(row.severity)}</span></div>
+      <div class="story-meta">${esc(row.event_type.replaceAll("_", " "))} · ${fmtDate(row.event_at)}
+        ${row.occurrence_count > 1 ? `· ${row.occurrence_count} occurrences` : ""}</div>
+      <div>${esc(row.body)}</div><div class="reasons">Why: ${esc(row.reason)}</div>
+      <div style="margin-top:8px">
+        ${row.read_at ? `<button class="secondary" onclick="setNotificationRead(${row.id}, false)">Mark unread</button>`
+          : `<button class="secondary" onclick="setNotificationRead(${row.id}, true)">Mark read</button>`}
+        ${row.dismissed_at ? `<button class="secondary" onclick="restoreNotification(${row.id})">Restore</button>`
+          : `<button class="secondary" onclick="dismissNotification(${row.id})">Dismiss</button>`}
+        ${row.candidate_id ? `<button class="secondary" onclick="openNotificationCandidate(${row.candidate_id})">Open candidate</button>` : ""}
+        ${row.story_id ? `<button class="secondary" onclick="openNotificationRelation('stories')">Open editorial inbox</button>` : ""}
+        ${row.source_suggestion_id ? `<button class="secondary" onclick="openNotificationRelation('source-suggestions')">Review source</button>` : ""}
+        <button class="secondary" onclick="muteNotificationEvent('${row.event_type}')">Mute this alert type</button>
+        ${row.topic_id ? `<button class="secondary" onclick="muteNotificationTopic(${row.topic_id})">Mute this topic</button>` : ""}
+        <button class="secondary" onclick="rateNotification(${row.id}, 'useful')">Useful</button>
+        <button class="secondary" onclick="rateNotification(${row.id}, 'not_useful')">Not useful</button>
+      </div>
+    </div>`).join("") : `<div class="card wide-card muted">Nothing in this view.</div>`;
+    }
+
+    async function setNotificationRead(id, read) {
+      await postJSON("/api/notifications/read", { notification_ids: [id], read });
+      await Promise.all([loadNotificationOverview(), refreshNotificationList()]);
+    }
+    async function markAllNotificationsRead() {
+      if (!shownNotificationIds.length) return;
+      await postJSON("/api/notifications/read", { notification_ids: shownNotificationIds, read: true });
+      await Promise.all([loadNotificationOverview(), refreshNotificationList()]);
+    }
+    async function dismissNotification(id) {
+      await postJSON(`/api/notifications/${id}/dismiss`, {});
+      await Promise.all([loadNotificationOverview(), refreshNotificationList()]);
+    }
+    async function restoreNotification(id) {
+      await postJSON(`/api/notifications/${id}/restore`, {});
+      await Promise.all([loadNotificationOverview(), refreshNotificationList()]);
+    }
+    function openNotificationCandidate(id) {
+      document.querySelector('nav button[data-tab="radar"]').click();
+      showRadarCandidate(id);
+    }
+    function openNotificationRelation(tab) {
+      document.querySelector(`nav button[data-tab="${tab}"]`).click();
+    }
+    async function muteNotificationEvent(eventType) {
+      await postJSON(`/api/notifications/mute-event/${eventType}?muted=true`, {});
+      await Promise.all([loadNotificationSettings(), refreshNotificationList()]);
+    }
+    async function muteNotificationTopic(topicId) {
+      await postJSON(`/api/notifications/mute-topic/${topicId}?muted=true`, {});
+      await Promise.all([loadNotificationSettings(), refreshNotificationList()]);
+    }
+    async function generateNotifications() {
+      const result = await postJSON("/api/notifications/generate", {});
+      el("notification-msg").textContent = `${result.created_count} new alert(s).`;
+      await Promise.all([loadNotificationOverview(), refreshNotificationList()]);
+    }
+    async function sendTestNotification() {
+      await postJSON("/api/notifications/test", {});
+      el("notification-state").value = "unread";
+      clearActiveSavedView({ silent: true });
+      await Promise.all([loadNotificationOverview(), loadNotificationList()]);
+    }
+
+    async function loadNotificationDigest() {
+      const rows = await fetchJSON("/api/notifications/digests?limit=1");
+      if (!rows.length) {
+        el("notification-digest").textContent = "No digest has been generated yet.";
+        return;
+      }
+      const full = await fetchJSON(`/api/notifications/digests/${rows[0].id}`);
+      el("notification-digest").textContent = full.rendered_text;
+      renderDigestMeta(full);
+    }
+    function renderDigestMeta(digest) {
+      el("notification-digest-meta").textContent =
+        `Generated ${fmtDate(digest.generated_at)} · window ${fmtDate(digest.window_start)} to ${fmtDate(digest.window_end)} · delivery ${digest.delivery_state}`;
+    }
+    async function generateDigest(deliver) {
+      el("notification-digest-meta").textContent = deliver ? "Refreshing alerts, digest, and delivery…" : "Refreshing alerts and digest…";
+      try {
+        const digest = await postJSON("/api/notifications/digest", {
+          refresh: true, generate_notifications: true, deliver: Boolean(deliver),
+        });
+        el("notification-digest").textContent = digest.rendered_text;
+        renderDigestMeta(digest);
+        if (digest.delivery) {
+          el("notification-webhook-preview").textContent = digest.delivery.disabled
+            ? "Digest refreshed locally; external delivery is disabled or unavailable."
+            : `Delivery pass completed: ${digest.delivery.digests} digest(s), ${digest.delivery.notifications} alert(s).`;
+        }
+        await Promise.all([loadNotificationOverview(), refreshNotificationList(), loadNotificationQuality()]);
+      } catch (err) { el("notification-digest-meta").textContent = err.message; }
+    }
+    async function loadNotificationIncidents() {
+      const rows = await fetchJSON("/api/notifications/incidents");
+      el("notification-incidents").innerHTML = rows.length ? rows.map(row =>
+        `<p><strong>${esc(row.provider)}</strong> — ${row.resolved_at ? "recovered" : "attention needed"}
+    (${row.consecutive_failures} failure${row.consecutive_failures === 1 ? "" : "s"})
+    ${row.latest_error_summary ? `<br>${esc(row.latest_error_summary)}` : ""}</p>`
+      ).join("") : "All configured providers are healthy.";
+    }
+
+    async function loadNotificationSettings() {
+      notificationSettings = await fetchJSON("/api/notifications/settings");
+      const form = el("notification-settings-form");
+      Object.entries(notificationSettings).forEach(([name, value]) => {
+        const field = form.elements[name];
+        if (!field) return;
+        if (field.type === "checkbox") field.checked = Boolean(value);
+        else field.value = value;
+      });
+      const eventButtons = notificationSettings.muted_event_types.map(value =>
+        `<button class="secondary" type="button" onclick="unmuteNotificationEvent('${value}')">Unmute ${esc(value.replaceAll("_", " "))}</button>`
+      ).join("");
+      const topicNames = new Map(Array.from(el("notification-topic").options).map(option => [Number(option.value), option.textContent]));
+      const topicButtons = notificationSettings.muted_topic_ids.map(value =>
+        `<button class="secondary" type="button" onclick="unmuteNotificationTopic(${value})">Unmute ${esc(topicNames.get(value) || "topic")}</button>`
+      ).join("");
+      el("notification-muted-settings").innerHTML =
+        `<strong>Muted alerts</strong><div style="margin-top:6px">${eventButtons}${topicButtons || (!eventButtons ? "None." : "")}</div>`;
+      await loadWindowsDesktopStatus();
+    }
+    async function loadWindowsDesktopStatus() {
+      const status = await fetchJSON("/api/notifications/windows-desktop/status");
+      const label = status.state.replaceAll("_", " ");
+      el("windows-desktop-status").innerHTML =
+        `<strong>${esc(label.charAt(0).toUpperCase() + label.slice(1))}</strong> — ${esc(status.message)}`;
+      el("windows-desktop-test").disabled = !status.supported;
+    }
+    async function testWindowsDesktopNotification() {
+      const msg = el("windows-desktop-msg");
+      msg.textContent = "Sending test…"; msg.className = "msg";
+      try {
+        await postJSON("/api/notifications/windows-desktop/test", {});
+        msg.textContent = "Test notification accepted by Windows."; msg.className = "msg ok";
+        await loadWindowsDesktopStatus();
+      } catch (err) { msg.textContent = err.message; msg.className = "msg err"; }
+    }
+    async function unmuteNotificationEvent(eventType) {
+      await postJSON(`/api/notifications/mute-event/${eventType}?muted=false`, {});
+      await loadNotificationSettings();
+    }
+    async function unmuteNotificationTopic(topicId) {
+      await postJSON(`/api/notifications/mute-topic/${topicId}?muted=false`, {});
+      await loadNotificationSettings();
+    }
+    async function saveNotificationSettings(event) {
+      event.preventDefault();
+      const form = event.target, msg = form.querySelector("[data-msg]");
+      const body = { ...notificationSettings };
+      delete body.activation_at;
+      delete body.external_adapter_available;
+      ["digest_time", "timezone", "quiet_hours_start", "quiet_hours_end"].forEach(
+        name => body[name] = form.elements[name].value);
+      ["minimum_attention_score", "minimum_score_increase", "required_independent_group_count",
+        "provider_failure_threshold", "retention_days", "maximum_immediate_per_hour"].forEach(
+          name => body[name] = Number(form.elements[name].value));
+      ["in_app_enabled", "daily_digest_enabled", "required_topic_match",
+        "windows_desktop_notifications_enabled",
+        "provider_health_enabled", "source_suggestion_enabled"].forEach(
+          name => body[name] = form.elements[name].checked);
+      try {
+        notificationSettings = await requestJSON("/api/notifications/settings", "PUT", body);
+        msg.textContent = "Alert settings saved."; msg.className = "msg ok";
+        await Promise.all([loadNotificationOverview(), loadWindowsDesktopStatus()]);
+      } catch (err) { msg.textContent = err.message; msg.className = "msg err"; }
+      return false;
+    }
+
+    let webhookDeliveryStatus = null;
+
+    async function loadNotificationQuality() {
+      const [presets, delivery] = await Promise.all([
+        fetchJSON("/api/notifications/presets"),
+        fetchJSON("/api/notifications/delivery-status"),
+      ]);
+      el("notification-preset").value = presets.active === "custom" ? "balanced" : presets.active;
+      webhookDeliveryStatus = delivery;
+      el("notification-delivery-state").innerHTML =
+        `<p>${delivery.configured ? `Configured for <strong>${esc(delivery.host)}</strong>` : "Configuration missing"}</p>
+     <p>${delivery.tested ? (delivery.last_test_successful ? "Last test succeeded" : "Last test failed") : "Not tested"} ·
+     ${delivery.enabled ? "Enabled" : "Disabled"}</p>
+     ${delivery.last_test_at ? `<p>Last test: ${fmtDate(delivery.last_test_at)}</p>` : ""}
+     ${delivery.last_success_at ? `<p>Last delivery: ${fmtDate(delivery.last_success_at)}</p>` : ""}
+     ${delivery.last_error_summary ? `<p class="msg err">${esc(delivery.last_error_summary)}</p>` : ""}
+     ${delivery.configured ? "" : `<p>Set <code>SEMI_INTEL_WEBHOOK_URL</code> and optionally <code>SEMI_INTEL_WEBHOOK_TOKEN</code>, then restart the application. Secret values are never displayed here.</p>`}`;
+      const canEnable = delivery.configured && delivery.last_test_successful;
+      el("notification-delivery-enable").disabled = !delivery.enabled && !canEnable;
+      el("notification-delivery-enable").textContent = delivery.enabled ? "Disable delivery" : "Enable delivery";
+      el("notification-delivery-retry").disabled = !delivery.enabled;
+      el("notification-digest-deliver").disabled = !delivery.enabled;
+      await loadSavedViews();
+    }
+
+    async function loadSavedViews() {
+      el("saved-notification-views").textContent = "Loading saved views…";
+      try {
+        savedNotificationViews = await fetchJSON("/api/notifications/saved-views");
+      } catch (err) {
+        el("saved-notification-views").innerHTML = `<p class="msg err">${esc(err.message)}</p>`;
+        return;
+      }
+      if (activeSavedView) {
+        const stillExists = savedNotificationViews.find(view => view.id === activeSavedView.id);
+        activeSavedView = stillExists || null;
+        if (!stillExists) activeSavedViewModified = false;
+      }
+      el("saved-notification-views").innerHTML = savedNotificationViews.length ? savedNotificationViews.map(view => `
+    <div class="saved-view-row">
+      <div>
+        <div class="saved-view-name">${esc(view.name)}${activeSavedView && activeSavedView.id === view.id ? " <span class=\"badge status-open\">active</span>" : ""}</div>
+        <div class="saved-view-desc">${esc(view.description)}</div>
+      </div>
+      <div>
+        <button class="secondary" onclick="applySavedNotificationView(${view.id})">Apply</button>
+        <button class="secondary" onclick="openSavedViewEditor(${view.id})">Edit</button>
+        <button class="secondary" onclick="duplicateSavedNotificationView(${view.id})">Duplicate</button>
+        <button class="danger" onclick="deleteSavedNotificationView(${view.id})">Delete</button>
+      </div>
+    </div>`
+      ).join("") : "No saved views yet. Use “New view” to create one.";
+      renderActiveViewBanner();
+    }
+
+    function renderActiveViewBanner() {
+      const banner = el("saved-view-active");
+      if (!activeSavedView) {
+        banner.className = "active-view-banner muted";
+        banner.innerHTML = "No saved view is active. Use the manual filters below, or open a saved view.";
+        return;
+      }
+      banner.className = "active-view-banner";
+      banner.innerHTML = `Viewing: <strong>${esc(activeSavedView.name)}</strong>
+    <div class="reasons">${esc(activeSavedView.description)}</div>
+    ${activeSavedViewModified
+          ? `<div class="active-view-modified">Filters changed — save as a new view or update this view.</div>`
+          : ""}`;
+    }
+
+    async function previewNotificationPreset() {
+      const name = el("notification-preset").value;
+      const result = await fetchJSON(`/api/notifications/presets/${name}/preview`);
+      const changes = Object.entries(result.changes);
+      el("notification-preset-preview").innerHTML = changes.length
+        ? changes.map(([field, values]) =>
+          `<p>${esc(field.replaceAll("_", " "))}: ${esc(values.from)} → ${esc(values.to)}</p>`).join("")
+        : "<p>This preset is already applied.</p>";
+    }
+
+    async function applyNotificationPreset() {
+      const name = el("notification-preset").value;
+      if (!confirm(`Apply the ${name.replaceAll("_", " ")} preset? Muted topics and external delivery will be preserved.`)) return;
+      await postJSON(`/api/notifications/presets/${name}/apply`, {});
+      await Promise.all([loadNotificationSettings(), previewNotificationPreset()]);
+    }
+
+    async function rateNotification(id, rating) {
+      let reason = null;
+      if (rating === "not_useful") {
+        reason = prompt("Optional reason: too_old, duplicate_coverage, weak_source, not_independent, topic_mismatch, score_too_low, already_knew, too_technical, not_relevant, provider_noise, other");
+        if (reason === "") reason = null;
+      }
+      await postJSON(`/api/notifications/${id}/feedback`, { rating, reason });
+      el("notification-msg").textContent = "Feedback saved. Thresholds were not changed.";
+    }
+
+    async function previewWebhook() {
+      const result = await fetchJSON("/api/notifications/delivery-preview");
+      el("notification-webhook-preview").textContent =
+        `No network contact. Destination: ${result.host || "not configured"}. Payload: ${result.payload.title}`;
+    }
+
+    async function testWebhook() {
+      if (!confirm("Send one synthetic test message to the configured webhook? No story intelligence will be included.")) return;
+      try {
+        const result = await postJSON("/api/notifications/delivery-test", {});
+        el("notification-webhook-preview").textContent =
+          result.delivered ? "Synthetic test succeeded." : `Test failed: ${result.error}`;
+        await loadNotificationQuality();
+      } catch (err) { el("notification-webhook-preview").textContent = err.message; }
+    }
+
+    async function toggleWebhookDelivery() {
+      if (!webhookDeliveryStatus) return;
+      const enabled = !webhookDeliveryStatus.enabled;
+      if (enabled && !confirm(`Enable external delivery to ${webhookDeliveryStatus.host}? Eligible alerts and digests may be sent.`)) return;
+      if (!enabled && !confirm("Disable external delivery? Local alerts and digests will continue.")) return;
+      try {
+        await postJSON("/api/notifications/delivery-enable", { enabled, allow_untested: false });
+        el("notification-webhook-preview").textContent = enabled ? "External delivery enabled." : "External delivery disabled.";
+        await loadNotificationQuality();
+      } catch (err) { el("notification-webhook-preview").textContent = err.message; }
+    }
+
+    async function deliverPendingNotifications() {
+      if (!webhookDeliveryStatus?.enabled) return;
+      if (!confirm(`Deliver eligible pending alerts and digests to ${webhookDeliveryStatus.host}?`)) return;
+      try {
+        const result = await postJSON("/api/notifications/delivery-retry", {});
+        el("notification-webhook-preview").textContent =
+          `Delivery pass completed: ${result.digests} digest(s), ${result.notifications} alert(s).`;
+        await Promise.all([loadNotificationQuality(), loadNotificationDigest()]);
+      } catch (err) { el("notification-webhook-preview").textContent = err.message; }
+    }
+
+    // Applying a view is read-only: it fetches the view's complete, composed
+    // filter set from the server and renders the result. It never marks
+    // notifications read/dismissed or otherwise mutates state.
+    async function applySavedNotificationView(id, opts) {
+      const silent = opts && opts.silent;
+      let payload;
+      try {
+        payload = await fetchJSON(`/api/notifications/saved-views/${id}/apply`);
+      } catch (err) {
+        if (!silent) el("saved-view-msg").textContent = err.message;
+        return;
+      }
+      activeSavedView = payload.view;
+      activeSavedViewModified = false;
+      // Best-effort mirror onto the manual toolbar for context/continuity; the
+      // manual controls cannot represent multi-value selections, so this is
+      // informational only -- the rendered list always reflects the view's
+      // complete composed filters, not just these single values.
+      el("notification-state").value = activeSavedView.state_filter;
+      el("notification-type").value = activeSavedView.event_types[0] || "";
+      el("notification-severity").value = activeSavedView.severities[0] || "";
+      el("notification-topic").value = activeSavedView.topic_ids[0] || "";
+      el("notification-search").value = activeSavedView.search_text || "";
+      renderNotificationRows(payload.notifications);
+      await Promise.all([loadNotificationOverview(), loadSavedViews()]);
+    }
+
+    function clearActiveSavedView(opts) {
+      const silent = opts && opts.silent;
+      activeSavedView = null;
+      activeSavedViewModified = false;
+      el("notification-state").value = "unread";
+      el("notification-type").value = "";
+      el("notification-severity").value = "";
+      el("notification-topic").value = "";
+      el("notification-from").value = "";
+      el("notification-to").value = "";
+      el("notification-search").value = "";
+      renderActiveViewBanner();
+      if (!silent) {
+        loadNotificationList();
+        loadSavedViews();
+      }
+    }
+
+    async function duplicateSavedNotificationView(id) {
+      try {
+        const copy = await requestJSON(`/api/notifications/saved-views/${id}/duplicate`, "POST");
+        el("saved-view-msg").textContent = `Duplicated as “${copy.name}”.`;
+        el("saved-view-msg").className = "msg ok";
+        await loadSavedViews();
+      } catch (err) {
+        el("saved-view-msg").textContent = err.message;
+        el("saved-view-msg").className = "msg err";
+      }
+    }
+
+    async function deleteSavedNotificationView(id) {
+      const view = savedNotificationViews.find(v => v.id === id);
+      if (!confirm(`Delete the saved view “${view ? view.name : id}”? This cannot be undone.`)) return;
+      try {
+        await requestJSON(`/api/notifications/saved-views/${id}`, "DELETE");
+      } catch (err) {
+        el("saved-view-msg").textContent = err.message;
+        el("saved-view-msg").className = "msg err";
+        return;
+      }
+      if (activeSavedView && activeSavedView.id === id) clearActiveSavedView({ silent: true });
+      el("saved-view-msg").textContent = "View deleted.";
+      el("saved-view-msg").className = "msg ok";
+      await loadSavedViews();
+    }
+
+    // --- Saved view editor (native <dialog>; create and edit share one form) --
+
+    function getCheckedValues(containerId) {
+      return Array.from(el(containerId).querySelectorAll("input[type=checkbox]:checked")).map(input => input.value);
+    }
+    function setCheckedValues(containerId, values) {
+      const set = new Set((values || []).map(String));
+      el(containerId).querySelectorAll("input[type=checkbox]").forEach(input => {
+        input.checked = set.has(input.value);
+      });
+    }
+
+    function resetSavedViewEditor() {
+      el("sv-name").value = "";
+      el("sv-state").value = "unread";
+      setCheckedValues("sv-event-types", []);
+      setCheckedValues("sv-severities", []);
+      setCheckedValues("sv-topics", []);
+      el("sv-date-window").value = "";
+      el("sv-search").value = "";
+      el("sv-sort").value = "newest";
+      el("saved-view-form-msg").textContent = "";
+      el("saved-view-form-msg").className = "msg";
+    }
+
+    // Opening "New view" prefills from the current manual filters (a natural
+    // upgrade path from ad hoc filtering to a saved view); opening "Edit" loads
+    // the view's complete stored configuration. Canceling closes without
+    // calling the API, so it makes no change either way.
+    function openSavedViewEditor(viewId) {
+      resetSavedViewEditor();
+      editingSavedViewId = viewId || null;
+      if (viewId) {
+        const view = savedNotificationViews.find(v => v.id === viewId);
+        if (!view) { el("saved-view-msg").textContent = "That saved view no longer exists."; loadSavedViews(); return; }
+        el("saved-view-dialog-title").textContent = `Edit “${view.name}”`;
+        el("sv-name").value = view.name;
+        el("sv-state").value = view.state_filter;
+        setCheckedValues("sv-event-types", view.event_types);
+        setCheckedValues("sv-severities", view.severities);
+        setCheckedValues("sv-topics", view.topic_ids);
+        el("sv-date-window").value = view.date_window_days || "";
+        el("sv-search").value = view.search_text || "";
+        el("sv-sort").value = view.sort_order;
+        el("saved-view-dialog").dataset.relationFilters = JSON.stringify(view.relation_filters || {});
+      } else {
+        el("saved-view-dialog-title").textContent = "New saved view";
+        el("sv-state").value = el("notification-state").value;
+        if (el("notification-type").value) setCheckedValues("sv-event-types", [el("notification-type").value]);
+        if (el("notification-severity").value) setCheckedValues("sv-severities", [el("notification-severity").value]);
+        if (el("notification-topic").value) setCheckedValues("sv-topics", [el("notification-topic").value]);
+        el("sv-search").value = el("notification-search").value || "";
+        el("saved-view-dialog").dataset.relationFilters = "{}";
+      }
+      el("saved-view-dialog").showModal();
+    }
+
+    function closeSavedViewEditor() {
+      el("saved-view-dialog").close();
+      editingSavedViewId = null;
+    }
+
+    async function saveSavedViewFromEditor() {
+      const msg = el("saved-view-form-msg");
+      const name = el("sv-name").value.trim();
+      if (!name) { msg.textContent = "Name is required."; msg.className = "msg err"; return; }
+      const body = {
+        name,
+        state_filter: el("sv-state").value,
+        event_types: getCheckedValues("sv-event-types"),
+        severities: getCheckedValues("sv-severities"),
+        topic_ids: getCheckedValues("sv-topics").map(Number),
+        relation_filters: JSON.parse(el("saved-view-dialog").dataset.relationFilters || "{}"),
+        date_window_days: el("sv-date-window").value ? Number(el("sv-date-window").value) : null,
+        search_text: el("sv-search").value,
+        sort_order: el("sv-sort").value,
+      };
+      try {
+        const saved = editingSavedViewId
+          ? await requestJSON(`/api/notifications/saved-views/${editingSavedViewId}`, "PUT", body)
+          : await postJSON("/api/notifications/saved-views", body);
+        closeSavedViewEditor();
+        el("saved-view-msg").textContent = editingSavedViewId ? "View updated." : "View saved.";
+        el("saved-view-msg").className = "msg ok";
+        if (activeSavedView && saved.id === activeSavedView.id) {
+          activeSavedView = saved;
+          activeSavedViewModified = false;
+          renderActiveViewBanner();
+        }
+        await loadSavedViews();
+      } catch (err) {
+        msg.textContent = err.message;
+        msg.className = "msg err";
+      }
+    }
+
+    let automationEnabled = false;
+    let windowsTaskStatus = null;
+    let operationsRefreshTimer = null;
+
+    function operationPanelError(id, label, error) {
+      el(id).innerHTML = `<p class="msg err">${esc(label)} could not load: ${esc(error.message || error)}</p>
+    <button class="secondary" onclick="loadOperations()">Retry</button>`;
+    }
+
+    function scheduleOperationsRefresh(jobs) {
+      clearTimeout(operationsRefreshTimer);
+      if (!el("operations").classList.contains("active")) return;
+      const active = jobs?.some(job => job.status === "running");
+      operationsRefreshTimer = setTimeout(loadOperations, active ? 5000 : 30000);
+    }
+
+    async function loadOperations() {
+      clearTimeout(operationsRefreshTimer);
+      const results = await Promise.allSettled([
+        fetchJSON("/api/operations/health"), fetchJSON("/api/operations/scheduler"),
+        fetchJSON("/api/operations/jobs?limit=30"), fetchJSON("/api/operations/backups"),
+        fetchJSON(`/api/operations/trends?days=${el("operations-trend-window").value}`),
+        fetchJSON("/api/operations/windows-task"),
+      ]);
+      const [healthResult, schedulerResult, jobsResult, backupsResult, trendsResult, taskResult] = results;
+      let jobs = [];
+      if (schedulerResult.status === "fulfilled") {
+        const scheduler = schedulerResult.value;
+        automationEnabled = scheduler.enabled;
+        el("automation-toggle").textContent = scheduler.enabled ? "Disable automation" : "Enable automation";
+      }
+      if (healthResult.status === "fulfilled" && schedulerResult.status === "fulfilled") {
+        const health = healthResult.value, scheduler = schedulerResult.value;
+        const effective = scheduler.effective || { state: scheduler.enabled ? "unknown" : "disabled", explanation: "" };
+        el("operations-overview").innerHTML =
+          `<strong>${esc(health.summary)}</strong>
+       <div class="story-meta">Overall: ${esc(health.overall.replaceAll("_", " "))} ·
+       Effective automation: ${esc(effective.state.replaceAll("_", " "))} ·
+       Last heartbeat: ${fmtDate(scheduler.last_heartbeat)} ·
+       Next pipeline: ${scheduler.next_runs.pipeline ? fmtDate(scheduler.next_runs.pipeline) : "not scheduled"}</div>
+       <p class="reasons">${esc(effective.explanation)}</p>
+       ${health.issues.map(issue => `<p class="reasons">${esc(issue.explanation)} Next: ${esc(issue.recommended_action)}</p>`).join("")}`;
+        el("operations-reconcile-stale").disabled = !health.scheduler.stale_running_jobs;
+      } else {
+        operationPanelError("operations-overview", "Operational health", healthResult.reason || schedulerResult.reason);
+      }
+      if (jobsResult.status === "fulfilled") {
+        jobs = jobsResult.value;
+        el("operations-jobs").innerHTML = jobs.length ? `<table><thead><tr><th>Job</th><th>When</th><th>Status</th><th>Result</th><th></th></tr></thead><tbody>` +
+          jobs.map(job => `<tr><td>${esc(job.job_type.replaceAll("_", " "))}</td><td>${fmtDate(job.started_at)}</td>
+        <td>${esc(job.status)}</td><td>${esc(job.summary || job.error_summary || "")}</td>
+        <td>${["failed", "partial", "abandoned"].includes(job.status) ? `<button class="secondary" onclick="retryOperationalJob(${job.id})">Retry</button>` : ""}</td></tr>`).join("") +
+          `</tbody></table>` : `<p class="muted">No jobs have run yet.</p>`;
+      } else operationPanelError("operations-jobs", "Job history", jobsResult.reason);
+      if (backupsResult.status === "fulfilled") {
+        const backups = backupsResult.value;
+        el("operations-backups").innerHTML = backups.length ? backups.map(row =>
+          `<p><strong>${esc(row.filename)}</strong><br>${fmtDate(row.created_at)} · ${Math.round(row.size_bytes / 1024)} KB · ${esc(row.status)}</p>`
+        ).join("") : "No verified backup yet.";
+      } else operationPanelError("operations-backups", "Backups", backupsResult.reason);
+      if (trendsResult.status === "fulfilled") renderOperationalTrends(trendsResult.value);
+      else operationPanelError("operations-trends", "Recent trends", trendsResult.reason);
+      if (taskResult.status === "fulfilled") {
+        windowsTaskStatus = taskResult.value;
+        const task = windowsTaskStatus;
+        el("operations-windows-task").innerHTML = `
+      <p>${task.installed ? `Installed · state ${esc(task.state)}` : "Not installed"}</p>
+      <p>Expected executable: <code>${esc(task.expected_executable)}</code></p>
+      ${task.configured_executable ? `<p>Configured executable: <code>${esc(task.configured_executable)}</code> · ${task.path_exists ? "path exists" : "path missing"}${task.path_matches_current ? " · current checkpoint" : " · different checkpoint"}</p>` : ""}
+      ${task.last_run ? `<p>Last task run: ${fmtDate(task.last_run)} · result ${esc(task.last_result)}</p>` : ""}
+      <details><summary>Installation command preview</summary><code>${esc(task.install_preview)}</code></details>
+      ${task.error ? `<p class="msg err">${esc(task.error)}</p>` : ""}`;
+        el("operations-task-install").disabled = !task.can_install;
+      } else operationPanelError("operations-windows-task", "Windows task status", taskResult.reason);
+      scheduleOperationsRefresh(jobs);
+    }
+
+    async function loadOperationalTrends() {
+      el("operations-trends").textContent = "Loading recent trends…";
+      try {
+        const trends = await fetchJSON(
+          `/api/operations/trends?days=${el("operations-trend-window").value}`
+        );
+        renderOperationalTrends(trends);
+      } catch (err) { operationPanelError("operations-trends", "Recent trends", err); }
+    }
+
+    function trendBar(label, value, maximum) {
+      const percent = maximum ? Math.round((value / maximum) * 100) : 0;
+      return `<div class="trend-row"><span>${esc(label)}</span>
+    <span class="trend-track"><span class="trend-fill" style="width:${percent}%"></span></span>
+    <span>${esc(value)}</span></div>`;
+    }
+
+    function renderOperationalTrends(trends) {
+      const jobs = trends.jobs, feedback = trends.feedback;
+      if (!jobs.total && !feedback.total) {
+        el("operations-trends").innerHTML =
+          `<strong>${esc(trends.headline)}</strong><p class="reasons">Trends will appear after jobs run or alerts are rated.</p>`;
+        return;
+      }
+      const statusMaximum = Math.max(1, ...Object.values(jobs.status_counts));
+      const eventRows = Object.entries(feedback.by_event_type);
+      el("operations-trends").innerHTML = `
+    <strong>${esc(trends.headline)}</strong>
+    <div class="forms-grid" style="margin-top:10px">
+      <div style="flex:1;min-width:280px">
+        <div class="reasons">Job reliability · ${jobs.total} total</div>
+        ${Object.entries(jobs.status_counts).map(([status, count]) =>
+        trendBar(status.replaceAll("_", " "), count, statusMaximum)).join("")}
+      </div>
+      <div style="flex:1;min-width:280px">
+        <div class="reasons">Alert usefulness · ${feedback.total} rated</div>
+        ${feedback.total ? trendBar("useful", feedback.useful, feedback.total) :
+          `<p class="muted">No alerts were rated in this window.</p>`}
+        ${eventRows.map(([eventType, counts]) =>
+            trendBar(eventType.replaceAll("_", " "), Math.round(counts.useful_rate * 100), 100)
+          ).join("")}
+        ${feedback.top_not_useful_reasons.length ?
+          `<p class="reasons">Common not-useful reasons: ${feedback.top_not_useful_reasons.map(
+            item => `${esc(item.reason.replaceAll("_", " "))} (${item.count})`).join(" · ")}</p>` : ""}
+      </div>
+    </div>`;
+    }
+
+    async function toggleAutomation() {
+      if (!automationEnabled && !confirm("Enable persisted automation? Windows Task Scheduler must also be installed for unattended runs.")) return;
+      await postJSON(`/api/operations/scheduler/${!automationEnabled}`, {});
+      await loadOperations();
+    }
+
+    async function runOperationalJob(jobType) {
+      const buttons = [...document.querySelectorAll('#operations button[onclick^="runOperationalJob"]')];
+      buttons.forEach(button => button.disabled = true);
+      el("operations-msg").textContent = `${jobType.replaceAll("_", " ")} is running…`;
+      try {
+        const result = await postJSON(`/api/operations/run/${jobType}`, {});
+        el("operations-msg").textContent = result.summary || result.error_summary || `${jobType} finished.`;
+      } catch (err) { el("operations-msg").textContent = err.message; }
+      finally { buttons.forEach(button => button.disabled = false); await loadOperations(); }
+    }
+
+    async function retryOperationalJob(id) {
+      await postJSON(`/api/operations/jobs/${id}/retry`, {});
+      await loadOperations();
+    }
+
+    async function reconcileStaleJobs() {
+      if (!confirm("Mark stale unprotected RUNNING records as abandoned? Historical records will be preserved.")) return;
+      try {
+        const result = await postJSON("/api/operations/reconcile-stale", {});
+        el("operations-msg").textContent = `Reconciled ${result.count} stale run(s).`;
+        await loadOperations();
+      } catch (err) { el("operations-msg").textContent = err.message; }
+    }
+
+    async function installWindowsTask() {
+      if (!windowsTaskStatus?.can_install) return;
+      if (!confirm(`Create or repair the Windows scheduled task with this command?\n\n${windowsTaskStatus.install_preview}`)) return;
+      try {
+        await postJSON("/api/operations/windows-task/install", { confirmed: true });
+        el("operations-msg").textContent = "Windows scheduled task installed or repaired.";
+        await loadOperations();
+      } catch (err) { el("operations-msg").textContent = err.message; }
+    }
+
+    async function previewBackupPrune() {
+      const result = await postJSON("/api/operations/backups/prune", { apply: false });
+      el("backup-prune-preview").textContent = result.files.length
+        ? `Would prune: ${result.files.join(", ")}` : "Nothing is eligible. No files changed.";
+    }
+
+    async function createDiagnostics() {
+      const result = await postJSON("/api/operations/diagnostics", {});
+      el("operations-msg").textContent = `Diagnostics created: ${result.filename}`;
+    }
+
+    const loaders = {
+      stories: loadStories,
+      radar: loadRadar,
+      notifications: loadNotifications,
+      operations: loadOperations,
+      topics: loadTopics,
+      "source-suggestions": loadSourceSuggestions,
+      discovery: loadDiscovery,
+      claims: loadClaims,
+      evidence: loadEvidence,
+      sources: loadSources,
+      entities: loadEntities,
+      suggestions: loadSuggestions,
+      add: () => { },
+    };
+
+    function switchTab(tab) {
+      const btn = document.querySelector(`nav button[data-tab="${tab}"]`);
+      const section = el(tab);
+      if (!btn || !section) return;
+      document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll("main section").forEach(s => s.classList.remove("active"));
+      if (tab !== "operations") clearTimeout(operationsRefreshTimer);
+      btn.classList.add("active"); section.classList.add("active");
+      if (loaders[tab]) loaders[tab]();
+    }
+
+    document.querySelectorAll("nav button").forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
+
+    el("entity-filter").addEventListener("input", loadEntities);
+    el("entity-type-filter").addEventListener("change", loadEntities);
+    el("mention-filter").addEventListener("input", loadMentionProposals);
+    el("mention-type-filter").addEventListener("change", loadMentionProposals);
+
+    loadStoryTopicFilter();
+    loadStories();
+  </script>
+
+</body>
+
+</html>

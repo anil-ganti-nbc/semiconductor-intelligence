@@ -1,0 +1,17 @@
+# Bosgame — LIVE_VALIDATED 2026-08-02
+# Shopify products.json confirmed (37 products on page 1). Fixtures under
+# tests/fixtures/shopify/bosgame_products_p1.json.
+manufacturer:
+  name: Bosgame
+  country: CN
+sources:
+  - id: bosgame-shopify
+    engine: shopify
+    base_url: https://bosgame.com
+    min_interval: 12h
+    discovery: [products_json, sitemap]
+    currency_default: USD
+    enabled: true
+    # support_status is documentation; runtime uses enabled + health rules
+    support_status: LIVE_VALIDATED
+    source_region: US

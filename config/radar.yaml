@@ -1,0 +1,100 @@
+# Global policy. Everything here is overridable; nothing here is hardcoded elsewhere.
+
+store: sqlite
+notifier: discord
+summarizer: null          # set to "anthropic" at M10; system is fully functional without AI
+db_path: data/radar.db
+raw_dir: data/raw
+removal_grace: 2          # full successful passes before product_removed fires
+baseline_quiet: true      # first-ever crawl of a source records history, sends nothing
+
+rate_limit:
+  per_domain_delay: [3s, 9s]   # jittered
+  backoff_base: 2
+  backoff_max: 300s
+  max_retries: 4
+
+severity_rules:
+  - {match: {change_type: component_changed, unseen_component: true}, severity: 5}
+  - {match: {change_type: new_product}, severity: 5}
+  - {match: {change_type: spec_changed, field: memory}, severity: 4}
+  - {match: {change_type: spec_changed, field: display}, severity: 4}
+  - {match: {change_type: spec_changed, field: battery}, severity: 4}
+  - {match: {change_type: component_changed}, severity: 4}
+  # Owner decision 2026-07-19: price moves under 15% aren't worth a ping.
+  - {match: {change_type: price_changed, magnitude_pct: ">15"}, severity: 3}
+  - {match: {change_type: price_changed}, severity: 1}    # small moves: logged, below threshold, silent
+  - {match: {change_type: images_changed}, severity: 3}
+  - {match: {change_type: availability_changed}, severity: 3}
+  - {match: {change_type: description_changed}, severity: 2}
+  - {match: {}, severity: 2}
+
+notify:
+  discord:
+    # Webhook resolved in this order: env var OEM_RADAR_DISCORD_WEBHOOK (set by
+    # start-radar.cmd), else config/discord_webhook.txt (gitignored). The file
+    # means `oem-radar run` from ANY terminal notifies, not just the launcher.
+    webhook_url_env: OEM_RADAR_DISCORD_WEBHOOK
+    min_severity: 3
+    digest_below: 3
+
+ai:
+  provider: anthropic
+  summary_model: claude-haiku
+  digest_model: claude-sonnet
+
+logging:
+  level: INFO
+  file: data/radar.log
+
+story_rules:
+  # Three or more OEMs listing the SAME previously-unseen CPU/GPU within a week
+  # is the flagship "about to be news" signal.
+  - id: cross_oem_unseen_silicon
+    title: "{n} OEMs listed the same previously-unseen part: {key}"
+    match: {change_type: component_changed, unseen_component: true}
+    group_by: new_value
+    window: 7d
+    min_distinct_manufacturers: 2
+    base_score: 75
+    per_extra_oem: 12
+  # New products carrying the same unseen part (component appears on brand-new
+  # models across makers) — also caught via new_product events tagged unseen.
+  - id: cross_oem_unseen_on_new
+    title: "{n} OEMs launched new products with unseen silicon: {key}"
+    match: {change_type: new_product, unseen_component: true}
+    group_by: new_value
+    window: 10d
+    min_distinct_manufacturers: 2
+    base_score: 70
+    per_extra_oem: 12
+  # Several OEMs raising max memory the same week — a platform-shift signal.
+  - id: cross_oem_memory_jump
+    title: "{n} OEMs increased memory the same week"
+    match: {change_type: spec_changed, field: memory, direction: up}
+    group_by: field
+    window: 7d
+    min_distinct_manufacturers: 3
+    base_score: 55
+    per_extra_oem: 8
+
+# Feedback / alert review (schema v4). Suggestions never auto-activate.
+feedback:
+  enabled: true
+  minimum_samples_for_suggestion: 10
+  minimum_noise_ratio: 0.75
+  maximum_hit_loss_ratio: 0.05
+  require_manual_rule_approval: true
+  retain_reviews_forever: true
+  dashboard_base_url: "http://127.0.0.1:8787"
+  max_review_request_bytes: 16384
+  analytics_minimum_sample_size: 5
+  maximum_signal_loss_ratio: 0.05
+
+collector_health:
+  unexpected_zero_is_failure: true
+  minimum_fraction_of_previous_catalog: 0.35
+  warn_fraction_of_previous_catalog: 0.70
+
+# Prevent concurrent one-shot runs from colliding on the DB
+run_lock_path: data/oem-radar.lock

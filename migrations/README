@@ -1,0 +1,33 @@
+Alembic migrations for the Semiconductor Intelligence Platform.
+
+Quickstart
+----------
+    pip install -e .                     # alembic is a base dependency
+    export SEMI_INTEL_DB_URL="sqlite:///./semi_intel.db"   # or a postgres DSN
+    alembic upgrade head                 # create/upgrade the schema
+
+After changing a model in semi_intel/domain/models.py:
+    alembic revision --autogenerate -m "describe the change"
+    # review the generated file in migrations/versions/ before committing --
+    # autogenerate is a good first draft, not a guarantee
+    alembic upgrade head
+
+Do NOT mix this with `semi-intel init-db`
+------------------------------------------
+`semi-intel init-db` calls SQLAlchemy's Base.metadata.create_all() directly --
+convenient for a quick local trial, but it does not stamp an Alembic
+revision, so a database created that way has no upgrade history. If you
+later point Alembic at that same database, `alembic upgrade head` will fail
+because the tables already exist with no recorded revision.
+
+Pick one per database:
+  - Quick local trial, throwaway SQLite, don't care about schema evolution:
+    `semi-intel init-db`.
+  - Anything you intend to run for a while, especially Postgres: initialize
+    it with `alembic upgrade head` from an empty database and keep using
+    Alembic for every schema change after that.
+
+If you already have an init-db'd database you want to bring under Alembic
+management, stamp it at the current head without re-running the migration:
+    alembic stamp head
+(only do this if you've confirmed the schema already matches migrations/versions/*_initial_schema.py).

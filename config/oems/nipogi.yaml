@@ -1,0 +1,15 @@
+# NiPoGi — LIVE_VALIDATED 2026-08-02
+# Shopify products.json confirmed (15 products). Fixture: nipogi_products_p1.json.
+manufacturer:
+  name: NiPoGi
+  country: CN
+sources:
+  - id: nipogi-shopify
+    engine: shopify
+    base_url: https://www.nipogi.com
+    min_interval: 12h
+    discovery: [products_json, sitemap]
+    currency_default: USD
+    enabled: true
+    support_status: LIVE_VALIDATED
+    source_region: US

@@ -1,0 +1,61 @@
+{
+  "_fixture_note": "Trimmed from live https://www.gmktec.com/products.json capture, 2026-07-18. Real-world quirks preserved: vendor 'GMKtec US', unicode ™ in handles, region as variant option2, compare_at_price, empty body_html.",
+  "products": [
+    {
+      "id": 9041764221082,
+      "title": "GMKtec G5S Mini PC Intel® Celeron N5095",
+      "handle": "gmktec-g5s-mini-pc-intel-celeron-n5095",
+      "body_html": "<ul><li><strong>Intel® Celeron® N5095 Processor</strong> | 4 Cores / 4 Threads | Up to 2.9 GHz</li><li><strong>8GB LPDDR4 2400 MT/s</strong> Onboard Memory (Non-upgradable)</li><li><strong>128GB M.2 2242 SATA SSD</strong>, Expandable up to <strong>8TB</strong></li><li><strong>Dual HDMI 2.0</strong> | Dual <strong>4K @ 60Hz</strong> Display Support</li><li><strong>Wi-Fi 6 + Bluetooth 5.2 + Gigabit Ethernet</strong></li></ul>",
+      "published_at": "2026-07-16T20:30:28+08:00",
+      "created_at": "2026-07-16T20:22:45+08:00",
+      "updated_at": "2026-07-19T01:19:20+08:00",
+      "vendor": "GMKtec",
+      "product_type": "",
+      "tags": ["G", "Intel"],
+      "variants": [
+        {"id": 48752936845466, "title": "8GB+128GB / US", "option1": "8GB+128GB", "option2": "US", "sku": "G5S-2-21S", "available": true, "price": "229.99", "compare_at_price": "399.99"},
+        {"id": 48752939729050, "title": "8GB+128GB / EU", "option1": "8GB+128GB", "option2": "EU", "sku": "G5S-2-21U-EU2", "available": true, "price": "229.99", "compare_at_price": "399.99"},
+        {"id": 48752939761818, "title": "8GB+128GB / UK", "option1": "8GB+128GB", "option2": "UK", "sku": "G5S-2-21K-UK2", "available": true, "price": "229.99", "compare_at_price": "399.99"}
+      ],
+      "images": [
+        {"src": "https://cdn.shopify.com/s/files/1/0715/1314/5498/files/G5SL_3.jpg?v=1784204693"},
+        {"src": "https://cdn.shopify.com/s/files/1/0715/1314/5498/files/02G5S_1080X1080.jpg?v=1784205110"}
+      ],
+      "options": [{"name": "RAM+SSD", "values": ["8GB+128GB"]}, {"name": "PLUG", "values": ["US", "EU", "UK", "AU"]}]
+    },
+    {
+      "id": 9002155409562,
+      "title": "GMKtec EVO-X1 AI Mini PC AMD Ryzen™ AI 9 HX 370",
+      "handle": "gmktec-evo-x1-ai-mini-pc-amd-ryzen™-ai-9-hx-370-1",
+      "body_html": "",
+      "published_at": "2026-06-24T14:12:44+08:00",
+      "created_at": "2026-06-24T14:11:48+08:00",
+      "updated_at": "2026-07-19T01:19:20+08:00",
+      "vendor": "GMKtec US",
+      "product_type": "",
+      "tags": [],
+      "variants": [
+        {"id": 48501344305306, "title": "32GB RAM + 2TB SSD / US", "option1": "32GB RAM + 2TB SSD", "option2": "US", "sku": "EVO-X1-2-44S", "available": true, "price": "1564.99", "compare_at_price": "1299.99"}
+      ],
+      "images": [{"src": "https://cdn.shopify.com/s/files/1/0715/1314/5498/files/GMKtec-EVO-X1.jpg?v=1779884941"}],
+      "options": [{"name": "DDR + SSD", "values": ["32GB RAM + 2TB SSD"]}, {"name": "Power Plug", "values": ["US"]}]
+    },
+    {
+      "id": 9002151018650,
+      "title": "GMKtec K12 Mini PC AMD Ryzen™ 7 H 255",
+      "handle": "gmktec-k12-mini-pc-amd-ryzen™-7-h-255-1",
+      "body_html": "<p>OCulink Port | 3× M.2 2280 PCIe 4.0 | 2× 2.5G LAN + Wi-Fi 6E + BT 5.2</p>",
+      "published_at": "2026-06-24T14:07:22+08:00",
+      "created_at": "2026-06-24T14:06:21+08:00",
+      "updated_at": "2026-07-19T01:19:20+08:00",
+      "vendor": "GMKtec US",
+      "product_type": "",
+      "tags": [],
+      "variants": [
+        {"id": 48501331755162, "title": "32GB RAM + 1TB SSD / US", "option1": "32GB RAM + 1TB SSD", "option2": "US", "sku": "K12-7-44S", "available": true, "price": "879.99", "compare_at_price": null}
+      ],
+      "images": [{"src": "https://cdn.shopify.com/s/files/1/0715/1314/5498/files/1_748ef588.png?v=1764245602"}],
+      "options": [{"name": "DDR + SSD", "values": ["32GB RAM + 1TB SSD"]}, {"name": "Power Plug", "values": ["US"]}]
+    }
+  ]
+}

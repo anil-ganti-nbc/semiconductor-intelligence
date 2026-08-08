@@ -1,0 +1,16 @@
+# Adding a Shopify OEM = this file. No code. (ADR-2, PLUGIN_GUIDE.md Path 1)
+
+manufacturer:
+  name: GMKtec
+  aliases: [GMK, "极摩客"]
+  country: CN
+
+sources:
+  - id: gmktec-shopify
+    engine: shopify
+    base_url: https://www.gmktec.com
+    min_interval: 6h
+    discovery: [products_json, sitemap]
+    currency_default: USD
+    category_map:
+      mini-pcs: mini_pc

@@ -1,0 +1,16 @@
+# ACEMAGIC — LIVE_VALIDATED 2026-08-02 (new OEM)
+# Shopify at acemagic.com, 46 products on page 1. Mini-PC / AI PC focus.
+manufacturer:
+  name: ACEMAGIC
+  aliases: [Acemagic]
+  country: CN
+sources:
+  - id: acemagic-shopify
+    engine: shopify
+    base_url: https://acemagic.com
+    min_interval: 12h
+    discovery: [products_json, sitemap]
+    currency_default: USD
+    enabled: true
+    support_status: LIVE_VALIDATED
+    source_region: US

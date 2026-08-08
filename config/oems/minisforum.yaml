@@ -1,0 +1,18 @@
+# Verified Shopify at store.minisforum.com (probe, 2026-07-18).
+# Note: Minisforum puts CPUs in variant options — engine handles this.
+
+manufacturer:
+  name: MINISFORUM
+  aliases: [Minisforum, "铭凡"]
+  country: CN
+
+sources:
+  - id: minisforum-shopify
+    engine: shopify
+    base_url: https://store.minisforum.com
+    min_interval: 6h
+    discovery: [products_json, sitemap]
+    currency_default: USD
+    category_map:
+      work station: workstation
+      mini pc: mini_pc

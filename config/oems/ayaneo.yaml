@@ -1,0 +1,17 @@
+# support_status: NEEDS_OWNER_PROBE — ayaneo.com not Shopify; likely custom/JS storefront
+# Audited 2026-08-02. Do not enable without re-probe.
+# Platform unverified from sandbox. Run: oem-radar probe https://www.ayaneo.com
+# then set enabled: true (switch engine if probe says woocommerce).
+
+manufacturer:
+  name: AYANEO
+  country: CN
+
+sources:
+  - id: ayaneo-shopify
+    engine: shopify
+    base_url: https://www.ayaneo.com
+    min_interval: 12h
+    discovery: [products_json, sitemap]
+    currency_default: USD
+    enabled: false
