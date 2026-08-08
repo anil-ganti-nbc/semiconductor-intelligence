@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import os
 import sqlite3
 import sys
 import time
@@ -145,9 +146,20 @@ def _project_root() -> Path:
     standalone executable (PyInstaller), it's the bundle's extracted temp
     directory, exposed as sys._MEIPASS -- see packaging/semi_intel.spec,
     which adds alembic.ini and migrations/ as data files at the bundle
-    root so this resolves the same way either way."""
+    root so this resolves the same way either way.
+
+    SEMINTEL_PROJECT_ROOT is a third, portability-only override for a real
+    `pip install .` (non-editable, non-frozen) -- e.g. inside a container.
+    That kind of install moves this *package* into site-packages while
+    alembic.ini/migrations/ (project files, not part of the package) stay
+    wherever they were copied, so `parent.parent` no longer points at them.
+    Defaults to the prior parent.parent behavior when unset, so source/
+    editable-checkout use (the only way this ran before) is unaffected."""
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
         return Path(sys._MEIPASS)  # type: ignore[attr-defined]
+    override = os.environ.get("SEMINTEL_PROJECT_ROOT")
+    if override:
+        return Path(override)
     return Path(__file__).resolve().parent.parent
 
 
@@ -232,6 +244,47 @@ def init_db_cmd() -> None:
     engine = get_engine()
     _init_db(engine)
     typer.echo("Database initialized.")
+
+
+# --- version / identity / health (cloud-migration runtime bridge) ---------
+#
+# Additive only -- every command above and below this block keeps its
+# existing behavior and output format. `semintel health` (semi_intel/
+# operator.py) is a separate, richer operator-facing report and is
+# untouched; these three are the thin, container-oriented contract used by
+# `docker build`'s HEALTHCHECK and by anyone driving this image externally.
+
+
+@app.command("version")
+def version_cmd() -> None:
+    """Print the application version."""
+    from semi_intel import __version__
+
+    typer.echo(f"semi-intel {__version__}")
+
+
+@app.command("identity")
+def identity_cmd() -> None:
+    """Print the runtime identity as JSON. `release_channel` reflects
+    SEMINTEL_RELEASE_CHANNEL (default: "soaking") -- never hard-coded."""
+    from semi_intel.runtime_bridge import as_jsonable, get_identity
+
+    typer.echo(json.dumps(as_jsonable(get_identity()), indent=2, default=str))
+
+
+@app.command("health")
+def health_cmd() -> None:
+    """Print truthful runtime health as JSON. Exits non-zero only when
+    failed. Does not run collectors or migrations; only performs the same
+    lazy create-tables-if-missing every other command already does against
+    a fresh database."""
+    from semi_intel.runtime_bridge import as_jsonable, get_health
+
+    payload = as_jsonable(get_health())
+    typer.echo(json.dumps(payload, indent=2, default=str))
+    state = payload.get("operational_state")
+    if state == "failed":
+        raise typer.Exit(code=1)
 
 
 # --- db (migrations) -------------------------------------------------------
