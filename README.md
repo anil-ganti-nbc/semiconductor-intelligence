@@ -1,5 +1,7 @@
 # Semiconductor Intelligence Platform 3.1 — Legacy import checkpoint
 
+> Status: Staging / additional soak testing required
+
 A claims-and-evidence intelligence platform for semiconductor/hardware
 journalism: think "Bloomberg Terminal meets Palantir" scoped to GPUs, CPUs,
 foundry nodes, and supply chains. The atomic unit is the **claim**, not the
