@@ -693,6 +693,12 @@
       <div class="toolbar" id="radar-source-actions">
         <label class="inline"><input type="checkbox" id="radar-source-select-all"
             onchange="toggleAllRadarSources(this.checked)"> Select all</label>
+        <button class="secondary" type="button" onclick="clearRadarSourceSelection()">Clear selection</button>
+        <button class="secondary" type="button" id="radar-polling-enable-selected"
+          onclick="setSelectedRadarSourcePolling(true)">Enable polling for selected (0)</button>
+        <button class="secondary" type="button" id="radar-polling-disable-selected"
+          onclick="setSelectedRadarSourcePolling(false)">Disable polling for selected (0)</button>
+        <button class="secondary" type="button" onclick="enableAllEligibleRssPolling()">Enable all eligible RSS feeds</button>
         <button class="secondary" type="button" id="radar-collect-selected"
           onclick="collectSelectedRadarSources()">Collect selected (0)</button>
         <button class="secondary" type="button" onclick="collectAllRadarSources()">Collect all enabled</button>
@@ -2789,6 +2795,10 @@
       const enabledIds = radarSources.filter(source => source.enabled).map(source => source.id);
       el("radar-collect-selected").textContent = `Collect selected (${selectedRadarSourceIds.size})`;
       el("radar-collect-selected").disabled = radarCollectionRunning || !selectedRadarSourceIds.size;
+      el("radar-polling-enable-selected").textContent = `Enable polling for selected (${selectedRadarSourceIds.size})`;
+      el("radar-polling-disable-selected").textContent = `Disable polling for selected (${selectedRadarSourceIds.size})`;
+      el("radar-polling-enable-selected").disabled = radarCollectionRunning || !selectedRadarSourceIds.size;
+      el("radar-polling-disable-selected").disabled = radarCollectionRunning || !selectedRadarSourceIds.size;
       el("radar-source-select-all").checked = Boolean(enabledIds.length) && enabledIds.every(id => selectedRadarSourceIds.has(id));
       el("radar-source-select-all").disabled = radarCollectionRunning || !enabledIds.length;
     }
@@ -2805,8 +2815,8 @@
         ${!source.enabled || radarCollectionRunning ? "disabled" : ""} onchange="toggleRadarSourceSelection(${source.id}, this.checked)"></td>
       <td><strong>${esc(source.name)}</strong></td>
       <td class="muted">${esc(source.provider)}</td>
-      <td>${source.enabled ? "yes" : "no"}</td>
-      <td>${source.polling_enabled ? "on" : "off"}</td>
+      <td>${source.enabled ? "enabled" : "disabled"}</td>
+      <td>${!source.enabled ? "disabled" : (source.polling_enabled ? "automatic" : "manual only")}</td>
       <td>${source.priority}</td>
       <td class="muted">${source.last_success_at ? new Date(source.last_success_at).toLocaleString() : "never"}</td>
       <td>${radarSourceHealthBadge(source)}</td>
@@ -2826,6 +2836,47 @@
         ? new Set(radarSources.filter(source => source.enabled).map(source => source.id))
         : new Set();
       loadRadarSources();
+    }
+
+    function clearRadarSourceSelection() {
+      selectedRadarSourceIds = new Set();
+      loadRadarSources();
+    }
+
+    async function setRadarSourcePolling(sources, enabled) {
+      if (!sources.length) return;
+      const xCount = sources.filter(source => source.provider === "x").length;
+      const rssCount = sources.filter(source => source.provider === "rss").length;
+      let confirmed = false;
+      if (enabled && xCount) {
+        const scheduler = await fetchJSON("/api/operations/scheduler");
+        const interval = scheduler.settings?.pipeline_interval_minutes || 30;
+        confirmed = confirm(`Enable automatic polling for ${xCount} X account(s) and ${rssCount} RSS feed(s)? The scheduler checks about every ${interval} minutes. X polling is sequential but may encounter rate limits, session expiry, or account restrictions. X must be globally enabled and a usable local session must be imported.`);
+        if (!confirmed) return;
+      } else if (enabled) {
+        confirmed = confirm(`Enable automatic polling for ${rssCount} selected RSS feed(s)?`);
+        if (!confirmed) return;
+      }
+      try {
+        const result = await requestJSON("/api/radar/sources/polling", "PUT", {
+          source_ids: sources.map(source => source.id), polling_enabled: enabled, confirmed,
+        });
+        el("radar-collection-progress").textContent = `${result.updated} source(s) now ${enabled ? "poll automatically" : "require manual collection"}.`;
+        await Promise.all([loadRadarSources(), loadOperations()]);
+      } catch (err) {
+        el("radar-collection-progress").textContent = err.message;
+      }
+    }
+
+    async function setSelectedRadarSourcePolling(enabled) {
+      await setRadarSourcePolling(
+        radarSources.filter(source => selectedRadarSourceIds.has(source.id)), enabled
+      );
+    }
+
+    async function enableAllEligibleRssPolling() {
+      const sources = radarSources.filter(source => source.provider === "rss" && source.enabled);
+      await setRadarSourcePolling(sources, true);
     }
 
     function openRadarSourceEditor(id) {
@@ -3575,7 +3626,7 @@
        Last heartbeat: ${fmtDate(scheduler.last_heartbeat)} ·
        Next pipeline: ${scheduler.next_runs.pipeline ? fmtDate(scheduler.next_runs.pipeline) : "not scheduled"}</div>
        <p class="reasons">${esc(effective.explanation)}</p>
-       ${health.issues.map(issue => `<p class="reasons">${esc(issue.explanation)} Next: ${esc(issue.recommended_action)}</p>`).join("")}`;
+       ${health.issues.map(issue => `<p class="reasons">${esc(issue.explanation)} Next: ${esc(issue.recommended_action)} ${issue.action_target === "radar" ? `<button class="secondary" onclick="switchTab('radar')">Open Sources</button>` : ""}</p>`).join("")}`;
         el("operations-reconcile-stale").disabled = !health.scheduler.stale_running_jobs;
       } else {
         operationPanelError("operations-overview", "Operational health", healthResult.reason || schedulerResult.reason);
@@ -3603,7 +3654,9 @@
       <p>${task.installed ? `Installed · state ${esc(task.state)}` : "Not installed"}</p>
       <p>Expected executable: <code>${esc(task.expected_executable)}</code></p>
       ${task.configured_executable ? `<p>Configured executable: <code>${esc(task.configured_executable)}</code> · ${task.path_exists ? "path exists" : "path missing"}${task.path_matches_current ? " · current checkpoint" : " · different checkpoint"}</p>` : ""}
-      ${task.last_run ? `<p>Last task run: ${fmtDate(task.last_run)} · result ${esc(task.last_result)}</p>` : ""}
+      ${task.working_directory ? `<p>Working directory: <code>${esc(task.working_directory)}</code> · ${task.working_directory_matches_current ? "current" : "incorrect"}</p>` : ""}
+      ${task.arguments ? `<p>Arguments: <code>${esc(task.arguments)}</code> · ${task.arguments_match_current ? "correct" : "incorrect"}</p>` : ""}
+      ${task.last_run ? `<p>Last task run: ${fmtDate(task.last_run)} · result ${esc(task.last_result)} — ${esc(task.last_result_explanation || "")}</p>` : ""}
       <details><summary>Installation command preview</summary><code>${esc(task.install_preview)}</code></details>
       ${task.error ? `<p class="msg err">${esc(task.error)}</p>` : ""}`;
         el("operations-task-install").disabled = !task.can_install;

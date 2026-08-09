@@ -12,9 +12,28 @@ from semi_intel.domain.enums import ProviderRunStatus
 from semi_intel.domain.models import ProviderRun, Source
 from semi_intel.notifications.service import safe_error
 from semi_intel.signals.providers.replay import ReplayProvider
+from semi_intel.paths import get_x_session_path
+from semi_intel.signals.providers.x.auth import load_session
 
 
 _HTTP_STATUS = re.compile(r"\b([45]\d\d)\b")
+
+
+def x_session_status() -> dict:
+    """Check local session shape without exposing cookies or contacting X."""
+    path = get_x_session_path()
+    if not path.is_file():
+        return {"present": False, "usable": False, "reason": "No local X session is imported."}
+    try:
+        cookies = load_session(path)
+        names = {cookie.get("name") for cookie in cookies if cookie.get("value")}
+    except (OSError, ValueError, TypeError):
+        return {"present": True, "usable": False, "reason": "The local X session file is unreadable."}
+    usable = {"auth_token", "ct0"}.issubset(names)
+    return {
+        "present": True, "usable": usable,
+        "reason": None if usable else "The local X session is missing required authentication cookies.",
+    }
 
 
 def _rss_url(value: str) -> str:
@@ -155,3 +174,26 @@ class SourceManagementService:
             source.error_state = None
         self.session.commit()
         return source
+
+    def set_polling(self, source_ids: list[int], *, enabled: bool) -> dict:
+        unique_ids = list(dict.fromkeys(source_ids))
+        sources = list(self.session.scalars(select(Source).where(Source.id.in_(unique_ids))))
+        found_ids = {source.id for source in sources}
+        missing = [source_id for source_id in unique_ids if source_id not in found_ids]
+        if missing:
+            raise ValueError(f"Unknown source ID(s): {', '.join(map(str, missing))}.")
+        radar_sources = [source for source in sources if source.provider in {"rss", "x"}]
+        if len(radar_sources) != len(sources):
+            raise ValueError("Legacy manual sources cannot be changed through Radar bulk polling.")
+        if enabled:
+            disabled = [source.name for source in radar_sources if not source.enabled]
+            if disabled:
+                raise ValueError("Enable these sources first: " + ", ".join(disabled[:5]))
+        for source in radar_sources:
+            source.polling_enabled = enabled
+        self.session.commit()
+        return {
+            "updated": len(radar_sources), "polling_enabled": enabled,
+            "rss_count": sum(source.provider == "rss" for source in radar_sources),
+            "x_count": sum(source.provider == "x" for source in radar_sources),
+        }

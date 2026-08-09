@@ -22,6 +22,7 @@ from semi_intel.domain.models import (
 from semi_intel.notifications.service import aware, get_settings, utcnow
 from semi_intel.operations.scheduler import get_scheduler_settings
 from semi_intel.operations.webhook import WebhookConfigurationService
+from semi_intel.signals.source_management import x_session_status
 
 
 EXPECTED_HEAD = "c2a7f1e9b453"
@@ -156,6 +157,36 @@ class HealthService:
                 wal_size = wal.stat().st_size if wal.exists() else 0
 
         collection = self.session.get(SignalCollectionSettings, 1)
+        radar_sources = list(self.session.scalars(select(Source).where(Source.provider.in_(["rss", "x"]))))
+        enabled_rss = [source for source in radar_sources if source.provider == "rss" and source.enabled]
+        enabled_x = [source for source in radar_sources if source.provider == "x" and source.enabled]
+        polling_rss = [source for source in enabled_rss if source.polling_enabled]
+        polling_x = [source for source in enabled_x if source.polling_enabled]
+        x_session = x_session_status()
+        if scheduler.scheduler_enabled and not polling_rss and not polling_x:
+            issues.append(self._issue(
+                "attention_needed", "Automation is enabled, but no Signal Radar sources are opted into polling.",
+                "Open Signal Radar Sources and explicitly enable polling for selected sources.",
+                "radar",
+            ))
+        if collection and collection.collection_enabled and enabled_rss and not polling_rss:
+            issues.append(self._issue(
+                "attention_needed", "RSS collection is enabled, but no eligible RSS source is opted into polling.",
+                "Open Signal Radar Sources and enable polling for selected RSS feeds.",
+                "radar",
+            ))
+        if collection and collection.x_provider_enabled and enabled_x and not polling_x:
+            issues.append(self._issue(
+                "attention_needed", "X collection is enabled, but no X source is opted into polling.",
+                "Open Signal Radar Sources and select a conservative set of X accounts.",
+                "radar",
+            ))
+        if polling_x and not x_session["usable"]:
+            issues.append(self._issue(
+                "degraded", f"{len(polling_x)} X source(s) are set to poll, but {x_session['reason']}",
+                "Import or refresh the local X session before the next automatic cycle.",
+                "radar",
+            ))
         promotion = self.session.get(CandidatePromotionSettings, 1)
         webhook = WebhookConfigurationService(self.session).status()
         latest_digest = self.session.scalar(select(NotificationDigest).order_by(
@@ -192,6 +223,11 @@ class HealthService:
             },
             "pipeline": {"last_successful_job": self._job(latest_success)},
             "providers": {"open_incidents": open_incidents},
+            "source_polling": {
+                "enabled_rss": len(enabled_rss), "polling_rss": len(polling_rss),
+                "enabled_x": len(enabled_x), "polling_x": len(polling_x),
+                "x_session": x_session,
+            },
             "notifications": {
                 "unread_important": important_unread, "old_unread": old_unread,
                 "last_digest": aware(latest_digest.generated_at).isoformat() if latest_digest else None,
@@ -216,8 +252,11 @@ class HealthService:
         }
 
     @staticmethod
-    def _issue(state: str, explanation: str, action: str) -> dict:
-        return {"state": state, "explanation": explanation, "recommended_action": action}
+    def _issue(state: str, explanation: str, action: str, action_target: str | None = None) -> dict:
+        result = {"state": state, "explanation": explanation, "recommended_action": action}
+        if action_target:
+            result["action_target"] = action_target
+        return result
 
     @staticmethod
     def _job(job: OperationalJobRun | None) -> dict | None:

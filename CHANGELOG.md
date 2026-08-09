@@ -1,5 +1,25 @@
 # Changelog
 
+## 3.3.14 (2026-08-09) — Unattended collection repair
+
+- Replaced the malformed `cmd /c` Windows Task Scheduler action with native,
+  separately configured executable, argument, and working-directory fields.
+  Installation/repair remains explicit and idempotent, preserves an existing
+  task's principal and settings, and safely handles special-character paths.
+- Task health now validates the complete action rather than only guessing an
+  executable from command text. Automation reports stale arguments/working
+  directories and explains common nonzero Task Scheduler results.
+- Added explicit provider-aware polling controls to Radar Sources. Operators
+  can enable/disable selected sources or enable eligible RSS feeds in bulk;
+  X activation requires a count-bearing confirmation, global X opt-in, and a
+  structurally usable local session. No production source was enabled silently.
+- Automation & Health now reports zero-polling RSS/X configurations and missing
+  X sessions with direct navigation to Sources. Disabled legacy RSS sources are
+  excluded from the older automatic collection path.
+- No schema migration, scoring, clustering, notification, digest, delivery,
+  backup, cloud-migration, or X scraping behavior was changed. Alembic remains
+  `a0b5d7e9f314`.
+
 ## 3.3.13 (2026-08-03) — Portable populated checkpoint repair
 
 - Fixed the private 3.3.12 archive's `semintel.config.json`, which had been

@@ -194,6 +194,12 @@ class RadarSourceUpdate(BaseModel):
     polling_enabled: bool = False
 
 
+class RadarSourcePollingBulkRequest(BaseModel):
+    source_ids: List[int] = Field(min_length=1, max_length=500)
+    polling_enabled: bool
+    confirmed: bool = False
+
+
 class RadarSettingsUpdate(BaseModel):
     collection_enabled: bool
     x_provider_enabled: bool

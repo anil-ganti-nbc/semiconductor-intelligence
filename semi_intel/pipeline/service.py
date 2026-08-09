@@ -296,6 +296,7 @@ class PipelineService:
         straight into Evidence here and once into SignalItem there. See
         tests/test_pipeline_service.py::test_legacy_and_signal_rss_paths_never_collect_the_same_source."""
         stmt = select(Source).where(
-            Source.type == SourceType.RSS, Source.url.is_not(None), Source.provider == "manual",
+            Source.type == SourceType.RSS, Source.url.is_not(None),
+            Source.provider == "manual", Source.enabled.is_(True),
         )
         return list(self.session.scalars(stmt))

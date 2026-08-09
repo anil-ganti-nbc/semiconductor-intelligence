@@ -5,4 +5,4 @@ manual entry. No ingestion, no contradiction rules, no scoring yet -- those
 are later milestones, built on top of this schema.
 """
 
-__version__ = "3.3.13"
+__version__ = "3.3.14"
