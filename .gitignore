@@ -20,3 +20,6 @@ build/
 .venv313/
 temp_ui.db
 *.egg-info/
+
+# Local AI-tool config, not project content
+.claude/
