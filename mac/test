@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Run the canonical Semiconductor Intelligence test suite, matching the
+# project's own documented invocation (PYTHONPATH=src is required for the
+# dead embedded src/oem_radar fork some test files still import;
+# --continue-on-collection-errors surfaces real pass/fail counts past the
+# 5 pre-existing, documented collection errors -- see KNOWN_ISSUES.md).
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT"
+
+if [ ! -x ".venv/bin/python" ]; then
+    echo "error: no .venv found. Run mac/bootstrap first." >&2
+    exit 1
+fi
+
+PYTHONPATH=src .venv/bin/python -m pytest -q --continue-on-collection-errors "$@"

@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Prove the backup/restore path works, against the isolated local staging
+# database only. Uses `backups rehearse`, which restores into a throwaway
+# temp copy and never touches the live database -- safe to run any time.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT"
+
+if [ ! -x ".venv/bin/semintel" ]; then
+    echo "error: no .venv found. Run mac/bootstrap first." >&2
+    exit 1
+fi
+
+export SEMI_INTEL_DB_URL="sqlite:///${REPO_ROOT}/.mac-dev/semi_intel.db"
+
+echo "==> Ensuring schema is current"
+.venv/bin/semi-intel db upgrade
+
+echo ""
+echo "==> Creating a verified backup"
+.venv/bin/semintel backups create
+
+echo ""
+echo "==> Listing backups"
+.venv/bin/semintel backups list
+
+echo ""
+echo "==> Rehearsing restore (throwaway temp copy -- live DB is never touched)"
+LATEST_BACKUP="$(ls -t "${REPO_ROOT}/.mac-dev/backups/"*.sqlite3 2>/dev/null | head -1 || true)"
+if [ -z "$LATEST_BACKUP" ]; then
+    echo "error: no backup file found in .mac-dev/backups/." >&2
+    exit 1
+fi
+.venv/bin/semintel backups rehearse "$LATEST_BACKUP"
+
+echo ""
+echo "Backup/restore smoke workflow complete. Live staging DB was never touched."

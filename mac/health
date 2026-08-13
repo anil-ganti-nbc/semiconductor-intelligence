@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Print identity, then health -- against the isolated local staging
+# database, never the real ~/Library/Application Support/SemiIntel.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT"
+
+if [ ! -x ".venv/bin/semi-intel" ]; then
+    echo "error: no .venv found. Run mac/bootstrap first." >&2
+    exit 1
+fi
+
+export SEMI_INTEL_DB_URL="sqlite:///${REPO_ROOT}/.mac-dev/semi_intel.db"
+
+echo "=== identity ==="
+.venv/bin/semi-intel identity
+echo ""
+echo "=== health ==="
+.venv/bin/semi-intel health
