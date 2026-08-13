@@ -23,6 +23,11 @@ dev = [
     "httpx>=0.27,<1.0",
     "fastapi>=0.110,<1.0",
     "uvicorn[standard]>=0.29,<1.0",
+    # Not used by semi_intel itself -- only needed so tests/ can *collect* the
+    # files that still import the dead embedded src/oem_radar fork's Discord
+    # notifier. Undeclared before this; a clean install couldn't collect those
+    # test files at all. See KNOWN_ISSUES.md re: the dead fork.
+    "requests>=2.31,<3.0",
 ]
 
 [project.scripts]

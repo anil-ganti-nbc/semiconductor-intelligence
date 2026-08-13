@@ -1,7 +1,8 @@
 """Test suite for runtime path precedence and safety."""
 import os
+import sys
 import pytest
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 from semi_intel.paths import get_runtime_root, _resolve, get_db_path, get_x_session_path
 
@@ -27,6 +28,12 @@ def test_empty_env_vars_ignored(clean_env, monkeypatch):
 
 def test_windows_localappdata(clean_env, monkeypatch):
     monkeypatch.setattr(os, "name", "nt")
+    # Python 3.13's pathlib refuses to instantiate a concrete WindowsPath on a
+    # non-Windows host even when os.name is monkeypatched (UnsupportedOperation).
+    # PureWindowsPath does the same string/segment algebra without that concrete-
+    # class OS guard, so it exercises get_runtime_root()'s Windows branch and its
+    # exact backslash formatting on any host OS, matching this test's original intent.
+    monkeypatch.setattr("semi_intel.paths.Path", PureWindowsPath)
     monkeypatch.setenv("LOCALAPPDATA", r"C:\Users\Test\AppData\Local")
     root = get_runtime_root()
     assert str(root) == r"C:\Users\Test\AppData\Local\SemiIntel"
@@ -35,7 +42,11 @@ def test_windows_localappdata(clean_env, monkeypatch):
 @pytest.mark.skipif(os.name == 'nt', reason="Pathlib rejects posix test on Windows")
 def test_linux_xdg(clean_env, monkeypatch):
     monkeypatch.setattr(os, "name", "posix")
-    # Avoid picking up actual mac sysname if not mac
+    # os.name alone can't distinguish Linux from macOS (both report "posix");
+    # get_runtime_root() also checks sys.platform == "darwin", so that must be
+    # patched too or this test silently exercises the macOS branch instead of
+    # the intended Linux/XDG one when actually run on a Mac.
+    monkeypatch.setattr(sys, "platform", "linux")
     monkeypatch.setenv("XDG_DATA_HOME", "/home/test/.local/share")
     root = get_runtime_root()
     assert str(root) == "/home/test/.local/share/SemiIntel"
