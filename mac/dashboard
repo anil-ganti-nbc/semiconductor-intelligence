@@ -13,6 +13,7 @@ if [ ! -x ".venv/bin/semintel" ]; then
 fi
 
 PORT="${SEMINTEL_MAC_PORT:-8000}"
+mkdir -p "${REPO_ROOT}/.mac-dev"
 export SEMI_INTEL_DB_URL="sqlite:///${REPO_ROOT}/.mac-dev/semi_intel.db"
 
 echo "==> Dashboard: http://127.0.0.1:${PORT}/"

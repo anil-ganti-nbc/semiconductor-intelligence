@@ -13,6 +13,7 @@ if [ ! -x ".venv/bin/semintel" ]; then
     exit 1
 fi
 
+mkdir -p "${REPO_ROOT}/.mac-dev"
 export SEMI_INTEL_DB_URL="sqlite:///${REPO_ROOT}/.mac-dev/semi_intel.db"
 
 echo "==> Ensuring schema is current"
