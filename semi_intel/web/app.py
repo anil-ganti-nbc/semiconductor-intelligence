@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -31,7 +32,7 @@ from typing import List, Literal, Optional
 from urllib.parse import urlparse
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -386,11 +387,39 @@ def create_app() -> FastAPI:
     )
     app.dependency_overrides[get_session] = _request_scoped_session
 
+    @app.middleware("http")
+    async def field_test_read_only(request: Request, call_next):
+        """Keep the native field-test dashboard observational and offline-safe."""
+        if (
+            os.environ.get("SEMINTEL_FIELD_TEST_READ_ONLY") == "1"
+            and request.method not in {"GET", "HEAD", "OPTIONS"}
+        ):
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "Changes and collection are disabled in the macOS field-test app."},
+            )
+        return await call_next(request)
+
     # --- reads ---------------------------------------------------------
 
     @app.get("/", response_class=HTMLResponse)
     def dashboard() -> str:
         return (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+
+    @app.get("/api/runtime/identity")
+    def runtime_identity():
+        from semi_intel.runtime_bridge import as_jsonable, get_identity, get_version_info
+
+        payload = as_jsonable(get_identity())
+        payload.update(get_version_info())
+        payload["field_test_read_only"] = os.environ.get("SEMINTEL_FIELD_TEST_READ_ONLY") == "1"
+        return payload
+
+    @app.get("/api/runtime/health")
+    def runtime_health():
+        from semi_intel.runtime_bridge import as_jsonable, get_health
+
+        return as_jsonable(get_health())
 
     @app.get("/api/topics")
     def list_topics(

@@ -72,6 +72,7 @@ def get_version_info() -> dict[str, str]:
         "health_contract_version": HEALTH_CONTRACT_VERSION,
         "release_channel": get_release_channel(),
         "runtime_bridge": "soak1.0",
+        "source_revision": os.environ.get("SEMINTEL_SOURCE_REVISION", "unknown"),
     }
 
 
@@ -95,6 +96,7 @@ def get_identity() -> Any:
         "clank_id": CLANK_ID,
         "clank_version": PACKAGE_VERSION,
         "release_channel": channel_value,
+        "source_revision": os.environ.get("SEMINTEL_SOURCE_REVISION", "unknown"),
     }
 
 

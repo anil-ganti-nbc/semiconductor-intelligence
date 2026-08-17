@@ -18,6 +18,8 @@ backups/
 *.lock
 dist/
 build/
+native/macos/build/
+native/macos/dist/
 *.exe
 .venv/
 .venv313/
