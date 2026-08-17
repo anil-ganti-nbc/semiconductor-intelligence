@@ -1,3 +1,62 @@
+# Semiconductor Intelligence Platform 3.3.14 — Unattended Collection Repair
+
+**Status: current, verified, and deployed.** Field inspection
+found that `SemiIntel Operational Cycle` fired every 30 minutes but exited with
+result 1 before SemInt launched. The generated nested `cmd /c` quoting split a
+path containing spaces, so no scheduler heartbeat or scheduler-originated job
+could be written. Separately, all Radar-managed sources remained at the safe
+import default `polling_enabled=False`, allowing manual GUI runs to mask the
+absence of unattended collection.
+
+## Repair
+
+- Scheduled tasks now use native action fields: the absolute `semintel.exe` as
+  Execute, `automation cycle` as Arguments, and the application directory as
+  WorkingDirectory. Repair is explicit/idempotent and preserves an existing
+  task's principal and settings. Status validates all three fields, identifies
+  legacy cmd-wrapped tasks as stale, and explains common result codes.
+- Radar Sources provides explicit selection, clear-selection, selected polling
+  enable/disable, and eligible-RSS bulk enable controls. X polling requires a
+  count-bearing warning, global X enablement, and a local session containing
+  the required authentication-cookie names. Cookie values are never returned.
+- Automation & Health exposes RSS/X polling counts and warnings for zero-polling
+  configurations or missing X sessions, with a direct route to Sources.
+- Disabled legacy manual RSS sources are no longer eligible for their older
+  automatic direct-to-Evidence path.
+- Focused scheduler/source/pipeline gate: **50 passed**. Relevant automation,
+  web, lifecycle, and JavaScript gate: **122 passed** after five subprocess
+  tests were rerun under the checkpoint's Python 3.13 environment because the
+  sandboxed system Python 3.14 inherited an invalid Windows stdin handle.
+- Final combined SemInt + OEM Radar suite, with operator webhook variables
+  removed only from the disposable test process: **857 passed, 1 skipped**, 0
+  failed, in 19:02. The skip and existing datetime/Starlette warnings are
+  unchanged and out of scope.
+- No database migration or production source-polling mutation was performed.
+  Alembic remains `a0b5d7e9f314`.
+
+## Production verification
+
+- Both frozen executables were rebuilt with Playwright support after the full
+  suite passed. Disposable frozen smoke passed 3.3.14 version, install/update,
+  offline doctor, native task preview, and a disabled operational cycle.
+- The root executables were replaced after backing up the previous binaries,
+  database, and configuration. The dashboard was restarted from the same live
+  folder. `semintel.exe` SHA-256 is
+  `AC6ABB8FEE80458BA2918E0FFF0EACD0234C775841B9D6A8558CA9A52017DB81`;
+  `semi-intel.exe` SHA-256 is
+  `945DC79326F43027798E1DD4041A3C7B24F8A2DDFC4A0AD37B75577129E2E7CD`.
+- `SemiIntel Operational Cycle` was repaired in place and read back as one
+  enabled task with the expected executable, `automation cycle` arguments,
+  live working directory, and 30-minute interval. Its production result is 0.
+- The first bounded cycle wrote the previously absent heartbeat and completed
+  scheduler job #4 successfully. It used the intended populated database. An
+  immediate unchanged firing returned 0 without creating a duplicate job or
+  notification; notification count remained 63.
+- No Radar source was opted into polling automatically. All RSS/X choices
+  remain for explicit operator review in the new provider-aware GUI controls.
+
+---
+
 # Semiconductor Intelligence Platform 3.3.13 — Portable Populated Checkpoint Repair
 
 **Status: current and verified.** The 3.3.12

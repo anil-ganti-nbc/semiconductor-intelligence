@@ -9,13 +9,13 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from semi_intel.domain.enums import OperationalJobStatus, OperationalJobType, OperationalTriggerType
-from semi_intel.domain.models import OperationalJobLease, OperationalJobRun
+from semi_intel.domain.enums import OperationalJobStatus, OperationalJobType, OperationalTriggerType, SourceType
+from semi_intel.domain.models import OperationalJobLease, OperationalJobRun, SignalCollectionSettings, Source
 from semi_intel.notifications.service import aware
 from semi_intel.operations.scheduler import (
     OperationalScheduler, effective_automation_state, get_scheduler_settings,
 )
-from semi_intel.operations.windows_task import WindowsTaskStatusService
+from semi_intel.operations.windows_task import WindowsTaskStatusService, install_command
 
 
 BASE = dt.datetime(2026, 8, 3, 8, 0, tzinfo=dt.UTC)
@@ -59,8 +59,8 @@ def test_windows_task_status_parses_path_and_runtime(tmp_path):
     executable = tmp_path / "semintel.exe"
     executable.write_bytes(b"test")
     payload = json.dumps({
-        "state": "Ready", "execute": "cmd.exe",
-        "arguments": f'/c ""{executable}" automation cycle"',
+        "state": "Ready", "execute": str(executable),
+        "arguments": "automation cycle",
         "working_directory": str(tmp_path), "last_run": "2026-08-03T08:00:00",
         "next_run": "2026-08-03T08:30:00", "last_result": 0,
     })
@@ -69,7 +69,75 @@ def test_windows_task_status_parses_path_and_runtime(tmp_path):
     assert status["installed"] is True
     assert status["path_exists"] is True
     assert status["path_matches_current"] is True
+    assert status["working_directory_matches_current"] is True
+    assert status["arguments_match_current"] is True
+    assert status["action_matches_current"] is True
     assert status["last_result"] == 0
+
+
+def test_old_cmd_wrapped_task_is_detected_as_stale(tmp_path):
+    executable = tmp_path / "semintel.exe"
+    executable.write_bytes(b"test")
+    payload = json.dumps({
+        "state": "Ready", "execute": "cmd.exe",
+        "arguments": f'/c "cd /d ""{tmp_path}"" && ""{executable}"" automation cycle"',
+        "working_directory": "", "last_run": "2026-08-09T18:30:00",
+        "next_run": "2026-08-09T19:00:00", "last_result": 1,
+    })
+    status = WindowsTaskStatusService(
+        lambda _: subprocess.CompletedProcess([], 0, payload, "")
+    ).status(expected_executable=executable, expected_working_directory=tmp_path)
+    assert status["path_matches_current"] is False
+    assert status["action_matches_current"] is False
+    assert "code 1" in status["last_result_explanation"]
+
+
+@pytest.mark.parametrize("folder", ["News Room", "O'Brien", "SemInt (Live)", "芯片情报", "News & Radar"])
+def test_install_command_uses_native_action_fields_for_special_paths(folder):
+    root = Path("C:/") / folder
+    command = install_command(root / "semintel.exe", root, interval_minutes=30)
+    joined = " ".join(command)
+    assert command[0] == "powershell.exe"
+    assert "New-ScheduledTaskAction" in joined
+    assert "-Execute" in joined and "-Argument" in joined and "-WorkingDirectory" in joined
+    assert "automation cycle" in joined
+    assert "cmd /c" not in joined.lower()
+    if "'" in folder:
+        assert "O''Brien" in joined
+
+
+def test_effective_state_rejects_wrong_action_even_when_executable_exists(db_session):
+    settings = get_scheduler_settings(db_session)
+    settings.scheduler_enabled = True
+    settings.last_scheduler_heartbeat = BASE
+    state = effective_automation_state(
+        settings, _task(action_matches_current=False, last_result=1), now=BASE
+    )
+    assert state["state"] == "task_action_mismatch"
+
+
+def test_health_reports_zero_polling_sources_with_navigation(db_session, tmp_path, monkeypatch):
+    from semi_intel.operations.health import HealthService
+
+    monkeypatch.setenv("SEMINTEL_X_SESSION", str(tmp_path / "missing-session.json"))
+    settings = get_scheduler_settings(db_session)
+    settings.scheduler_enabled = True
+    collection = SignalCollectionSettings(id=1, collection_enabled=True, x_provider_enabled=True)
+    db_session.add_all([
+        collection,
+        Source(name="RSS", type=SourceType.RSS, provider="rss", provider_key="https://example.com/feed", enabled=True, polling_enabled=False),
+        Source(name="X", type=SourceType.SOCIAL, provider="x", provider_key="account", enabled=True, polling_enabled=False),
+    ])
+    db_session.commit()
+    report = HealthService(db_session).report(now=BASE)
+    messages = [issue["explanation"] for issue in report["issues"]]
+    assert any("no Signal Radar sources" in message for message in messages)
+    assert any("no eligible RSS" in message for message in messages)
+    assert any("no X source" in message for message in messages)
+    assert all(
+        issue.get("action_target") == "radar"
+        for issue in report["issues"] if "opted into polling" in issue["explanation"]
+    )
 
 
 def test_reconcile_stale_runs_preserves_active_lease_and_is_idempotent(db_session):

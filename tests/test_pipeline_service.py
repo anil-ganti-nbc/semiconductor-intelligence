@@ -102,6 +102,16 @@ def test_legacy_and_signal_rss_paths_never_collect_the_same_source(db_session, m
     assert [s.id for s in polled] == [legacy_source.id]  # only the legacy source, never the signal one
 
 
+def test_disabled_legacy_rss_source_is_never_polled_automatically(db_session):
+    source = Source(
+        name="Disabled Legacy Feed", type=SourceType.RSS,
+        url="https://example.com/disabled", provider="manual", enabled=False,
+    )
+    db_session.add(source)
+    db_session.commit()
+    assert PipelineService(db_session)._rss_sources_to_poll() == []
+
+
 def test_run_once_skips_pci_ids_when_requested(db_session, monkeypatch):
     _patch_fetchers(monkeypatch)
 

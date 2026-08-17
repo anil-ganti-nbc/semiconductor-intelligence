@@ -1,4 +1,4 @@
-# Semiconductor Intelligence Platform 3.3.13 — Start here
+# Semiconductor Intelligence Platform 3.3.14 — Start here
 
 This is a **private, populated operator checkpoint**. It contains historical
 Signal Radar data imported from your legacy database.

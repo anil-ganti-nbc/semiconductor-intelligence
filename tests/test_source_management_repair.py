@@ -83,6 +83,53 @@ def test_rss_manual_collection_works_with_polling_off(client, monkeypatch):
     assert row["health"]["last_attempt_at"] is not None
 
 
+def test_bulk_rss_polling_is_explicit_and_scoped(client, monkeypatch):
+    import semi_intel.signals.providers.rss as rss_module
+    content = Path("tests/fixtures/sample_feed.xml").read_bytes()
+    monkeypatch.setattr(rss_module, "_default_fetch", lambda _url: feedparser.parse(content))
+    first = client.post("/api/radar/sources", json={"handle_or_url": "https://one.example/feed"}).json()
+    second = client.post("/api/radar/sources", json={"handle_or_url": "https://two.example/feed"}).json()
+    response = client.put("/api/radar/sources/polling", json={
+        "source_ids": [first["id"]], "polling_enabled": True, "confirmed": True,
+    })
+    assert response.status_code == 200, response.text
+    assert response.json() == {"updated": 1, "polling_enabled": True, "rss_count": 1, "x_count": 0}
+    rows = {row["id"]: row for row in client.get("/api/radar/sources").json()}
+    assert rows[first["id"]]["polling_enabled"] is True
+    assert rows[second["id"]]["polling_enabled"] is False
+
+    disabled = client.put("/api/radar/sources/polling", json={
+        "source_ids": [first["id"]], "polling_enabled": False,
+    })
+    assert disabled.status_code == 200
+    assert client.get("/api/radar/sources").json()[0]["polling_enabled"] is False
+
+
+def test_bulk_x_polling_requires_confirmation_global_opt_in_and_session(client, tmp_path, monkeypatch):
+    source = client.post("/api/radar/sources", json={"handle_or_url": "@careful_leaker"}).json()
+    body = {"source_ids": [source["id"]], "polling_enabled": True, "confirmed": False}
+    assert client.put("/api/radar/sources/polling", json=body).status_code == 409
+    body["confirmed"] = True
+    response = client.put("/api/radar/sources/polling", json=body)
+    assert response.status_code == 409
+    assert "globally disabled" in response.json()["detail"]
+
+    settings = client.get("/api/radar/settings").json()
+    settings["x_provider_enabled"] = True
+    assert client.put("/api/radar/settings", json=settings).status_code == 200
+    session_path = tmp_path / "x_session.json"
+    monkeypatch.setenv("SEMINTEL_X_SESSION", str(session_path))
+    response = client.put("/api/radar/sources/polling", json=body)
+    assert response.status_code == 409
+    assert "No local X session" in response.json()["detail"]
+
+    from semi_intel.signals.providers.x.auth import write_session
+    write_session(session_path, "secret-auth", "secret-csrf")
+    response = client.put("/api/radar/sources/polling", json=body)
+    assert response.status_code == 200, response.text
+    assert response.json()["x_count"] == 1
+
+
 @pytest.mark.parametrize(
     ("error", "state"),
     [
@@ -170,8 +217,12 @@ def test_radar_source_management_controls_and_no_duplicate_suggestion_queue():
         "cancelRadarCollection()",
         'id="radar-source-dialog"',
         "Review suggested",
+        "setSelectedRadarSourcePolling(true)",
+        "setSelectedRadarSourcePolling(false)",
+        "enableAllEligibleRssPolling()",
     ):
         assert expected in radar
+    assert "manual only" in html
     assert "Domains and platform accounts repeatedly credited" not in radar
     assert 'value="source_suggestions"' in radar
     assert "openRadarSourceEditor(" in html

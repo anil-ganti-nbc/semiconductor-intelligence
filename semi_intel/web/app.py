@@ -93,6 +93,7 @@ from semi_intel.web.schemas import (
     CandidatePromoteRequest,
     RadarSourceCreate,
     RadarSourceUpdate,
+    RadarSourcePollingBulkRequest,
     RadarSettingsUpdate,
     SourceSuggestionReviewRequest,
     SourceReputationOverrideRequest,
@@ -142,7 +143,7 @@ from semi_intel.signals.analysis import analyze_unprocessed
 from semi_intel.signals.aging import CandidateAge, CandidateAgingService
 from semi_intel.signals.clustering import cluster_unclustered_items
 from semi_intel.signals.collection import CollectionService, get_collection_settings
-from semi_intel.signals.source_management import SourceManagementService
+from semi_intel.signals.source_management import SourceManagementService, x_session_status
 from semi_intel.signals.promotion import (
     PromotionBlocked,
     check_automatic_eligibility,
@@ -1883,6 +1884,31 @@ def create_app() -> FastAPI:
             "provider_key": source.provider_key, "already_existed": False,
         }
 
+    @app.put("/api/radar/sources/polling")
+    def radar_sources_polling_bulk(
+        body: RadarSourcePollingBulkRequest, session: Session = Depends(get_session)
+    ):
+        sources = list(session.scalars(select(Source).where(Source.id.in_(body.source_ids))))
+        x_count = sum(source.provider == "x" for source in sources)
+        if body.polling_enabled and x_count:
+            if not body.confirmed:
+                raise HTTPException(
+                    status_code=409,
+                    detail=f"Explicit confirmation is required before enabling {x_count} X source(s).",
+                )
+            settings = get_collection_settings(session)
+            if not settings.x_provider_enabled:
+                raise HTTPException(status_code=409, detail="X collection is globally disabled.")
+            session_state = x_session_status()
+            if not session_state["usable"]:
+                raise HTTPException(status_code=409, detail=session_state["reason"])
+        try:
+            return SourceManagementService(session).set_polling(
+                body.source_ids, enabled=body.polling_enabled
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc))
+
     @app.post("/api/radar/sources/{source_id}/collect")
     def radar_source_collect(source_id: int, session: Session = Depends(get_session)):
         source = session.get(Source, source_id)
@@ -2329,7 +2355,9 @@ def create_app() -> FastAPI:
     def _automation_status(session: Session) -> dict:
         scheduler = OperationalScheduler(session)
         status = scheduler.status()
-        task = WindowsTaskStatusService().status(expected_executable=current_executable())
+        task = WindowsTaskStatusService().status(
+            expected_executable=current_executable(), expected_working_directory=Path.cwd()
+        )
         effective = effective_automation_state(scheduler.settings(), task)
         status["windows_task"] = task
         status["effective"] = effective
@@ -2411,7 +2439,9 @@ def create_app() -> FastAPI:
         command = windows_task_install_command(
             executable, Path.cwd(), interval_minutes=settings.pipeline_interval_minutes
         )
-        status = WindowsTaskStatusService().status(expected_executable=executable)
+        status = WindowsTaskStatusService().status(
+            expected_executable=executable, expected_working_directory=Path.cwd()
+        )
         status["can_install"] = bool(getattr(sys, "frozen", False))
         status["install_preview"] = subprocess.list2cmdline(command)
         return status
@@ -2435,7 +2465,9 @@ def create_app() -> FastAPI:
                 status_code=409,
                 detail=safe_error(result.stderr or result.stdout) or "Windows Task Scheduler rejected the command.",
             )
-        return WindowsTaskStatusService().status(expected_executable=executable)
+        return WindowsTaskStatusService().status(
+            expected_executable=executable, expected_working_directory=Path.cwd()
+        )
 
     @app.post("/api/operations/reconcile-stale")
     def operations_reconcile_stale(session: Session = Depends(get_session)):
