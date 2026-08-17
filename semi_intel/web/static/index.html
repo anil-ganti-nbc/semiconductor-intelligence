@@ -33,6 +33,12 @@
       font-size: 13px;
     }
 
+    #runtime-provenance {
+      color: #7f8795;
+      font-size: 11px;
+      margin-top: 6px;
+    }
+
     nav {
       display: flex;
       gap: 4px;
@@ -500,6 +506,7 @@
   <header>
     <h1>Semiconductor Intelligence Platform</h1>
     <p>Your automated editorial inbox for semiconductor and PC-hardware reporting.</p>
+    <div id="runtime-provenance">Loading runtime provenance…</div>
   </header>
 
   <nav>
@@ -1421,6 +1428,18 @@
     const esc = (value) => String(value ?? "").replace(/[&<>"']/g, c => ({
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
     }[c]));
+
+    async function loadRuntimeProvenance() {
+      try {
+        const identity = await fetch("/api/runtime/identity").then(response => response.json());
+        const revision = identity.source_revision || "unknown";
+        el("runtime-provenance").textContent =
+          `Version ${identity.clank_version || "unknown"} · ${identity.release_channel || "unknown"} · revision ${revision.slice(0, 12)}` +
+          (identity.field_test_read_only ? " · macOS field test (read-only)" : "");
+      } catch (_) {
+        el("runtime-provenance").textContent = "Runtime provenance unavailable";
+      }
+    }
 
     function statusBadge(status) {
       return `<span class="badge status-${status}">${status}</span>`;
@@ -3746,6 +3765,7 @@
     el("mention-type-filter").addEventListener("change", loadMentionProposals);
 
     loadStoryTopicFilter();
+    loadRuntimeProvenance();
     loadStories();
   </script>
 
