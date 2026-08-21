@@ -10,12 +10,16 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from .config import SeverityRule, SourceConfig
 from .diff import diff
 from .interfaces import Fetcher, Notifier, SnapshotStore, SourceEngine
 from .knownhw import canonicalize
 from .models import ChangeEvent, ChangeType, FetchedDocument, NormalizedProduct, Severity
+
+if TYPE_CHECKING:
+    from .config import CollectorHealthConfig
 
 log = logging.getLogger("oem_radar.pipeline")
 
