@@ -10,7 +10,7 @@ def client(tmp_path, monkeypatch):
     monkeypatch.delenv("SEMI_INTEL_WEBHOOK_URL", raising=False)
     monkeypatch.delenv("SEMI_INTEL_WEBHOOK_TOKEN", raising=False)
     from semi_intel.web.app import create_app
-    with TestClient(create_app()) as client:
+    with TestClient(create_app(mutation_authorizer=lambda _value: True)) as client:
         yield client
 
 

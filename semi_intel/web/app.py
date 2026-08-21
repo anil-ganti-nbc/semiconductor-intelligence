@@ -28,7 +28,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import List, Literal, Optional
+from typing import Callable, List, Literal, Optional
 from urllib.parse import urlparse
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
@@ -333,7 +333,9 @@ def _discovery_run_dict(run: DiscoveryRun) -> dict:
     }
 
 
-def create_app() -> FastAPI:
+def create_app(
+    *, mutation_authorizer: Callable[[str | None], bool] | None = None
+) -> FastAPI:
     # Reconcile the schema to head via the exact same Alembic-aware path
     # `semintel install`/`update` already use, instead of a bare
     # create_all(). The dashboard is a supported entry point on its own
@@ -389,15 +391,25 @@ def create_app() -> FastAPI:
 
     @app.middleware("http")
     async def field_test_read_only(request: Request, call_next):
-        """Keep the native field-test dashboard observational and offline-safe."""
-        if (
-            os.environ.get("SEMINTEL_FIELD_TEST_READ_ONLY") == "1"
-            and request.method not in {"GET", "HEAD", "OPTIONS"}
-        ):
+        """Fail closed for every state-changing unauthenticated request."""
+        is_mutation = request.method not in {"GET", "HEAD", "OPTIONS"}
+        if is_mutation and os.environ.get("SEMINTEL_FIELD_TEST_READ_ONLY") == "1":
             return JSONResponse(
                 status_code=403,
                 content={"detail": "Changes and collection are disabled in the macOS field-test app."},
             )
+        if is_mutation:
+            if mutation_authorizer is None:
+                from semi_intel.web.security import mutation_authorized
+
+                authorized = mutation_authorized(request.headers.get("Authorization"))
+            else:
+                authorized = mutation_authorizer(request.headers.get("Authorization"))
+            if not authorized:
+                return JSONResponse(
+                    status_code=403,
+                    content={"detail": "Authenticated dashboard profile required for mutations."},
+                )
         return await call_next(request)
 
     # --- reads ---------------------------------------------------------

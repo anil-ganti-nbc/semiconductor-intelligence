@@ -186,6 +186,10 @@ class HealthService:
                 "state": "enabled" if scheduler.scheduler_enabled else "disabled",
                 "last_heartbeat": aware(scheduler.last_scheduler_heartbeat).isoformat()
                 if scheduler.last_scheduler_heartbeat else None,
+                "last_scheduler_invocation": aware(scheduler.last_scheduler_invocation).isoformat()
+                if scheduler.last_scheduler_invocation else None,
+                "last_successful_job_commit": aware(scheduler.last_successful_job_commit).isoformat()
+                if scheduler.last_successful_job_commit else None,
                 "last_pipeline": self._job(last_pipeline),
                 "active_leases": len(active_leases), "stale_leases": len(stale_leases),
                 "stale_running_jobs": len(stale_running),

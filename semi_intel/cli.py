@@ -919,6 +919,13 @@ def web_serve(
     and suggestions). Requires `pip install -e ".\[web]"` -- fastapi/uvicorn
     are imported here, lazily, so the base CLI never needs them just to run
     `entity add` or `claim create`."""
+    from semi_intel.web.security import require_loopback_host
+
+    try:
+        require_loopback_host(host)
+    except ValueError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED)
+        raise typer.Exit(2)
     try:
         import uvicorn
 

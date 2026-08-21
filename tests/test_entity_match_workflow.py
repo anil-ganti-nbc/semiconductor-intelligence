@@ -26,7 +26,7 @@ def client(tmp_path, monkeypatch):
     db_file = tmp_path / "entity-match.db"
     monkeypatch.setenv("SEMI_INTEL_DB_URL", f"sqlite:///{db_file}")
     from semi_intel.web.app import create_app
-    with TestClient(create_app()) as api:
+    with TestClient(create_app(mutation_authorizer=lambda _value: True)) as api:
         yield api
 
 

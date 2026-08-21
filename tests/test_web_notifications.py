@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 def client(tmp_path, monkeypatch):
     monkeypatch.setenv("SEMI_INTEL_DB_URL", f"sqlite:///{tmp_path / 'alerts.db'}")
     from semi_intel.web.app import create_app
-    with TestClient(create_app()) as client:
+    with TestClient(create_app(mutation_authorizer=lambda _value: True)) as client:
         yield client
 
 

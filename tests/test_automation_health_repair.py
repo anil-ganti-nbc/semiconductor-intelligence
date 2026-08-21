@@ -15,7 +15,7 @@ from semi_intel.notifications.service import aware
 from semi_intel.operations.scheduler import (
     OperationalScheduler, effective_automation_state, get_scheduler_settings,
 )
-from semi_intel.operations.windows_task import WindowsTaskStatusService
+from semi_intel.operations.windows_task import WindowsTaskStatusService, install_command
 
 
 BASE = dt.datetime(2026, 8, 3, 8, 0, tzinfo=dt.UTC)
@@ -59,8 +59,8 @@ def test_windows_task_status_parses_path_and_runtime(tmp_path):
     executable = tmp_path / "semintel.exe"
     executable.write_bytes(b"test")
     payload = json.dumps({
-        "state": "Ready", "execute": "cmd.exe",
-        "arguments": f'/c ""{executable}" automation cycle"',
+        "state": "Ready", "execute": str(executable),
+        "arguments": "automation cycle",
         "working_directory": str(tmp_path), "last_run": "2026-08-03T08:00:00",
         "next_run": "2026-08-03T08:30:00", "last_result": 0,
     })
@@ -69,7 +69,49 @@ def test_windows_task_status_parses_path_and_runtime(tmp_path):
     assert status["installed"] is True
     assert status["path_exists"] is True
     assert status["path_matches_current"] is True
+    assert status["action_matches_current"] is True
     assert status["last_result"] == 0
+
+
+def test_old_cmd_wrapped_task_is_detected_as_stale(tmp_path):
+    executable = tmp_path / "semintel.exe"
+    executable.write_bytes(b"test")
+    payload = json.dumps({
+        "state": "Ready", "execute": "cmd.exe",
+        "arguments": f'/c "cd /d ""{tmp_path}"" && ""{executable}"" automation cycle"',
+        "working_directory": "", "last_run": "2026-08-09T18:30:00",
+        "next_run": "2026-08-09T19:00:00", "last_result": 1,
+    })
+    status = WindowsTaskStatusService(
+        lambda _: subprocess.CompletedProcess([], 0, payload, "")
+    ).status(expected_executable=executable, expected_working_directory=tmp_path)
+    assert status["action_matches_current"] is False
+    assert "code 1" in status["last_result_explanation"]
+
+
+@pytest.mark.parametrize("folder", ["News Room", "O'Brien", "SemInt (Live)", "芯片情报", "News & Radar"])
+def test_install_command_uses_native_action_fields_for_paths_with_spaces(folder):
+    root = Path("C:/") / folder
+    command = install_command(root / "semintel.exe", root, interval_minutes=30)
+    joined = " ".join(command)
+    assert command[0] == "powershell.exe"
+    assert "New-ScheduledTaskAction" in joined
+    assert "-Execute" in joined and "-Argument" in joined and "-WorkingDirectory" in joined
+    assert "cmd /c" not in joined.lower()
+    if "'" in folder:
+        assert "O''Brien" in joined
+
+
+def test_effective_state_rejects_failed_task_invocation(db_session):
+    settings = get_scheduler_settings(db_session)
+    settings.scheduler_enabled = True
+    settings.last_scheduler_heartbeat = BASE
+    state = effective_automation_state(
+        settings,
+        _task(action_matches_current=True, last_result=1, last_result_explanation="exit 1"),
+        now=BASE,
+    )
+    assert state["state"] == "task_last_run_failed"
 
 
 def test_reconcile_stale_runs_preserves_active_lease_and_is_idempotent(db_session):
@@ -110,7 +152,7 @@ def client(tmp_path, monkeypatch):
         "expected_executable": "C:\\checkpoint\\semintel.exe", "error": None,
     })
     from semi_intel.web.app import create_app
-    with TestClient(create_app()) as client:
+    with TestClient(create_app(mutation_authorizer=lambda _value: True)) as client:
         yield client
 
 

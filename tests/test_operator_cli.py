@@ -17,6 +17,7 @@ from pathlib import Path
 import feedparser
 import pytest
 import uvicorn
+from click import unstyle
 from typer.testing import CliRunner
 
 import semi_intel.ingestion.plugins.pci_ids_plugin as pci_ids_plugin_module
@@ -475,12 +476,13 @@ def test_update_applies_pending_schema_changes(isolated_cwd, monkeypatch):
 
 
 def test_gui_is_registered_with_working_help(isolated_cwd):
-    r = runner.invoke(app, ["gui", "--help"])
+    r = runner.invoke(app, ["gui", "--help"], color=False)
     assert r.exit_code == 0, r.output
-    assert "--host" in r.output
-    assert "--port" in r.output
-    assert "--no-browser" in r.output
-    assert ".[web]" in r.output  # regression check: rich markup must not eat the brackets
+    output = unstyle(r.output)
+    assert "--host" in output
+    assert "--port" in output
+    assert "--no-browser" in output
+    assert ".[web]" in output  # regression check: rich markup must not eat the brackets
 
 
 # --- bare invocation (double-clicking semintel.exe) -------------------------

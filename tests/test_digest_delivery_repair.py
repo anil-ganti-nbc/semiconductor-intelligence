@@ -58,7 +58,7 @@ def configured_client(tmp_path, monkeypatch):
         ),
     )
     from semi_intel.web.app import create_app
-    with TestClient(create_app()) as client:
+    with TestClient(create_app(mutation_authorizer=lambda _value: True)) as client:
         yield client
 
 

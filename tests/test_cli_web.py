@@ -7,6 +7,7 @@ registration for users without the `web` extra installed.
 
 from __future__ import annotations
 
+from click import unstyle
 from typer.testing import CliRunner
 
 from semi_intel.cli import app
@@ -21,8 +22,15 @@ def test_web_serve_is_registered():
 
 
 def test_web_serve_help():
-    r = runner.invoke(app, ["web", "serve", "--help"])
+    r = runner.invoke(app, ["web", "serve", "--help"], color=False)
     assert r.exit_code == 0, r.output
-    assert "--host" in r.output
-    assert "--port" in r.output
-    assert ".[web]" in r.output  # regression check: rich markup must not eat the brackets
+    output = unstyle(r.output)
+    assert "--host" in output
+    assert "--port" in output
+    assert ".[web]" in output  # regression check: rich markup must not eat the brackets
+
+
+def test_web_serve_rejects_non_loopback_host():
+    r = runner.invoke(app, ["web", "serve", "--host", "0.0.0.0"])
+    assert r.exit_code == 2
+    assert "must be loopback" in r.output

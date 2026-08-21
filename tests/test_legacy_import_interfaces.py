@@ -42,7 +42,7 @@ def test_cli_rejects_wrong_database(tmp_path, cli_env):
 def test_web_preview_apply_and_repeat(tmp_path, monkeypatch):
     destination = tmp_path / "destination.db"
     monkeypatch.setenv("SEMI_INTEL_DB_URL", f"sqlite:///{destination}")
-    client = TestClient(create_app())
+    client = TestClient(create_app(mutation_authorizer=lambda _value: True))
     legacy = make_legacy_db(tmp_path / "legacy.db")
     payload = legacy.read_bytes()
     headers = {"Content-Type": "application/vnd.sqlite3"}
@@ -72,7 +72,7 @@ def test_web_preview_apply_and_repeat(tmp_path, monkeypatch):
 
 def test_web_rejects_non_sqlite_upload(tmp_path, monkeypatch):
     monkeypatch.setenv("SEMI_INTEL_DB_URL", f"sqlite:///{tmp_path / 'destination.db'}")
-    client = TestClient(create_app())
+    client = TestClient(create_app(mutation_authorizer=lambda _value: True))
 
     response = client.post("/api/radar/import/preview", content=b"definitely not sqlite")
 

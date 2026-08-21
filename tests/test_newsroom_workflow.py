@@ -134,7 +134,7 @@ def test_core_newsroom_workflow_survives_restart_and_backup(tmp_path, monkeypatc
 
     from semi_intel.web.app import create_app
 
-    with TestClient(create_app()) as api:
+    with TestClient(create_app(mutation_authorizer=lambda _value: True)) as api:
         topics = {row["name"]: row for row in api.get("/api/topics").json()}
         assert {"RDNA 5", "Zen 6", "RTX 60 Series", "RTX 50 Super"} <= set(topics)
         assert "RDNA5" in topics["RDNA 5"]["aliases"]
@@ -295,7 +295,7 @@ def test_core_newsroom_workflow_survives_restart_and_backup(tmp_path, monkeypatc
         assert after_coverage["new_coverage_count"] == 1
 
     # A new app and engine simulate a genuine restart against the same file.
-    with TestClient(create_app()) as restarted:
+    with TestClient(create_app(mutation_authorizer=lambda _value: True)) as restarted:
         persisted_story = restarted.get(f"/api/editorial/stories/{rtx_story.id}").json()
         assert persisted_story["seen"] is True
         assert persisted_story["new_coverage_count"] == 1

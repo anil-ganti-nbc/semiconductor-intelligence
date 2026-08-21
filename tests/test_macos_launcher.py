@@ -56,7 +56,7 @@ def test_field_test_dashboard_is_read_only(tmp_path, monkeypatch):
     monkeypatch.setenv("SEMINTEL_SOURCE_REVISION", "abc123")
     from semi_intel.web.app import create_app
 
-    client = TestClient(create_app())
+    client = TestClient(create_app(mutation_authorizer=lambda _value: True))
     assert client.get("/").status_code == 200
     identity = client.get("/api/runtime/identity")
     assert identity.status_code == 200

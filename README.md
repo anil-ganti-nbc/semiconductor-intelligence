@@ -1,5 +1,8 @@
 # Semiconductor Intelligence Platform 3.1 — Legacy import checkpoint
 
+> **Phase 0: UNVERIFIED_PRODUCTION — promotion frozen.** This source tree is
+> not proof of the deployed artifact. See [`PHASE0_CONTAINMENT.md`](PHASE0_CONTAINMENT.md).
+
 > Status: Staging / additional soak testing required
 
 A claims-and-evidence intelligence platform for semiconductor/hardware
