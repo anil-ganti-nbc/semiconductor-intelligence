@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+from types import SimpleNamespace
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import sessionmaker
@@ -76,4 +77,30 @@ def test_job_run_audits_success_and_releases_lease(db_session):
 def test_disabled_cycle_is_safe_noop(db_session):
     scheduler = OperationalScheduler(db_session)
     assert scheduler.cycle(now=BASE) == []
+    assert scheduler.settings().last_scheduler_heartbeat is None
+
+
+def test_cycle_does_not_advance_heartbeat_for_failed_job(db_session, monkeypatch):
+    scheduler = OperationalScheduler(db_session)
+    scheduler.settings().scheduler_enabled = True
+    db_session.commit()
+    monkeypatch.setattr(
+        scheduler, "run_job",
+        lambda *args, **kwargs: SimpleNamespace(status=OperationalJobStatus.FAILED),
+    )
+    jobs = scheduler.cycle(now=BASE)
+    assert jobs
+    assert scheduler.settings().last_scheduler_heartbeat is None
+
+
+def test_cycle_advances_heartbeat_after_successful_job(db_session, monkeypatch):
+    scheduler = OperationalScheduler(db_session)
+    scheduler.settings().scheduler_enabled = True
+    db_session.commit()
+    monkeypatch.setattr(
+        scheduler, "run_job",
+        lambda *args, **kwargs: SimpleNamespace(status=OperationalJobStatus.SUCCESSFUL),
+    )
+    jobs = scheduler.cycle(now=BASE)
+    assert jobs
     assert aware(scheduler.settings().last_scheduler_heartbeat) == BASE

@@ -7,25 +7,43 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import subprocess
 import sys
 from pathlib import Path
 
 
 TASK_NAME = "SemiIntel Operational Cycle"
+TASK_ARGUMENTS = "automation cycle"
+
+
+def _ps_literal(value: str | Path) -> str:
+    return "'" + str(value).replace("'", "''") + "'"
 
 
 def install_command(executable: Path, working_directory: Path, *, interval_minutes: int) -> list[str]:
     executable = executable.resolve()
     working_directory = working_directory.resolve()
-    task_action = (
-        f'cmd /c "cd /d ""{working_directory}"" '
-        f'&& ""{executable}"" automation cycle"'
+    if interval_minutes < 1:
+        raise ValueError("Task interval must be at least one minute.")
+    action = (
+        "$action=New-ScheduledTaskAction "
+        f"-Execute {_ps_literal(executable)} "
+        f"-Argument {_ps_literal(TASK_ARGUMENTS)} "
+        f"-WorkingDirectory {_ps_literal(working_directory)};"
+        "$trigger=New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) "
+        f"-RepetitionInterval (New-TimeSpan -Minutes {interval_minutes});"
+        f"$existing=Get-ScheduledTask -TaskName {_ps_literal(TASK_NAME)} -ErrorAction SilentlyContinue;"
+        "if($existing){"
+        f"Register-ScheduledTask -TaskName {_ps_literal(TASK_NAME)} -Action $action -Trigger $trigger "
+        "-Settings $existing.Settings -Principal $existing.Principal -Force | Out-Null"
+        "}else{"
+        f"Register-ScheduledTask -TaskName {_ps_literal(TASK_NAME)} -Action $action -Trigger $trigger "
+        "-Description 'Runs one bounded SemInt operational cycle.' -Force | Out-Null"
+        "}"
     )
     return [
-        "schtasks.exe", "/Create", "/F", "/SC", "MINUTE", "/MO", str(interval_minutes),
-        "/TN", TASK_NAME, "/TR", task_action,
+        "powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+        "-Command", action,
     ]
 
 
@@ -58,8 +76,22 @@ def _action_executable(execute_value: str | None, arguments: str | None) -> str 
     execute_value = (execute_value or "").strip().strip('"')
     if execute_value and Path(execute_value).name.lower() not in {"cmd", "cmd.exe"}:
         return execute_value
-    matches = re.findall(r'"+([^"\r\n]+?\.exe)"+', arguments or "", flags=re.I)
-    return matches[-1] if matches else None
+    return None
+
+
+def task_result_explanation(value: int | None) -> str:
+    if value is None:
+        return "Task Scheduler has not reported a result."
+    unsigned = value & 0xFFFFFFFF
+    messages = {
+        0: "The last task invocation completed successfully.",
+        1: "The task process exited with code 1 before completing successfully.",
+        0x41300: "The task is ready but has not started.",
+        0x41301: "The task is currently running.",
+        0x41303: "The task has not yet run.",
+        0x8004130F: "Task Scheduler could not use the stored account credentials.",
+    }
+    return messages.get(unsigned, f"Task Scheduler reported result 0x{unsigned:08X}.")
 
 
 class WindowsTaskStatusService:
@@ -68,8 +100,12 @@ class WindowsTaskStatusService:
     def __init__(self, runner=execute):
         self.runner = runner
 
-    def status(self, *, expected_executable: Path | None = None) -> dict:
+    def status(
+        self, *, expected_executable: Path | None = None,
+        expected_working_directory: Path | None = None,
+    ) -> dict:
         expected = (expected_executable or current_executable()).resolve()
+        expected_workdir = (expected_working_directory or expected.parent).resolve()
         try:
             result = self.runner(status_command())
         except (FileNotFoundError, OSError) as exc:
@@ -92,19 +128,30 @@ class WindowsTaskStatusService:
             }
         configured_executable = _action_executable(payload.get("execute"), payload.get("arguments"))
         configured_path = Path(configured_executable).resolve() if configured_executable else None
+        configured_workdir = Path(payload["working_directory"]).resolve() if payload.get("working_directory") else None
         path_exists = configured_path.exists() if configured_path else False
+        arguments = (payload.get("arguments") or "").strip()
+        executable_matches = configured_path == expected if configured_path else False
+        working_directory_matches = configured_workdir == expected_workdir if configured_workdir else False
+        arguments_match = arguments == TASK_ARGUMENTS
+        last_result = payload.get("last_result")
         return {
             "supported": True,
             "installed": True,
             "state": str(payload.get("state") or "unknown").lower(),
             "expected_executable": str(expected),
             "configured_executable": str(configured_path) if configured_path else None,
-            "working_directory": payload.get("working_directory") or None,
-            "arguments": payload.get("arguments") or None,
+            "working_directory": str(configured_workdir) if configured_workdir else None,
+            "expected_working_directory": str(expected_workdir),
+            "arguments": arguments or None,
             "path_exists": path_exists,
-            "path_matches_current": configured_path == expected if configured_path else False,
+            "path_matches_current": executable_matches,
+            "working_directory_matches_current": working_directory_matches,
+            "arguments_match_current": arguments_match,
+            "action_matches_current": executable_matches and working_directory_matches and arguments_match,
             "last_run": payload.get("last_run") or None,
             "next_run": payload.get("next_run") or None,
-            "last_result": payload.get("last_result"),
+            "last_result": last_result,
+            "last_result_explanation": task_result_explanation(last_result),
             "error": None,
         }

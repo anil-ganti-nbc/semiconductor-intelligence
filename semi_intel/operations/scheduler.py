@@ -90,6 +90,11 @@ def effective_automation_state(
         return {"state": "task_path_invalid", "explanation": "The installed task points to an executable that no longer exists.", "healthy": False}
     if not task_status.get("path_matches_current", False):
         return {"state": "task_path_mismatch", "explanation": "The installed task points to a different checkpoint executable.", "healthy": False}
+    if task_status.get("action_matches_current") is False:
+        return {"state": "task_action_mismatch", "explanation": "The installed task has incorrect arguments or working directory and needs repair.", "healthy": False}
+    last_result = task_status.get("last_result")
+    if last_result not in (None, 0, 0x41300, 0x41301, 0x41303):
+        return {"state": "task_last_run_failed", "explanation": task_status.get("last_result_explanation") or "The last scheduled invocation failed.", "healthy": False}
     if heartbeat is None:
         return {"state": "task_never_ran", "explanation": "The task is installed but has never recorded a scheduler heartbeat.", "healthy": False}
     stale_after = dt.timedelta(
@@ -331,8 +336,6 @@ class OperationalScheduler:
     def cycle(self, *, now: dt.datetime | None = None) -> list[OperationalJobRun]:
         now = now or utcnow()
         settings = self.settings()
-        settings.last_scheduler_heartbeat = now
-        self.session.commit()
         if not settings.scheduler_enabled:
             return []
         jobs: list[OperationalJobRun] = []
@@ -354,6 +357,12 @@ class OperationalScheduler:
         for enabled, job_type, clock in daily_jobs:
             if enabled and self._daily_job_due(job_type, clock, now):
                 jobs.append(self.run_job(job_type, trigger=OperationalTriggerType.SCHEDULER, now=now))
+        if jobs and all(
+            job.status in {OperationalJobStatus.SUCCESSFUL, OperationalJobStatus.PARTIAL}
+            for job in jobs
+        ):
+            settings.last_scheduler_heartbeat = now
+            self.session.commit()
         return jobs
 
     def _daily_job_due(

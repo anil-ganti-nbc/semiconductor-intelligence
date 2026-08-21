@@ -26,3 +26,9 @@ def test_web_serve_help():
     assert "--host" in r.output
     assert "--port" in r.output
     assert ".[web]" in r.output  # regression check: rich markup must not eat the brackets
+
+
+def test_web_serve_rejects_non_loopback_host():
+    r = runner.invoke(app, ["web", "serve", "--host", "0.0.0.0"])
+    assert r.exit_code == 2
+    assert "must be loopback" in r.output

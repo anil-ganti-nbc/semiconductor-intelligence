@@ -389,15 +389,21 @@ def create_app() -> FastAPI:
 
     @app.middleware("http")
     async def field_test_read_only(request: Request, call_next):
-        """Keep the native field-test dashboard observational and offline-safe."""
-        if (
-            os.environ.get("SEMINTEL_FIELD_TEST_READ_ONLY") == "1"
-            and request.method not in {"GET", "HEAD", "OPTIONS"}
-        ):
+        """Fail closed for every state-changing unauthenticated request."""
+        is_mutation = request.method not in {"GET", "HEAD", "OPTIONS"}
+        if is_mutation and os.environ.get("SEMINTEL_FIELD_TEST_READ_ONLY") == "1":
             return JSONResponse(
                 status_code=403,
                 content={"detail": "Changes and collection are disabled in the macOS field-test app."},
             )
+        if is_mutation and os.environ.get("SEMINTEL_TEST_ALLOW_UNAUTH_MUTATIONS") != "1":
+            from semi_intel.web.security import mutation_authorized
+
+            if not mutation_authorized(request.headers.get("Authorization")):
+                return JSONResponse(
+                    status_code=403,
+                    content={"detail": "Authenticated dashboard profile required for mutations."},
+                )
         return await call_next(request)
 
     # --- reads ---------------------------------------------------------

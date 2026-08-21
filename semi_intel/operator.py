@@ -295,6 +295,13 @@ def gui(
     this from an .exe, that's already included; from source, run
     `pip install -e ".\[web]"` once first. Press Ctrl+C in this window to
     stop it."""
+    from semi_intel.web.security import require_loopback_host
+
+    try:
+        require_loopback_host(host)
+    except ValueError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED)
+        raise typer.Exit(2)
     try:
         import uvicorn
 

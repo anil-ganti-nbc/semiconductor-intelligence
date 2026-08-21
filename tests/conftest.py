@@ -5,6 +5,11 @@ import pytest
 from semi_intel.db import get_engine, get_sessionmaker, init_db
 
 
+@pytest.fixture(autouse=True)
+def _explicit_test_mutation_profile(monkeypatch):
+    monkeypatch.setenv("SEMINTEL_TEST_ALLOW_UNAUTH_MUTATIONS", "1")
+
+
 @pytest.fixture()
 def db_session(tmp_path):
     """A fresh sqlite file per test -- avoids in-memory sqlite's per-connection
