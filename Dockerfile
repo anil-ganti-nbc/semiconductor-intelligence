@@ -14,7 +14,7 @@
 #
 # The embedded `src/oem_radar` subproject is a dead/abandoned fork and is
 # not copied into this image at all.
-FROM python:3.13-slim-bookworm
+FROM python:3.13-slim-bookworm@sha256:00faa2debb87529f9f0764e9491d8ba400a3678976616c3bd7cb193745ac20d1
 
 LABEL clank.id="semi-intel" \
       clank.tier="B" \
@@ -36,14 +36,14 @@ RUN useradd --create-home --uid 10001 --shell /usr/sbin/nologin clank
 # edited by this change), and the entrypoint script. No src/oem_radar, no
 # .venv*, no test fixtures, no packaging/ (PyInstaller-only), no dashboard
 # .exe launchers.
-COPY pyproject.toml ./
+COPY pyproject.toml requirements.container.lock ./
 COPY semi_intel ./semi_intel
 COPY alembic.ini ./alembic.ini
 COPY migrations ./migrations
 COPY scripts ./scripts
 
-RUN pip install --upgrade pip \
-    && pip install . \
+RUN pip install --require-hashes -r requirements.container.lock \
+    && pip install --no-deps . \
     && mkdir -p /app/data \
     && chmod +x /app/scripts/*.sh \
     && chown -R clank:clank /app

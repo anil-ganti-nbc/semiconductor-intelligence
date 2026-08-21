@@ -193,6 +193,10 @@ class OperationalScheduler:
             "timezone": settings.timezone,
             "last_heartbeat": aware(settings.last_scheduler_heartbeat).isoformat()
             if settings.last_scheduler_heartbeat else None,
+            "last_scheduler_invocation": aware(settings.last_scheduler_invocation).isoformat()
+            if settings.last_scheduler_invocation else None,
+            "last_successful_job_commit": aware(settings.last_successful_job_commit).isoformat()
+            if settings.last_successful_job_commit else None,
             "next_runs": {key: value.isoformat() for key, value in next_runs(settings, now=now).items()},
             "active_leases": [
                 {"job_type": lease.job_type.value, "owner": lease.owner_identity,
@@ -338,6 +342,11 @@ class OperationalScheduler:
         settings = self.settings()
         if not settings.scheduler_enabled:
             return []
+        # Scheduler liveness is not job success. Persist invocation first so a
+        # no-op, partial, or later failure cannot masquerade as a successful
+        # completed cycle.
+        settings.last_scheduler_invocation = now
+        self.session.commit()
         jobs: list[OperationalJobRun] = []
         last_pipeline = self.session.scalar(select(OperationalJobRun).where(
             OperationalJobRun.job_type == OperationalJobType.PIPELINE,
@@ -357,11 +366,10 @@ class OperationalScheduler:
         for enabled, job_type, clock in daily_jobs:
             if enabled and self._daily_job_due(job_type, clock, now):
                 jobs.append(self.run_job(job_type, trigger=OperationalTriggerType.SCHEDULER, now=now))
-        if jobs and all(
-            job.status in {OperationalJobStatus.SUCCESSFUL, OperationalJobStatus.PARTIAL}
-            for job in jobs
-        ):
-            settings.last_scheduler_heartbeat = now
+        if jobs and all(job.status == OperationalJobStatus.SUCCESSFUL for job in jobs):
+            committed_at = max((aware(job.finished_at) for job in jobs if job.finished_at), default=now)
+            settings.last_successful_job_commit = committed_at
+            settings.last_scheduler_heartbeat = committed_at
             self.session.commit()
         return jobs
 

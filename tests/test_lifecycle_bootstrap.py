@@ -2,7 +2,7 @@
 
 Covers: fresh database initialization, repeated-initialization idempotence,
 Alembic reconciliation on both a fresh and an older-but-compatible database
-opened directly through the dashboard (create_app()), session
+opened directly through the dashboard (create_app(mutation_authorizer=lambda _value: True)), session
 rollback/closure, and frozen-resource path resolution.
 """
 from __future__ import annotations
@@ -17,7 +17,7 @@ from semi_intel.db import get_engine, get_sessionmaker, init_db
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PHASE8_HEAD_REVISION = "e8b7c2d4a901"
-CURRENT_HEAD = "c2a7f1e9b453"
+CURRENT_HEAD = "a0b1c2d3e404"
 
 
 def _run_alembic(args, db_url, cwd=PROJECT_ROOT):
@@ -85,7 +85,7 @@ def test_singleton_settings_not_created_by_plain_initialization(tmp_path):
     engine.dispose()
 
 
-# --- create_app() reconciles Alembic state instead of a bare create_all() --
+# --- create_app(mutation_authorizer=lambda _value: True) reconciles Alembic state instead of a bare create_all() --
 
 
 @pytest.fixture()
@@ -100,7 +100,7 @@ def test_create_app_stamps_fresh_database_at_head(tmp_path, monkeypatch, alembic
     monkeypatch.chdir(PROJECT_ROOT)
 
     from semi_intel.web.app import create_app
-    app = create_app()
+    app = create_app(mutation_authorizer=lambda _value: True)
 
     from fastapi.testclient import TestClient
     client = TestClient(app)
@@ -119,7 +119,7 @@ def test_create_app_upgrades_older_database_and_preserves_data(tmp_path, monkeyp
     """The dashboard is a supported entry point on its own (someone can
     launch `semi-intel web serve` / `semintel gui` directly against an
     existing database without ever running `semintel install`/`db upgrade`
-    first). Before this pass, create_app() called a bare create_all(),
+    first). Before this pass, create_app(mutation_authorizer=lambda _value: True) called a bare create_all(),
     which only adds missing tables -- it never advances alembic_version,
     silently leaving a stale schema marker (and, for a future
     non-additive migration, would silently mask it entirely)."""
@@ -154,7 +154,7 @@ def test_create_app_upgrades_older_database_and_preserves_data(tmp_path, monkeyp
     monkeypatch.setenv("SEMI_INTEL_DB_URL", db_url)
     monkeypatch.chdir(PROJECT_ROOT)
     from semi_intel.web.app import create_app
-    app = create_app()
+    app = create_app(mutation_authorizer=lambda _value: True)
     from fastapi.testclient import TestClient
     client = TestClient(app)
     assert client.get("/").status_code == 200
@@ -179,8 +179,8 @@ def test_running_create_app_twice_against_the_same_older_database_is_harmless(tm
     monkeypatch.chdir(PROJECT_ROOT)
     from semi_intel.web.app import create_app
 
-    create_app()
-    create_app()  # second "restart" against the now-current database
+    create_app(mutation_authorizer=lambda _value: True)
+    create_app(mutation_authorizer=lambda _value: True)  # second "restart" against the now-current database
 
     import sqlite3
     con = sqlite3.connect(db_path)

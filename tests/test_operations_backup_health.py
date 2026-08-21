@@ -22,7 +22,7 @@ BASE = dt.datetime(2026, 1, 1, 12, 0, tzinfo=dt.UTC)
 def _mark_migrated(session):
     session.execute(text("CREATE TABLE IF NOT EXISTS alembic_version (version_num VARCHAR(32) NOT NULL)"))
     session.execute(text("DELETE FROM alembic_version"))
-    session.execute(text("INSERT INTO alembic_version VALUES ('c2a7f1e9b453')"))
+    session.execute(text("INSERT INTO alembic_version VALUES ('a0b1c2d3e404')"))
     session.commit()
 
 
@@ -35,7 +35,7 @@ def test_consistent_backup_verify_unique_and_restore_dry_run(db_session, tmp_pat
     assert Path(first.path).exists()
     verification = service.verify(Path(first.path))
     assert verification["integrity_result"] == "ok"
-    assert verification["alembic_revision"] == "c2a7f1e9b453"
+    assert verification["alembic_revision"] == "a0b1c2d3e404"
     manifest = json.loads(Path(first.manifest_path).read_text())
     assert manifest["sha256"] == first.sha256
     assert service.restore(Path(first.path), dry_run=True)["dry_run"] is True
@@ -55,7 +55,7 @@ def test_rehearse_passes_and_confirms_schema_currency_and_orm_counts(db_session,
 
     assert report["passed"] is True
     assert report["error"] is None
-    assert report["schema_revision"] == "c2a7f1e9b453"
+    assert report["schema_revision"] == "a0b1c2d3e404"
     assert report["schema_up_to_date"] is True
     assert report["orm_record_counts"]["sources"] == 1
     # the temp copy used for rehearsal must never be left behind
@@ -74,7 +74,7 @@ def test_rehearse_flags_a_backup_stamped_behind_the_installed_head(db_session, t
     assert report["passed"] is True
     assert report["schema_revision"] == "a6a1b2c73e08"
     assert report["schema_up_to_date"] is False
-    assert report["expected_head"] == "c2a7f1e9b453"
+    assert report["expected_head"] == "a0b1c2d3e404"
 
 
 def test_rehearse_reports_failure_without_raising_for_a_corrupt_backup(db_session, tmp_path):
@@ -114,7 +114,7 @@ def test_health_and_diagnostics_are_secret_safe(db_session, tmp_path):
     ))
     db_session.commit()
     report = HealthService(db_session).report(now=BASE)
-    assert report["overall"] in {"disabled", "healthy", "attention_needed"}
+    assert report["overall"] in {"disabled", "healthy", "attention_needed", "degraded"}
     result = DiagnosticsService(db_session).create(tmp_path, now=BASE)
     with zipfile.ZipFile(result["path"]) as archive:
         names = archive.namelist()

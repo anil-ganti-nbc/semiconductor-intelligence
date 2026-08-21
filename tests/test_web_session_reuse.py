@@ -2,7 +2,7 @@
 build a brand-new SQLAlchemy engine (and re-run schema reflection) on every
 single request, which under the dashboard's own concurrent page-load bursts
 produced `sqlite3.OperationalError: database is locked` across many routes.
-`create_app()` now overrides the dependency with one engine reused for the
+`create_app(mutation_authorizer=lambda _value: True)` now overrides the dependency with one engine reused for the
 app's lifetime.
 """
 from __future__ import annotations
@@ -17,7 +17,7 @@ from fastapi.testclient import TestClient
 def client(tmp_path, monkeypatch):
     monkeypatch.setenv("SEMI_INTEL_DB_URL", f"sqlite:///{tmp_path / 'reuse.db'}")
     from semi_intel.web.app import create_app
-    with TestClient(create_app()) as client:
+    with TestClient(create_app(mutation_authorizer=lambda _value: True)) as client:
         yield client
 
 
@@ -25,10 +25,10 @@ def test_get_session_dependency_is_overridden_with_one_reused_engine(tmp_path, m
     monkeypatch.setenv("SEMI_INTEL_DB_URL", f"sqlite:///{tmp_path / 'reuse2.db'}")
     from semi_intel.web.app import create_app, get_session
 
-    app = create_app()
+    app = create_app(mutation_authorizer=lambda _value: True)
     override = app.dependency_overrides[get_session]
     assert override is not get_session, (
-        "create_app() must override get_session so requests share one engine "
+        "create_app(mutation_authorizer=lambda _value: True) must override get_session so requests share one engine "
         "instead of each building a fresh one (the actual live bug)."
     )
 

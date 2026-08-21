@@ -152,7 +152,7 @@ def client(tmp_path, monkeypatch):
         "expected_executable": "C:\\checkpoint\\semintel.exe", "error": None,
     })
     from semi_intel.web.app import create_app
-    with TestClient(create_app()) as client:
+    with TestClient(create_app(mutation_authorizer=lambda _value: True)) as client:
         yield client
 
 

@@ -292,7 +292,7 @@ def test_database_and_backups_work_with_a_path_containing_spaces_and_punctuation
 
 def test_dashboard_works_launched_from_a_directory_other_than_the_project_root(tmp_path, monkeypatch):
     """The application must not depend on the current working directory
-    being the project root -- create_app() must still find alembic.ini/
+    being the project root -- create_app(mutation_authorizer=lambda _value: True) must still find alembic.ini/
     migrations/ (via _project_root(), which is frozen-exe-aware) and the
     packaged static assets regardless of cwd."""
     unrelated_cwd = tmp_path / "an unrelated folder with spaces"
@@ -301,7 +301,7 @@ def test_dashboard_works_launched_from_a_directory_other_than_the_project_root(t
     monkeypatch.setenv("SEMI_INTEL_DB_URL", f"sqlite:///{tmp_path / 'cwd_independent.db'}")
 
     from semi_intel.web.app import create_app
-    app = create_app()
+    app = create_app(mutation_authorizer=lambda _value: True)
     from fastapi.testclient import TestClient
     client = TestClient(app)
     assert client.get("/").status_code == 200

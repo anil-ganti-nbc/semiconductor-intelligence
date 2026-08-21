@@ -13,7 +13,7 @@ from semi_intel.domain.models import (
 def client(db_session, cli_env):
     from semi_intel.web.app import create_app, get_session
 
-    app = create_app()
+    app = create_app(mutation_authorizer=lambda _value: True)
     def override_get_session():
         yield db_session
     app.dependency_overrides[get_session] = override_get_session

@@ -35,7 +35,7 @@ def _seed(cli_env):
 @pytest.fixture()
 def client(cli_env):
     from semi_intel.web.app import create_app
-    with TestClient(create_app()) as c:
+    with TestClient(create_app(mutation_authorizer=lambda _value: True)) as c:
         yield c
 
 

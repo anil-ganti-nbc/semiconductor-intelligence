@@ -280,7 +280,7 @@ def test_status_and_test_endpoints_use_adapter_boundary(tmp_path, monkeypatch):
             return {"notifications": 0, "disabled": True, "supported": True}
 
     monkeypatch.setattr(web_app, "WindowsDesktopDeliveryService", FakeService)
-    client = TestClient(web_app.create_app())
+    client = TestClient(web_app.create_app(mutation_authorizer=lambda _value: True))
     status = client.get("/api/notifications/windows-desktop/status")
     test = client.post("/api/notifications/windows-desktop/test")
     assert status.json()["state"] == "disabled"

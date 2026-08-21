@@ -91,6 +91,22 @@ def test_cycle_does_not_advance_heartbeat_for_failed_job(db_session, monkeypatch
     jobs = scheduler.cycle(now=BASE)
     assert jobs
     assert scheduler.settings().last_scheduler_heartbeat is None
+    assert aware(scheduler.settings().last_scheduler_invocation) == BASE
+
+
+def test_cycle_does_not_advance_success_heartbeat_for_partial_job(db_session, monkeypatch):
+    scheduler = OperationalScheduler(db_session)
+    scheduler.settings().scheduler_enabled = True
+    db_session.commit()
+    monkeypatch.setattr(
+        scheduler, "run_job",
+        lambda *args, **kwargs: SimpleNamespace(status=OperationalJobStatus.PARTIAL),
+    )
+    jobs = scheduler.cycle(now=BASE)
+    assert jobs
+    assert scheduler.settings().last_scheduler_heartbeat is None
+    assert scheduler.settings().last_successful_job_commit is None
+    assert aware(scheduler.settings().last_scheduler_invocation) == BASE
 
 
 def test_cycle_advances_heartbeat_after_successful_job(db_session, monkeypatch):
@@ -99,8 +115,14 @@ def test_cycle_advances_heartbeat_after_successful_job(db_session, monkeypatch):
     db_session.commit()
     monkeypatch.setattr(
         scheduler, "run_job",
-        lambda *args, **kwargs: SimpleNamespace(status=OperationalJobStatus.SUCCESSFUL),
+        lambda *args, **kwargs: SimpleNamespace(
+            status=OperationalJobStatus.SUCCESSFUL,
+            finished_at=BASE + dt.timedelta(minutes=2),
+        ),
     )
     jobs = scheduler.cycle(now=BASE)
     assert jobs
-    assert aware(scheduler.settings().last_scheduler_heartbeat) == BASE
+    assert aware(scheduler.settings().last_scheduler_heartbeat) == BASE + dt.timedelta(minutes=2)
+    assert aware(scheduler.settings().last_successful_job_commit) == BASE + dt.timedelta(minutes=2)
+    db_session.expire_all()
+    assert aware(get_scheduler_settings(db_session).last_scheduler_heartbeat) == BASE + dt.timedelta(minutes=2)

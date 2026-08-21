@@ -60,8 +60,14 @@ def _wait_for_connection_refused(host: str, port: int, timeout: float = 15.0) ->
 def _spawn_dashboard(db_path: Path, port: int) -> subprocess.Popen:
     env = os.environ.copy()
     env["SEMI_INTEL_DB_URL"] = f"sqlite:///{db_path}"
+    test_server = (
+        "import sys,uvicorn; "
+        "from semi_intel.web.app import create_app; "
+        "uvicorn.run(create_app(mutation_authorizer=lambda _request: True), "
+        "host='127.0.0.1', port=int(sys.argv[1]))"
+    )
     return subprocess.Popen(
-        [str(VENV_PYTHON), "-m", "semi_intel.cli", "web", "serve", "--port", str(port)],
+        [str(VENV_PYTHON), "-c", test_server, str(port)],
         cwd=str(PROJECT_ROOT), env=env,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
     )

@@ -196,7 +196,7 @@ def test_restart_does_not_duplicate_seeded_or_existing_records(tmp_path):
 
 def test_dashboard_presents_same_logical_state_after_restart(tmp_path, monkeypatch):
     """The API-visible state (not just raw rows) must match before and
-    after a restart -- exercised through create_app()/TestClient rather
+    after a restart -- exercised through create_app(mutation_authorizer=lambda _value: True)/TestClient rather
     than direct ORM queries, matching what an operator would actually see."""
     db_path = tmp_path / "dashboard_state.db"
     _build_representative_dataset(db_path)
@@ -207,7 +207,7 @@ def test_dashboard_presents_same_logical_state_after_restart(tmp_path, monkeypat
     from fastapi.testclient import TestClient
 
     def snapshot():
-        client = TestClient(create_app())
+        client = TestClient(create_app(mutation_authorizer=lambda _value: True))
         return {
             "notifications": client.get("/api/notifications", params={"state": "all"}).json(),
             "saved_views": client.get("/api/notifications/saved-views").json(),
@@ -216,7 +216,7 @@ def test_dashboard_presents_same_logical_state_after_restart(tmp_path, monkeypat
         }
 
     before = snapshot()
-    after = snapshot()  # a second create_app() call simulates a restart
+    after = snapshot()  # a second create_app(mutation_authorizer=lambda _value: True) call simulates a restart
 
     assert len(before["notifications"]) == len(after["notifications"]) == 1
     assert [n["id"] for n in before["notifications"]] == [n["id"] for n in after["notifications"]]

@@ -1105,6 +1105,12 @@ class SchedulerSettings(Base):
     last_scheduler_heartbeat: Mapped[dt.datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, index=True
     )
+    last_scheduler_invocation: Mapped[dt.datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
+    )
+    last_successful_job_commit: Mapped[dt.datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
+    )
     active_notification_preset: Mapped[str] = mapped_column(String(50), default="balanced")
     updated_at: Mapped[dt.datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, onupdate=_utcnow
