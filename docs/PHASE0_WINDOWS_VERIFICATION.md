@@ -1,5 +1,12 @@
 # Phase 0 Windows verification gate
 
+> **Current status: Windows support is UNVERIFIED.** No usable Windows
+> environment is currently available, so the `platform / windows` Actions job
+> is skipped unless the repository variable `SEMINT_WINDOWS_CI_AVAILABLE` is
+> explicitly set to `true` by an operator. A skipped job is not Windows test
+> evidence and is not evidence of production readiness. Native Windows
+> operator verification remains a separate human gate.
+
 The gate is open until a Windows operator supplies reviewed evidence. Unit
 tests and dry-run output are not deployment proof.
 
