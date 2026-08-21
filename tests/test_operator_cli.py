@@ -475,7 +475,7 @@ def test_update_applies_pending_schema_changes(isolated_cwd, monkeypatch):
 
 
 def test_gui_is_registered_with_working_help(isolated_cwd):
-    r = runner.invoke(app, ["gui", "--help"])
+    r = runner.invoke(app, ["gui", "--help"], color=False)
     assert r.exit_code == 0, r.output
     assert "--host" in r.output
     assert "--port" in r.output

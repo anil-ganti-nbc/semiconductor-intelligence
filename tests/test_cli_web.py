@@ -21,7 +21,7 @@ def test_web_serve_is_registered():
 
 
 def test_web_serve_help():
-    r = runner.invoke(app, ["web", "serve", "--help"])
+    r = runner.invoke(app, ["web", "serve", "--help"], color=False)
     assert r.exit_code == 0, r.output
     assert "--host" in r.output
     assert "--port" in r.output
