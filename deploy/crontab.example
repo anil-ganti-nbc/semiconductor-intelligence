@@ -1,5 +1,9 @@
-# Linux cron alternative to systemd timer (ADR-1: one-shot, not daemon).
-# Adjust paths. Lock file prevents overlap if a run exceeds the interval.
+# Linux cron lane for Semiconductor Intelligence (Hetzner staging).
+#
+# Phase 2B/2C: the scheduled path MUST go through the OperationalScheduler
+# (`semintel automation cycle`) so that scheduler invocation and successful
+# work are recorded separately (Fleet Law 3; migration a0b1c2d3e404).
+# Direct `pipeline run` invocations bypass scheduler evidence entirely.
 #
 # m h  dom mon dow  command
-17 * * * *  cd /opt/oem-radar && /usr/bin/python3 -m oem_radar.cli --config config run >> data/crawl-runs.log 2>&1
+40 * * * *  cd /home/deploy/staging/semiconductor-intelligence && ./deploy_run.sh >> logs/cron-$(date +\%Y\%m\%d).log 2>&1
