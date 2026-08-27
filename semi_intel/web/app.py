@@ -40,6 +40,7 @@ from semi_intel.claim_engine.suggestion_service import SuggestionService
 from semi_intel.db import get_engine, get_sessionmaker
 from semi_intel.db import init_db as _init_db
 from semi_intel.domain.enums import (
+    CandidateReviewDisposition,
     ClaimStatus, EntityType, OperationalJobType, OperationalTriggerType, RelationType,
     SignalMentionStatus, SourceSuggestionStatus, SourceType, SuggestionStatus,
 )
@@ -91,6 +92,7 @@ from semi_intel.web.schemas import (
     CandidateDismissRequest,
     CandidateSnoozeRequest,
     CandidatePromoteRequest,
+    CandidateReviewRequest,
     RadarSourceCreate,
     RadarSourceUpdate,
     RadarSettingsUpdate,
@@ -115,6 +117,7 @@ from semi_intel.domain.models import (
     ClaimLinkSuggestion,
     ClaimEvidenceLink,
     CandidatePromotionEvent,
+    CandidateReview,
     CandidateSignalItem,
     CandidateTopicMatch,
     ProviderRun,
@@ -137,6 +140,15 @@ from semi_intel.signals.candidate_state import (
     mark_unseen as mark_candidate_unseen,
     restore as restore_candidate,
     snooze as snooze_candidate,
+)
+from semi_intel.signals.candidate_qc import (
+    DEFAULT_PAGE_SIZE as DEFAULT_QC_PAGE_SIZE,
+    CandidateQueueFilters,
+    fetch_candidate_review_queue_page,
+    fetch_review_history_page,
+    reviewed_today_count,
+    submit_candidate_review,
+    unreviewed_candidate_count,
 )
 from semi_intel.signals.analysis import analyze_unprocessed
 from semi_intel.signals.aging import CandidateAge, CandidateAgingService
@@ -1265,6 +1277,17 @@ def create_app(
 
     # --- Signal Radar (Phase 6) -----------------------------------------
 
+    def _candidate_review_payload(review: CandidateReview) -> dict:
+        return {
+            "id": review.id,
+            "candidate_id": review.candidate_id,
+            "disposition": review.disposition.value,
+            "reason": review.reason,
+            "is_corrected": review.is_corrected,
+            "reviewed_at": review.reviewed_at.isoformat() if review.reviewed_at else None,
+            "updated_at": review.updated_at.isoformat() if review.updated_at else None,
+        }
+
     def _candidate_summary(
         candidate: SignalCandidate,
         session: Session,
@@ -1315,6 +1338,8 @@ def create_app(
         payload.update((age_info or CandidateAgingService(session).classify(
             candidate, age_days=age_days
         )).to_dict())
+        review = session.scalar(select(CandidateReview).where(CandidateReview.candidate_id == candidate.id))
+        payload["review"] = _candidate_review_payload(review) if review else None
         return payload
 
     def _candidate_detail(candidate: SignalCandidate, session: Session, *, age_days: int = 7) -> dict:
@@ -1563,6 +1588,52 @@ def create_app(
             for candidate in candidates
         ]
 
+    # NOTE: both routes below are literal path segments under
+    # /api/radar/candidates/... and must stay registered BEFORE
+    # /api/radar/candidates/{candidate_id} -- FastAPI/Starlette matches
+    # routes in registration order using each route's raw path template
+    # (candidate_id here has no `:int` convertor), so a parameterized
+    # route registered first would greedily match "review-queue"/
+    # "review-history" as a candidate_id string and 422 before ever
+    # reaching these handlers.
+    @app.get("/api/radar/candidates/review-queue")
+    def radar_candidate_review_queue(
+        topic_id: Optional[int] = None,
+        min_score: float = Query(0.0, ge=0.0, le=1.0),
+        before_id: Optional[int] = None,
+        limit: int = Query(DEFAULT_QC_PAGE_SIZE, ge=1, le=200),
+        session: Session = Depends(get_session),
+    ):
+        """The active-lead QC queue: ACTIVE candidates not yet reviewed.
+        Distinct from GET /api/radar/candidates?state=active -- this one
+        excludes anything a human has already recorded a QC verdict for,
+        exactly like the rest of the fleet's unreviewed-item queues."""
+        filters = CandidateQueueFilters(topic_id=topic_id, min_score=min_score)
+        candidates = fetch_candidate_review_queue_page(session, filters, before_id=before_id, limit=limit)
+        return {
+            "unreviewed_count": unreviewed_candidate_count(session, filters),
+            "reviewed_today_count": reviewed_today_count(session),
+            "items": [_candidate_summary(c, session) for c in candidates],
+        }
+
+    @app.get("/api/radar/candidates/review-history")
+    def radar_candidate_review_history(
+        disposition: Optional[CandidateReviewDisposition] = None,
+        include_corrected: bool = False,
+        before_id: Optional[int] = None,
+        limit: int = Query(DEFAULT_QC_PAGE_SIZE, ge=1, le=200),
+        session: Session = Depends(get_session),
+    ):
+        """"Recently QC'd" view -- newest-reviewed-first, paginated.
+        Nothing here is ever deleted; corrected verdicts drop out of the
+        default view (matching the rest of the fleet's QC History) but
+        remain reachable via include_corrected=true."""
+        reviews = fetch_review_history_page(
+            session, disposition=disposition, include_corrected=include_corrected,
+            before_id=before_id, limit=limit,
+        )
+        return [_candidate_review_payload(review) for review in reviews]
+
     @app.get("/api/radar/candidates/{candidate_id}")
     def radar_candidate_detail(
         candidate_id: int,
@@ -1720,6 +1791,26 @@ def create_app(
             result_story.headline = body.headline.strip()
             session.commit()
         return {"candidate": _candidate_summary(candidate, session), "story_id": result_story.id}
+
+    @app.post("/api/radar/candidates/{candidate_id}/review")
+    def radar_candidate_review_route(
+        candidate_id: int, body: CandidateReviewRequest, session: Session = Depends(get_session)
+    ):
+        """Fleet-wide human-QC verdict on this candidate: Useful / Not
+        useful / False positive / Duplicate (see semi_intel/signals/
+        candidate_qc.py for why Duplicate stands in for Out of stock in
+        this domain). Archived separately from the candidate -- never
+        mutates SignalCandidate.state, so this is independent of dismiss/
+        restore/snooze/promote. A second submission for the same candidate
+        is a correction, not a duplicate."""
+        candidate = session.get(SignalCandidate, candidate_id)
+        if not candidate:
+            raise HTTPException(status_code=404, detail="Signal candidate not found")
+        review = submit_candidate_review(
+            session, candidate=candidate, disposition=body.disposition, reason=body.reason
+        )
+        session.commit()
+        return {"candidate": _candidate_summary(candidate, session), "review": _candidate_review_payload(review)}
 
     @app.get("/api/radar/settings")
     def radar_settings_get(session: Session = Depends(get_session)):

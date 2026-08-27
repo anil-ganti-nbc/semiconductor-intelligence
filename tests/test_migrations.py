@@ -74,7 +74,7 @@ def test_alembic_downgrade_removes_everything(tmp_path, alembic_available):
     db_url = f"sqlite:///{db_path}"
 
     _run_alembic(["upgrade", "head"], db_url, cwd=PROJECT_ROOT)
-    assert len(_table_schema(db_path)) == 49  # 41 through Phase 8 + 7 Phase 9 operational tables + 1 v1.0.0 source_reputations table
+    assert len(_table_schema(db_path)) == 50  # 41 through Phase 8 + 7 Phase 9 operational tables + 1 v1.0.0 source_reputations table + 1 candidate_reviews table (human QC review)
 
     _run_alembic(["downgrade", "base"], db_url, cwd=PROJECT_ROOT)
     assert _table_schema(db_path) == {}

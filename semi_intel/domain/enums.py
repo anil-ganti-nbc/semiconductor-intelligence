@@ -167,6 +167,23 @@ class CandidateRelationType(str, Enum):
     DUPLICATE_OF = "duplicate_of"
 
 
+class CandidateReviewDisposition(str, Enum):
+    """The fleet-wide human-QC disposition vocabulary (see
+    semi_intel/signals/candidate_qc.py's module docstring), adapted to this
+    domain. USEFUL/NOT_USEFUL/FALSE_POSITIVE are the same across every
+    Clank. OUT_OF_STOCK -- meaningful for a retail-inventory watch -- has no
+    honest equivalent here: a signal candidate is a cluster of intelligence
+    reports, not a stocked item. DUPLICATE takes its place, exactly as the
+    fleet's own Watch Clank already does for its non-inventory "lead"
+    review (SpecialistLeadReview): a candidate can genuinely be a re-report
+    of coverage already captured elsewhere."""
+
+    USEFUL = "useful"
+    NOT_USEFUL = "not_useful"
+    FALSE_POSITIVE = "false_positive"
+    DUPLICATE = "duplicate"
+
+
 class SourceSuggestionKind(str, Enum):
     DOMAIN = "domain"
     HANDLE = "handle"

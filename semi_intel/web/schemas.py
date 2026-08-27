@@ -19,6 +19,7 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 
 from semi_intel.domain.enums import (
+    CandidateReviewDisposition,
     ClaimStatus,
     EntityType,
     EvidenceStance,
@@ -168,6 +169,11 @@ class CandidateDismissRequest(BaseModel):
 
 class CandidateSnoozeRequest(BaseModel):
     until: str  # ISO datetime string
+
+
+class CandidateReviewRequest(BaseModel):
+    disposition: CandidateReviewDisposition
+    reason: Optional[str] = Field(default=None, max_length=1000)
 
 
 class CandidatePromoteRequest(BaseModel):

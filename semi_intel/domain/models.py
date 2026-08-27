@@ -40,6 +40,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from semi_intel.domain.enums import (
     CandidateEntityRole,
     CandidateRelationType,
+    CandidateReviewDisposition,
     ClaimEventType,
     ClaimStatus,
     DiscoveryRelationship,
@@ -909,6 +910,62 @@ class CandidatePromotionEvent(Base):
     automatic: Mapped[bool] = mapped_column(Boolean, default=False)
     reason: Mapped[str] = mapped_column(Text, default="")
     created_at: Mapped[dt.datetime] = mapped_column(DateTime, default=_now, index=True)
+
+
+class CandidateReview(Base):
+    """One operator's current human-QC verdict on one SignalCandidate --
+    the fleet-wide "Useful / Not useful / False positive / (Duplicate in
+    place of Out of stock)" review contract, applied to this domain's
+    active-lead queue. See semi_intel/signals/candidate_qc.py's module
+    docstring for the full contract this table implements.
+
+    CANDIDATE != REVIEW, deliberately mirroring the rest of the fleet's
+    EVENT != REVIEW rule: this is a separate, append-mostly archive table,
+    not a status flag on SignalCandidate. SignalCandidate.state (active/
+    promoted/dismissed/snoozed/stale/merged, see candidate_state.py)
+    already tracks this candidate's own operational lifecycle -- clustering,
+    promotion eligibility, staleness -- and keeps doing so unchanged. A
+    CandidateReview is additional, non-mutating human editorial feedback
+    about the candidate as it existed at review time; it never touches the
+    SignalCandidate row itself, so recording a verdict here can never
+    interfere with promotion, snoozing, or merge logic.
+
+    One candidate carries at most one live review (uq_candidate_review_
+    candidate_id) -- a second submission for the same candidate_id is a
+    *correction*: it overwrites disposition in place and appends the prior
+    verdict to review_metadata['correction_history'] rather than inserting
+    a second row, giving "has this candidate already been QC'd" a simple
+    existence check while keeping corrections auditable. The unique
+    constraint also makes a duplicate archive row impossible at the DB
+    level, so two near-simultaneous submissions race-recover onto the same
+    row (see candidate_qc.submit_candidate_review) instead of one silently
+    winning."""
+
+    __tablename__ = "candidate_reviews"
+    __table_args__ = (UniqueConstraint("candidate_id", name="uq_candidate_review_candidate_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    candidate_id: Mapped[int] = mapped_column(ForeignKey("signal_candidates.id"), index=True)
+
+    # Denormalized snapshot of the reviewed candidate's identity at review
+    # time -- deliberate, not accidental duplication (same rationale as the
+    # rest of the fleet's review tables): later re-clustering or rescoring
+    # could change the live SignalCandidate row underneath a review; this
+    # snapshot preserves what the operator actually looked at.
+    candidate_title: Mapped[str] = mapped_column(String(500))
+    attention_score_at_review: Mapped[float | None] = mapped_column(Float, nullable=True)
+    item_count_at_review: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    disposition: Mapped[CandidateReviewDisposition] = mapped_column(SAEnum(CandidateReviewDisposition), index=True)
+    reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Corrections append {previous_disposition, previous_reviewed_at,
+    # corrected_at} here rather than opening a second table.
+    review_metadata: Mapped[str] = mapped_column(Text, default="{}")  # JSON
+    is_corrected: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    reviewed_at: Mapped[dt.datetime] = mapped_column(DateTime, default=_now, index=True)
+    updated_at: Mapped[dt.datetime] = mapped_column(DateTime, default=_now, onupdate=_now)
 
 
 # --- Phase 8: notifications, digests, delivery and provider incidents -------
