@@ -7,6 +7,11 @@ from fastapi.testclient import TestClient
 @pytest.fixture()
 def client(tmp_path, monkeypatch):
     monkeypatch.setenv("SEMI_INTEL_DB_URL", f"sqlite:///{tmp_path / 'alerts.db'}")
+    # Keep this fixture deterministic even when a developer shell has a real
+    # webhook configured; the clean-database assertions exercise the local
+    # notification path only.
+    monkeypatch.delenv("SEMI_INTEL_WEBHOOK_URL", raising=False)
+    monkeypatch.delenv("SEMI_INTEL_WEBHOOK_TOKEN", raising=False)
     from semi_intel.web.app import create_app
     with TestClient(create_app(mutation_authorizer=lambda _value: True)) as client:
         yield client

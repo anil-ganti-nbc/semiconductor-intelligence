@@ -6,11 +6,10 @@ env var semi_intel/db.py uses -- so `alembic upgrade head` and
 to. Target metadata is semi_intel.domain.models.Base, so
 `alembic revision --autogenerate` picks up schema changes automatically.
 
-Do NOT run both `semi-intel init-db` (Base.metadata.create_all) and
-`alembic upgrade head` against the same fresh database -- pick one. init-db
-is for quick local trials with no upgrade history; Alembic is for anything
-you intend to evolve over time (see migrations/README.md in the repo root
-for the full explanation).
+Normal runtime entry points never call ``Base.metadata.create_all``.  Use the
+explicit ``semi-intel init-db``/``db upgrade`` commands to establish this
+Alembic history; a later compatibility barrier refuses databases without an
+exact checked-in head rather than stamping an unknown structure.
 """
 
 import os

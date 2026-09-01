@@ -85,7 +85,7 @@ def test_singleton_settings_not_created_by_plain_initialization(tmp_path):
     engine.dispose()
 
 
-# --- create_app(mutation_authorizer=lambda _value: True) reconciles Alembic state instead of a bare create_all() --
+# --- create_app(mutation_authorizer=lambda _value: True) uses the explicit Alembic lifecycle --
 
 
 @pytest.fixture()
@@ -94,7 +94,7 @@ def alembic_available():
         pytest.skip("alembic.ini not found -- migrations not part of this checkout")
 
 
-def test_create_app_stamps_fresh_database_at_head(tmp_path, monkeypatch, alembic_available):
+def test_create_app_upgrades_fresh_database_at_head(tmp_path, monkeypatch, alembic_available):
     db_path = tmp_path / "dashboard_fresh.db"
     monkeypatch.setenv("SEMI_INTEL_DB_URL", f"sqlite:///{db_path}")
     monkeypatch.chdir(PROJECT_ROOT)
@@ -116,13 +116,9 @@ def test_create_app_stamps_fresh_database_at_head(tmp_path, monkeypatch, alembic
 
 
 def test_create_app_upgrades_older_database_and_preserves_data(tmp_path, monkeypatch, alembic_available):
-    """The dashboard is a supported entry point on its own (someone can
-    launch `semi-intel web serve` / `semintel gui` directly against an
-    existing database without ever running `semintel install`/`db upgrade`
-    first). Before this pass, create_app(mutation_authorizer=lambda _value: True) called a bare create_all(),
-    which only adds missing tables -- it never advances alembic_version,
-    silently leaving a stale schema marker (and, for a future
-    non-additive migration, would silently mask it entirely)."""
+    """A dashboard launched directly can apply pending Alembic revisions to
+    an existing database before admitting normal requests, preserving rows
+    while moving the durable marker to the current head."""
     db_path = tmp_path / "dashboard_old.db"
     db_url = f"sqlite:///{db_path}"
     _run_alembic(["upgrade", PHASE8_HEAD_REVISION], db_url)
@@ -202,6 +198,11 @@ def test_get_session_dependency_closes_and_rolls_back_after_an_error(tmp_path, m
     exception, matching FastAPI's own dependency-cleanup contract."""
     monkeypatch.setenv("SEMI_INTEL_DB_URL", f"sqlite:///{tmp_path / 'rollback.db'}")
     from semi_intel.web.app import get_session
+    from semi_intel.cli import upgrade_or_stamp_to_head
+
+    # A normal dependency now requires the exact Alembic head; initialize the
+    # disposable database through the explicit lifecycle command first.
+    upgrade_or_stamp_to_head()
 
     gen = get_session()
     session = next(gen)

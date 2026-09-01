@@ -27,7 +27,6 @@ from semi_intel.claim_engine.suggestion_service import SuggestionService
 from semi_intel.contradiction_engine.memory_rules import check_memory_configuration
 from semi_intel.contradiction_engine.service import MemorySpecClaimService
 from semi_intel.db import get_engine, get_sessionmaker
-from semi_intel.db import init_db as _init_db
 from semi_intel.domain.enums import (
     ClaimStatus,
     EntityType,
@@ -93,6 +92,7 @@ from semi_intel.notifications.digest import DigestService
 from semi_intel.notifications.delivery import DeliveryService, InAppAdapter
 from semi_intel.operations.quality import NotificationQualityService, SavedViewService
 from semi_intel.operations.webhook import ExternalDeliveryService, WebhookConfigurationService
+from semi_intel.schema_guard import require_schema_head
 
 app = typer.Typer(help="Semiconductor Intelligence Platform -- claims, evidence, and the graph behind them.")
 entity_app = typer.Typer(help="Manage knowledge-graph entities (products, companies, nodes, ...).")
@@ -136,7 +136,14 @@ app.add_typer(notification_app, name="notifications")
 
 def _session() -> Session:
     engine = get_engine()
-    _init_db(engine)
+    try:
+        # Normal commands must cross a read-only compatibility barrier before
+        # they obtain a session.  Explicit Alembic commands own all schema
+        # mutation; lazy create_all() is never a readiness signal.
+        require_schema_head(engine)
+    except Exception:
+        engine.dispose()
+        raise
     return get_sessionmaker(engine)()
 
 
@@ -196,53 +203,29 @@ def _alembic_config():
 
 
 def upgrade_or_stamp_to_head() -> str:
-    """Runs `alembic upgrade head`. If that fails because the tables
-    already exist -- a database that got created via plain
-    Base.metadata.create_all() (which is what `_session()` here and
-    `get_session()`/`create_app()` in semi_intel/web/app.py all do the
-    first time ANY command/request opens one, lazily, before install/
-    update/the dashboard ever ran Alembic) rather than through Alembic
-    itself -- falls back to stamping the database at head instead of
-    trying to re-create tables that are already there.
+    """Run the canonical Alembic upgrade without inferring compatibility.
 
-    This fallback is safe specifically because create_all() and `alembic
-    upgrade head` are verified to produce byte-identical schemas (see
-    tests/test_migrations.py's test_alembic_upgrade_matches_create_all) --
-    so "tables already exist" here reliably means "already at head", not
-    "some other, incompatible structure." Without this, a completely
-    ordinary sequence like running `semintel status` before `semintel
-    install` would leave the database permanently unable to self-heal via
-    `semintel update`, failing instead with a raw SQL error.
+    A database created with ``Base.metadata.create_all()`` or one with a
+    partial/incompatible migration must fail here.  There is intentionally no
+    exception-string ``stamp head`` fallback: only Alembic may establish the
+    durable migration head.
 
-    Shared by semintel's `install`/`update` commands and the web
-    dashboard's startup (`create_app()`) so every supported entry point
-    reconciles the same way instead of the dashboard silently leaving
-    `alembic_version` stale (or, for a future non-additive migration,
-    silently masking it) by calling create_all() directly.
+    This helper is intentionally limited to explicit lifecycle commands;
+    normal sessions use the read-only ``schema_guard`` barrier instead.
 
-    Returns "upgraded" or "stamped" to describe what actually happened.
+    Shared by semintel's `install`/`update` commands and dashboard startup.
+    Returns ``"upgraded"`` only after Alembic completes successfully.
     """
     from alembic import command
 
-    cfg = _alembic_config()
-    try:
-        command.upgrade(cfg, "head")
-        return "upgraded"
-    except Exception as exc:
-        if "already exists" in str(exc).lower():
-            command.stamp(cfg, "head")
-            return "stamped"
-        raise
+    command.upgrade(_alembic_config(), "head")
+    return "upgraded"
 
 
 @app.command("init-db")
 def init_db_cmd() -> None:
-    """Create all tables if they don't exist yet. Fine for a throwaway/dev
-    database -- it only ever adds missing tables, it cannot alter an
-    existing one. Once a database has real data in it, use `db upgrade`
-    instead; don't mix the two against the same database."""
-    engine = get_engine()
-    _init_db(engine)
+    """Initialize a database through the canonical Alembic history."""
+    upgrade_or_stamp_to_head()
     typer.echo("Database initialized.")
 
 
@@ -321,9 +304,13 @@ def db_current() -> None:
 
 @db_app.command("stamp")
 def db_stamp(revision: str = typer.Argument("head")) -> None:
-    """Mark a database as being at `revision` without running any
-    migration -- the escape hatch for a database that was created with
-    `init-db` and needs to switch to Alembic-managed migrations."""
+    """Explicitly mark a proven-compatible database at ``revision``.
+
+    This is an operator-controlled migration action, not a normal startup
+    path.  The application never invokes it as a fallback when an upgrade
+    fails, because a stamp cannot prove that the existing structure matches
+    the migration history.
+    """
     from alembic import command
 
     command.stamp(_alembic_config(), revision)

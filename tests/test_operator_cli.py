@@ -129,17 +129,17 @@ def test_doctor_all_pass_after_install(isolated_cwd):
 
 
 def test_doctor_flags_schema_before_migrations_applied(isolated_cwd, monkeypatch):
-    """Without ever running `install` (or `db upgrade`), the database gets
-    created lazily via create_all() the first time any command opens a
-    session -- but that bypasses Alembic entirely, so there's no migration
-    history. doctor should catch and explain this, not just say PASS."""
+    """Without an explicit Alembic initialization, doctor fails closed.
+
+    Normal commands must not lazily create a schema whose migration history
+    is unknown; the operator receives the compatibility-gate reason instead.
+    """
     monkeypatch.setenv("SEMI_INTEL_DB_URL", f"sqlite:///{isolated_cwd / 'semi_intel.db'}")
 
     r = runner.invoke(app, ["doctor", "--skip-network"])
 
-    assert "schema is up to date" in r.output.lower()
-    assert "[FAIL]" in r.output
-    assert r.exit_code == 1
+    assert "explicit alembic upgrade first" in r.output.lower()
+    assert r.exit_code != 0
 
 
 # --- add-source -----------------------------------------------------------------
@@ -452,19 +452,17 @@ def test_update_reports_up_to_date_after_install(isolated_cwd):
 
 
 def test_update_applies_pending_schema_changes(isolated_cwd, monkeypatch):
-    # Simulate a database that exists (via create_all, same as any lazily
-    # opened session) but was never actually migrated with Alembic --
-    # `update` should notice and fix it, same as `semintel doctor` flags it.
+    # With no database at all, update is the explicit lifecycle operation that
+    # creates it through Alembic. A preceding normal status command must not
+    # bootstrap a create_all schema.
     monkeypatch.setenv("SEMI_INTEL_DB_URL", f"sqlite:///{isolated_cwd / 'semi_intel.db'}")
-    runner.invoke(app, ["status"])  # touches the DB, lazily creates tables via create_all
+    status = runner.invoke(app, ["status"])
+    assert status.exit_code != 0
 
     r = runner.invoke(app, ["update"])
 
     assert r.exit_code == 0, r.output
-    # This exact scenario (create_all ran first, no Alembic history yet)
-    # takes the stamp fallback, not a real upgrade -- see
-    # _upgrade_or_stamp_to_head()'s docstring in operator.py.
-    assert "marked it as up to date" in r.output
+    assert "database is now up to date" in r.output.lower()
 
 
 # --- gui -----------------------------------------------------------------

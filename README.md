@@ -369,10 +369,11 @@ self-contained — no second binary to bundle, no PATH dependency.
 
 ## Quickstart — schema migrations (Alembic)
 
-`init-db` (used above) is fine for a throwaway/dev database: it just calls
-`create_all()`, which only ever adds missing tables. It cannot alter an
-existing table, so it's the wrong tool once a real database has data in it.
-For that, use Alembic. Two equivalent ways to drive it:
+`init-db` (used above) initializes through the canonical Alembic history. Use
+the same migration path for every database that normal application work will
+touch; the runtime refuses a missing, partial, older, or newer migration head
+instead of treating table existence as compatibility proof. Two equivalent
+ways to drive the explicit migration lifecycle are:
 
 ```bash
 # via the alembic executable (needs `alembic` installed -- pip install -e ".[dev]" already does)
@@ -391,11 +392,10 @@ semi-intel db current
 
 Both paths read the same `SEMI_INTEL_DB_URL` env var as the app (see
 `migrations/env.py`), so pointing at Postgres is just setting that variable
-first. Don't mix `init-db` and Alembic against the same database — pick one.
-If a database was already created with `init-db` and you want to switch it
-over to Alembic-managed migrations, run `alembic stamp head` (or `semi-intel
-db stamp head`) once to tell Alembic the schema is already current, without
-re-running the migration. See `migrations/README` for details.
+first. The application never invokes `db stamp` as an upgrade fallback; use
+that explicit operator command only after independently proving an existing
+schema matches the requested migration revision. See `migrations/README` for
+the compatibility-barrier policy.
 
 ## Quickstart — scheduled pipeline
 

@@ -10,10 +10,14 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import os
 
 from sqlalchemy import select
 
-from semi_intel.db import get_engine, get_sessionmaker, init_db
+from alembic import command
+
+from semi_intel.cli import _alembic_config
+from semi_intel.db import get_engine, get_sessionmaker
 from semi_intel.domain.enums import (
     NotificationEventType, NotificationFeedbackRating, NotificationSeverity,
     OperationalJobStatus, OperationalJobType, OperationalTriggerType, SourceType,
@@ -33,9 +37,23 @@ from semi_intel.signals.clustering import cluster_unclustered_items
 BASE = dt.datetime(2026, 1, 1, 12, 0, 0)
 
 
+def _initialize_database(db_path):
+    """Create the fixture through the explicit Alembic lifecycle path."""
+    db_url = f"sqlite:///{db_path}"
+    previous = os.environ.get("SEMI_INTEL_DB_URL")
+    os.environ["SEMI_INTEL_DB_URL"] = db_url
+    try:
+        command.upgrade(_alembic_config(), "head")
+    finally:
+        if previous is None:
+            os.environ.pop("SEMI_INTEL_DB_URL", None)
+        else:
+            os.environ["SEMI_INTEL_DB_URL"] = previous
+
+
 def _build_representative_dataset(db_path):
     engine = get_engine(f"sqlite:///{db_path}")
-    init_db(engine)
+    _initialize_database(db_path)
     session = get_sessionmaker(engine)()
 
     TopicService(session).seed()  # at least one topic/keyword

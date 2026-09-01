@@ -24,15 +24,15 @@ from semi_intel.operations.scheduler import get_scheduler_settings
 from semi_intel.operations.webhook import WebhookConfigurationService
 
 
-EXPECTED_HEAD = "c2a7f1e9b453"
-
-
 class HealthService:
     def __init__(self, session: Session):
         self.session = session
 
     def report(self, *, now: dt.datetime | None = None) -> dict:
         now = now or utcnow()
+        from semi_intel.schema_guard import authoritative_head
+
+        expected_head = authoritative_head()
         scheduler = get_scheduler_settings(self.session)
         notification_settings = get_settings(self.session, now=now)
         issues: list[dict] = []
@@ -130,13 +130,13 @@ class HealthService:
             revision = self.session.execute(text(
                 "SELECT version_num FROM alembic_version LIMIT 1"
             )).scalar()
-        except Exception:  # create_all development databases have no Alembic marker
+        except Exception:  # malformed or pre-Alembic databases have no readable marker
             self.session.rollback()
             revision = None
         integrity = self.session.execute(text("PRAGMA quick_check")).scalar()
-        if revision != EXPECTED_HEAD:
+        if revision != expected_head:
             issues.append(self._issue(
-                "degraded", f"Database revision is {revision or 'unknown'}, expected {EXPECTED_HEAD}.",
+                "degraded", f"Database revision is {revision or 'unknown'}, expected {expected_head}.",
                 "Run the database upgrade command after creating a backup.",
             ))
         if integrity != "ok":
@@ -205,7 +205,7 @@ class HealthService:
                 "external_delivery": webhook,
             },
             "database": {
-                "revision": revision, "expected_head": EXPECTED_HEAD,
+                "revision": revision, "expected_head": expected_head,
                 "integrity": integrity, "size_bytes": db_size, "wal_size_bytes": wal_size,
                 "latest_verified_backup": self._backup(latest_backup),
             },

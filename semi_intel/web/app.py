@@ -38,7 +38,6 @@ from sqlalchemy.orm import Session
 
 from semi_intel.claim_engine.suggestion_service import SuggestionService
 from semi_intel.db import get_engine, get_sessionmaker
-from semi_intel.db import init_db as _init_db
 from semi_intel.domain.enums import (
     CandidateReviewDisposition,
     ClaimStatus, EntityType, OperationalJobType, OperationalTriggerType, RelationType,
@@ -166,6 +165,7 @@ from semi_intel.signals.promotion import (
 from semi_intel.signals.providers import ProviderUnavailable
 from semi_intel.signals.providers.replay import ReplayProvider
 from semi_intel.signals.providers.rss import RSSProvider
+from semi_intel.schema_guard import require_schema_head
 from semi_intel.signals.scoring import get_scoring_settings, rescore_active_candidates
 from semi_intel.signals.suggestions import accept_source_suggestion, refresh_handle_suggestions
 from semi_intel.legacy_import import IMPORT_CATEGORIES, LegacyRadarImporter
@@ -216,7 +216,11 @@ def get_session():
     calling this un-overridden version directly (e.g. from a script) still
     works, just without that reuse."""
     engine = get_engine()
-    _init_db(engine)
+    try:
+        require_schema_head(engine)
+    except Exception:
+        engine.dispose()
+        raise
     session = get_sessionmaker(engine)()
     try:
         yield session
@@ -348,20 +352,10 @@ def _discovery_run_dict(run: DiscoveryRun) -> dict:
 def create_app(
     *, mutation_authorizer: Callable[[str | None], bool] | None = None
 ) -> FastAPI:
-    # Reconcile the schema to head via the exact same Alembic-aware path
-    # `semintel install`/`update` already use, instead of a bare
-    # create_all(). The dashboard is a supported entry point on its own
-    # (`semi-intel web serve`, `semintel gui`) that someone can launch
-    # directly against an existing database without ever running
-    # `semintel install`/`db upgrade` first; a bare create_all() only adds
-    # missing tables, so it silently leaves `alembic_version` stale for an
-    # older-but-compatible database, and would silently mask a future
-    # migration that isn't purely additive. `upgrade_or_stamp_to_head()`
-    # falls back to stamping (not re-creating) when the tables already
-    # exist -- safe because create_all() and `alembic upgrade head` are
-    # verified byte-identical (tests/test_migrations.py) -- and creates
-    # the schema from scratch via real migrations on a truly fresh
-    # database, so a bare create_all() call is no longer needed here.
+    # Reconcile the schema to head through the same explicit Alembic lifecycle
+    # path used by `semintel install`/`update`.  A dashboard may be launched
+    # directly against a fresh or older database, but a partial/create_all
+    # structure is rejected rather than stamped as compatible.
     from semi_intel.cli import upgrade_or_stamp_to_head
 
     upgrade_or_stamp_to_head()
@@ -370,6 +364,11 @@ def create_app(
     # Seeding inside the per-request dependency allowed the initial topic and
     # story requests to race each other on a brand-new database.
     startup_engine = get_engine()
+    # Keep even startup seeding behind the same read-only proof used at the
+    # request boundary.  The migration helper is the only operation allowed
+    # to change schema; application data is not touched until the exact head
+    # has been observed.
+    require_schema_head(startup_engine)
     startup_session = get_sessionmaker(startup_engine)()
     try:
         TopicService(startup_session).seed()
@@ -378,16 +377,16 @@ def create_app(
         startup_session.close()
 
     # Reuse that same engine (and its connection pool) for every request
-    # instead of the module-level get_session() default, which used to build
-    # a brand-new engine AND re-run schema reflection/create_all() on every
-    # single HTTP call. Under the dashboard's own concurrent Promise.all()
-    # page-load bursts, that repeatedly stacked dozens of fresh SQLite
-    # connections against the same file with no room to spare, producing
-    # "database is locked" errors. One long-lived engine per app instance
-    # (still per-request Sessions, so no cross-request state leaks) fixes it.
+    # instead of building a new engine for each request. Under the dashboard's
+    # concurrent page-load bursts, one long-lived engine per app instance
+    # avoids unnecessary SQLite connection churn (while sessions remain
+    # request-scoped, so no cross-request state leaks).
     request_session_factory = get_sessionmaker(startup_engine)
 
     def _request_scoped_session():
+        # Re-check the exact head at the request boundary so a database that
+        # changes after startup cannot be used for normal dashboard work.
+        require_schema_head(startup_engine)
         session = request_session_factory()
         try:
             yield session

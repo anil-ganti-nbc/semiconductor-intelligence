@@ -12,22 +12,14 @@ After changing a model in semi_intel/domain/models.py:
     # autogenerate is a good first draft, not a guarantee
     alembic upgrade head
 
-Do NOT mix this with `semi-intel init-db`
-------------------------------------------
-`semi-intel init-db` calls SQLAlchemy's Base.metadata.create_all() directly --
-convenient for a quick local trial, but it does not stamp an Alembic
-revision, so a database created that way has no upgrade history. If you
-later point Alembic at that same database, `alembic upgrade head` will fail
-because the tables already exist with no recorded revision.
+Runtime initialization is deliberately not a second schema authority:
+`semi-intel init-db` delegates to the same Alembic upgrade path above. Normal
+CLI, dashboard, and runtime-bridge sessions then require an exact current
+Alembic head before opening a work session. A database created by a bare
+`Base.metadata.create_all()` (or with a partial/unknown migration history)
+is refused; it is never silently stamped as compatible.
 
-Pick one per database:
-  - Quick local trial, throwaway SQLite, don't care about schema evolution:
-    `semi-intel init-db`.
-  - Anything you intend to run for a while, especially Postgres: initialize
-    it with `alembic upgrade head` from an empty database and keep using
-    Alembic for every schema change after that.
-
-If you already have an init-db'd database you want to bring under Alembic
-management, stamp it at the current head without re-running the migration:
-    alembic stamp head
-(only do this if you've confirmed the schema already matches migrations/versions/*_initial_schema.py).
+Use `alembic stamp head` only as an explicit, separately reviewed operator
+action for a database whose complete schema has already been proven to match
+the checked-in migrations. The application never invokes that command as a
+fallback.

@@ -130,16 +130,17 @@ def get_health() -> Any:
       None ("unknown"), never fabricated as a fresh "just started" success.
     - Zero rows / zero sources is NOT a failure -- an empty, freshly
       installed database is a legitimate, healthy state.
-    - This never runs Alembic and never writes anything except the same
-      lazy `Base.metadata.create_all()` every other command in this
-      codebase already performs against a missing/fresh database.
+    - This never runs Alembic or creates tables.  A database is ready only
+      when its durable Alembic head can be read and exactly matches the
+      checked-in head; missing, older, newer, and malformed state is failed
+      closed with the compatibility reason exposed in ``status_reasons``.
     """
     from sqlalchemy import func, select
 
     from semi_intel.db import get_engine, get_sessionmaker
-    from semi_intel.db import init_db as _init_db
     from semi_intel.domain.enums import OperationalJobStatus
     from semi_intel.domain.models import OperationalJobRun, Source
+    from semi_intel.schema_guard import require_schema_head
 
     url = _db_url()
     db_path = _sqlite_path_from_url(url)
@@ -161,9 +162,10 @@ def get_health() -> Any:
     source_count: int | None = None
     query_ok = False
 
+    engine = None
     try:
         engine = get_engine(url)
-        _init_db(engine)
+        require_schema_head(engine)
         session = get_sessionmaker(engine)()
         try:
             source_count = session.scalar(select(func.count()).select_from(Source))
@@ -188,6 +190,8 @@ def get_health() -> Any:
     except Exception as exc:  # noqa: BLE001 - health must not raise
         reasons.append(f"database query failed: {exc}")
         query_ok = False
+        if engine is not None:
+            engine.dispose()
 
     if not query_ok:
         state = "failed"
@@ -207,18 +211,39 @@ def get_health() -> Any:
             "degraded": OperationalState.DEGRADED,
             "failed": OperationalState.FAILED,
         }.get(state, OperationalState.UNKNOWN)
+        fields = getattr(HealthPayload, "model_fields", {})
+        if "operational_state" in fields:
+            # clank-runtime pre-v3 contract.
+            return HealthPayload(
+                operational_state=op,
+                process_liveness=True,
+                application_readiness=query_ok,
+                last_attempted_run=last_attempt,
+                last_successful_run=last_success,
+                database_writable=db_writable,
+                evidence_path_writable=db_writable,
+                ingestion_state=IngestionState.UNKNOWN,
+                version_info=version_info,
+                status_reasons=reasons,
+                observed_at=observed,
+            )
+        # Current clank-runtime v3 keeps the common health fields at the top
+        # level and carries target-specific readiness details as extensions.
         return HealthPayload(
-            operational_state=op,
-            process_liveness=True,
-            application_readiness=query_ok,
-            last_attempted_run=last_attempt,
-            last_successful_run=last_success,
-            database_writable=db_writable,
-            evidence_path_writable=db_writable,
-            ingestion_state=IngestionState.UNKNOWN,
-            version_info=version_info,
-            status_reasons=reasons,
+            clank_id=CLANK_ID,
+            overall_status=op,
+            run_status=state,
+            last_attempt_at=last_attempt,
+            last_success_at=last_success,
+            warnings=reasons,
             observed_at=observed,
+            extensions={
+                "application_readiness": query_ok,
+                "database_writable": db_writable,
+                "evidence_path_writable": db_writable,
+                "ingestion_state": "unknown",
+                "version_info": version_info,
+            },
         )
 
     return {

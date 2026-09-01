@@ -36,8 +36,9 @@ from typing import Optional
 import typer
 from sqlalchemy import func, select
 
-from semi_intel.cli import _alembic_config, _project_root, _session, upgrade_or_stamp_to_head
-from semi_intel.db import DEFAULT_DB_URL
+from semi_intel.cli import _project_root, _session, upgrade_or_stamp_to_head
+from semi_intel.db import DEFAULT_DB_URL, get_engine
+from semi_intel.schema_guard import inspect_schema
 from semi_intel.domain.enums import (
     ClaimStatus, OperationalJobType, OperationalTriggerType, SourceType, SuggestionStatus,
 )
@@ -144,29 +145,16 @@ def _data_dir() -> Path:
 def _schema_status():
     """Returns (current_revision_or_None, head_revision_or_None, up_to_date: bool | None).
     up_to_date is None if we couldn't determine it (e.g. no database yet)."""
+    engine = get_engine()
     try:
-        from alembic.runtime.migration import MigrationContext
-        from alembic.script import ScriptDirectory
-
-        cfg = _alembic_config()
-        script = ScriptDirectory.from_config(cfg)
-        head = script.get_current_head()
-
-        session = _session()
-        try:
-            context = MigrationContext.configure(session.connection())
-            heads = context.get_current_heads()
-        finally:
-            session.close()
-        current = heads[0] if heads else None
-        return current, head, (current == head)
-    except Exception:
-        return None, None, None
+        status = inspect_schema(engine)
+    finally:
+        engine.dispose()
+    return status.current_head, status.expected_head, status.ready
 
 
-# Alembic reconciliation itself now lives in semi_intel.cli.upgrade_or_stamp_to_head
-# (imported above) so semi_intel/web/app.py's create_app() can share the
-# exact same logic without importing this CLI-facing module.
+# Alembic reconciliation itself lives in semi_intel.cli.upgrade_or_stamp_to_head
+# (imported above); normal work sessions use the read-only schema_guard barrier.
 
 
 # --- install -----------------------------------------------------------------
@@ -529,19 +517,13 @@ def update() -> None:
 
     typer.secho("Applying database changes...", fg=typer.colors.CYAN)
     try:
-        outcome = upgrade_or_stamp_to_head()
+        upgrade_or_stamp_to_head()
     except Exception as exc:
         typer.secho(f"Could not update the database: {exc}", fg=typer.colors.RED)
         typer.echo("Run `semintel doctor` for a more detailed check.")
         raise typer.Exit(1)
 
-    if outcome == "stamped":
-        typer.secho(
-            "Your database already had the current structure -- marked it as up to date.",
-            fg=typer.colors.GREEN,
-        )
-    else:
-        typer.secho("Database is now up to date.", fg=typer.colors.GREEN)
+    typer.secho("Database is now up to date.", fg=typer.colors.GREEN)
     typer.echo()
     typer.echo("Reminder: this only updates your DATA. To update the PROGRAM itself,")
     typer.echo("replace this executable with a newer build -- see INSTALL.md.")

@@ -13,6 +13,8 @@ runner = CliRunner()
 
 def test_cli_preview_then_apply(tmp_path, cli_env):
     legacy = make_legacy_db(tmp_path / "legacy.db")
+    initialized = runner.invoke(app, ["init-db"])
+    assert initialized.exit_code == 0, initialized.output
 
     preview = runner.invoke(app, ["radar", "import", "--database", str(legacy)])
     assert preview.exit_code == 0, preview.output
@@ -33,6 +35,8 @@ def test_cli_preview_then_apply(tmp_path, cli_env):
 def test_cli_rejects_wrong_database(tmp_path, cli_env):
     wrong = tmp_path / "wrong.db"
     wrong.write_bytes(b"not sqlite")
+    initialized = runner.invoke(app, ["init-db"])
+    assert initialized.exit_code == 0, initialized.output
 
     result = runner.invoke(app, ["radar", "import", "--database", str(wrong)])
     assert result.exit_code == 1
