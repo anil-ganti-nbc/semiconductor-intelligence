@@ -17,7 +17,7 @@ from semi_intel.db import get_engine, get_sessionmaker, init_db
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PHASE8_HEAD_REVISION = "e8b7c2d4a901"
-CURRENT_HEAD = "bf599f950d56"
+CURRENT_HEAD = "c7d8e9f0a1b2"
 
 
 def _run_alembic(args, db_url, cwd=PROJECT_ROOT):
@@ -49,7 +49,7 @@ def test_fresh_database_has_all_tables_and_no_traceback(tmp_path):
     engine = get_engine(f"sqlite:///{db_path}")
     init_db(engine)
     tables = _tables(db_path)
-    assert len(tables) == 50  # application tables; create_all() writes no alembic_version marker
+    assert len(tables) == 52  # application tables; create_all() writes no alembic_version marker
     engine.dispose()
 
 
@@ -111,7 +111,7 @@ def test_create_app_stamps_fresh_database_at_head(tmp_path, monkeypatch, alembic
     con = sqlite3.connect(db_path)
     assert con.execute("select version_num from alembic_version").fetchone() == (CURRENT_HEAD,)
     table_count = con.execute("select count(*) from sqlite_master where type='table'").fetchone()[0]
-    assert table_count == 51  # 50 application tables + alembic_version
+    assert table_count == 53  # 52 application tables + alembic_version
     con.close()
 
 
@@ -161,7 +161,7 @@ def test_create_app_upgrades_older_database_and_preserves_data(tmp_path, monkeyp
 
     con = sqlite3.connect(db_path)
     assert con.execute("select version_num from alembic_version").fetchone() == (CURRENT_HEAD,)
-    assert con.execute("select count(*) from sqlite_master where type='table'").fetchone()[0] == 51
+    assert con.execute("select count(*) from sqlite_master where type='table'").fetchone()[0] == 53
     assert con.execute("select name from sources where id=1").fetchone() == ("videocardz.com",)
     assert con.execute("select title from notifications where id=1").fetchone() == ("Pre-upgrade alert",)
     assert con.execute("select count(*) from notification_settings").fetchone()[0] == 1

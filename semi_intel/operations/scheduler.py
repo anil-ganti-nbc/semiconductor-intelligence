@@ -23,6 +23,7 @@ from semi_intel.domain.models import (
 from semi_intel.notifications.digest import DigestService
 from semi_intel.notifications.service import NotificationService, aware, safe_error, utcnow
 from semi_intel.pipeline.service import PipelineService
+from semi_intel.operations.qualification import QualificationMaterial, QualificationService
 
 
 def owner_identity() -> str:
@@ -218,12 +219,16 @@ class OperationalScheduler:
             "result_counts": json.loads(job.result_counts or "{}"),
             "error_summary": job.error_summary,
             "next_retry_at": aware(job.next_retry_at).isoformat() if job.next_retry_at else None,
+            "qualification_provenance": job.qualification_provenance,
+            "qualification_material_identity": job.qualification_material_identity,
+            "qualification_epoch_id": job.qualification_epoch_id,
         }
 
     def run_job(
         self, job_type: OperationalJobType, *,
         trigger: OperationalTriggerType = OperationalTriggerType.MANUAL_CLI,
         now: dt.datetime | None = None,
+        material: QualificationMaterial | None = None,
     ) -> OperationalJobRun:
         now = now or utcnow()
         settings = self.settings()
@@ -238,6 +243,9 @@ class OperationalScheduler:
             )
             self.session.add(job)
             self.session.commit()
+            QualificationService(self.session).prepare(job, material=material, now=now)
+            QualificationService(self.session).record_terminal(job, now=now)
+            self.session.commit()
             return job
         lease = lease_result.lease
         job = OperationalJobRun(
@@ -246,6 +254,9 @@ class OperationalScheduler:
             lock_token=lease.lock_token,
         )
         self.session.add(job)
+        self.session.commit()
+        qualification = QualificationService(self.session)
+        qualification.prepare(job, material=material, now=now)
         self.session.commit()
         try:
             counts, summary, partial = self._execute(job_type, now=now)
@@ -262,6 +273,7 @@ class OperationalScheduler:
                 job.next_retry_at = now + dt.timedelta(minutes=settings.retry_delay_minutes)
         finally:
             job.finished_at = utcnow()
+            qualification.record_terminal(job, now=job.finished_at)
             active_lease = self.session.scalar(select(OperationalJobLease).where(
                 OperationalJobLease.lock_token == lease.lock_token
             ))

@@ -46,7 +46,7 @@ def test_db_upgrade_creates_full_schema(cli_env, alembic_available):
     assert r.exit_code == 0, r.output
     assert "Upgraded to head" in r.output
 
-    assert len(_table_schema(cli_env)) == 50  # 41 through Phase 8 + 7 Phase 9 operational tables + 1 v1.0.0 source_reputations table + 1 candidate_reviews table (human QC review)
+    assert len(_table_schema(cli_env)) == 52  # prior 50 tables plus qualification_epochs and qualification_events
 
 
 def test_db_upgrade_matches_create_all(cli_env, alembic_available):
@@ -63,7 +63,7 @@ def test_db_upgrade_matches_create_all(cli_env, alembic_available):
 
 def test_db_downgrade_removes_everything(cli_env, alembic_available):
     runner.invoke(app, ["db", "upgrade"])
-    assert len(_table_schema(cli_env)) == 50
+    assert len(_table_schema(cli_env)) == 52
 
     r = runner.invoke(app, ["db", "downgrade"])
     assert r.exit_code == 0, r.output

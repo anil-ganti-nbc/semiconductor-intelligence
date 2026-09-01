@@ -56,6 +56,7 @@ from semi_intel.domain.enums import (
     OperationalJobType,
     OperationalTriggerType,
     OperationalJobStatus,
+    QualificationProvenance,
     NotificationFeedbackRating,
     BackupStatus,
     RelationType,
@@ -1174,6 +1175,25 @@ class SchedulerSettings(Base):
     )
 
 
+class QualificationEpoch(Base):
+    """Append-only qualification material epochs for operational jobs."""
+
+    __tablename__ = "qualification_epochs"
+    __table_args__ = (
+        UniqueConstraint("job_type", "material_identity", name="uq_qualification_epochs_job_material"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    job_type: Mapped[str] = mapped_column(String(50), index=True)
+    material_identity: Mapped[str] = mapped_column(String(128), index=True)
+    material_payload: Mapped[str] = mapped_column(Text, default="{}")
+    prior_material_identity: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    reset_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    opened_by_execution_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    authority_provenance: Mapped[str] = mapped_column(String(50), default=QualificationProvenance.UNKNOWN.value)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, index=True)
+
+
 class OperationalJobRun(Base):
     __tablename__ = "operational_job_runs"
 
@@ -1197,7 +1217,40 @@ class OperationalJobRun(Base):
     error_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     next_retry_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
     diagnostic_reference: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    # Nullable so historical/direct rows retain honest unknowns until an
+    # authoritative execution path passes qualification preparation.
+    qualification_provenance: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
+    qualification_material_identity: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    qualification_epoch_id: Mapped[int | None] = mapped_column(
+        ForeignKey("qualification_epochs.id"), nullable=True, index=True
+    )
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class QualificationEvent(Base):
+    """Append-only reset and terminal facts for one qualification epoch."""
+
+    __tablename__ = "qualification_events"
+    __table_args__ = (
+        UniqueConstraint("event_type", "execution_id", name="uq_qualification_events_type_execution"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    epoch_id: Mapped[int] = mapped_column(ForeignKey("qualification_epochs.id"), index=True)
+    execution_id: Mapped[int | None] = mapped_column(
+        ForeignKey("operational_job_runs.id"), nullable=True, index=True
+    )
+    job_type: Mapped[str] = mapped_column(String(50), index=True)
+    event_type: Mapped[str] = mapped_column(String(30), index=True)
+    material_identity: Mapped[str] = mapped_column(String(128), index=True)
+    prior_material_identity: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    new_material_identity: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    provenance: Mapped[str] = mapped_column(String(50), default=QualificationProvenance.UNKNOWN.value)
+    terminal_status: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    healthy: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    payload: Mapped[str] = mapped_column(Text, default="{}")
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, index=True)
 
 
 class OperationalJobLease(Base):

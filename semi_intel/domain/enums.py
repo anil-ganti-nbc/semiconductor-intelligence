@@ -255,6 +255,18 @@ class OperationalTriggerType(str, Enum):
     TEST = "test"
 
 
+class QualificationProvenance(str, Enum):
+    """Authority-bound provenance for the qualification projection."""
+
+    SCHEDULED = "scheduled"
+    MANUAL_CLI = "manual_cli"
+    MANUAL_GUI = "manual_gui"
+    STARTUP_CATCHUP = "startup_catchup"
+    RETRY = "retry"
+    TEST = "test"
+    UNKNOWN = "unknown"
+
+
 class OperationalJobStatus(str, Enum):
     SCHEDULED = "scheduled"
     RUNNING = "running"
