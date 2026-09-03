@@ -104,3 +104,42 @@ def test_dashboard_javascript_parses_with_node(tmp_path):
         capture_output=True, text=True,
     )
     assert result.returncode == 0, result.stderr
+
+
+# ---------------------------------------------------------------------------
+# STD-UI-COM-010: the SPA renders every timestamp through toLocaleString(),
+# i.e. it silently converts into the viewer's own timezone. One clearly
+# stated surface-level convention is required so that conversion is visible.
+# ---------------------------------------------------------------------------
+
+
+def test_timezone_convention_is_stated_in_the_header():
+    """Stated once, in the header that is present on every tab -- the frozen
+    standard explicitly does not require a per-value zone marker."""
+    assert 'id="timezone-convention"' in INDEX_HTML
+    assert "All times shown in your local timezone" in INDEX_HTML
+    # It must sit in the always-visible header, not inside one tab's panel.
+    header = INDEX_HTML[INDEX_HTML.index("<header>"): INDEX_HTML.index("</header>")]
+    assert 'id="timezone-convention"' in header
+
+
+def test_timezone_convention_names_the_resolved_zone_and_never_blanks():
+    """The label is upgraded to the resolved IANA zone at runtime. If the
+    browser cannot resolve one, the generic stated label must remain -- an
+    empty string would restore the silent-conversion case the standard
+    forbids."""
+    assert "applyTimezoneConvention" in INDEX_HTML
+    assert "resolvedOptions().timeZone" in INDEX_HTML
+    fn_start = INDEX_HTML.index("function applyTimezoneConvention")
+    fn = INDEX_HTML[fn_start: INDEX_HTML.index("async function loadRuntimeProvenance")]
+    assert "your local timezone" in fn
+    assert 'textContent = ""' not in fn and "textContent = ''" not in fn
+    # And it is actually invoked at startup, not merely defined.
+    assert "applyTimezoneConvention();" in INDEX_HTML
+
+
+def test_timezone_convention_does_not_claim_utc_while_rendering_local():
+    """The rendering really is browser-local; claiming UTC would be a false
+    statement of convention."""
+    header = INDEX_HTML[INDEX_HTML.index("<header>"): INDEX_HTML.index("</header>")]
+    assert "All times UTC" not in header

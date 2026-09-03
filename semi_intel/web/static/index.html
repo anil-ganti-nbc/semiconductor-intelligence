@@ -507,6 +507,15 @@
     <h1>Semiconductor Intelligence Platform</h1>
     <p>Your automated editorial inbox for semiconductor and PC-hardware reporting.</p>
     <div id="runtime-provenance">Loading runtime provenance…</div>
+    <!-- STD-UI-COM-010: every timestamp in this SPA is rendered through
+         toLocaleString(), i.e. silently converted into whatever timezone the
+         viewer's browser is in. The frozen standard accepts one clearly
+         stated surface-level convention instead of a per-value zone marker,
+         so it is stated once here, in the header that is visible on every
+         tab. It names the resolved IANA zone rather than claiming UTC --
+         the rendering really is browser-local, and the standard forbids
+         stating a convention the rendering does not actually follow. -->
+    <div id="timezone-convention" class="muted">All times shown in your local timezone</div>
   </header>
 
   <nav>
@@ -1444,6 +1453,20 @@
     const esc = (value) => String(value ?? "").replace(/[&<>"']/g, c => ({
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
     }[c]));
+
+    // STD-UI-COM-010: name the zone that every toLocaleString() call on this
+    // page converts into, so the conversion is stated rather than silent.
+    // Falls back to the generic label already in the markup if the browser
+    // cannot resolve an IANA zone name -- never to an empty string, which
+    // would restore exactly the silent-conversion case the standard forbids.
+    function applyTimezoneConvention() {
+      const node = el("timezone-convention");
+      if (!node) return;
+      try {
+        const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (zone) node.textContent = `All times shown in ${zone} (your local timezone)`;
+      } catch (_) { /* keep the generic stated label already rendered */ }
+    }
 
     async function loadRuntimeProvenance() {
       try {
@@ -3839,6 +3862,7 @@
 
     loadStoryTopicFilter();
     loadRuntimeProvenance();
+    applyTimezoneConvention();
     loadStories();
   </script>
 
