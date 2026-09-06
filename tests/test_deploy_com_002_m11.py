@@ -87,3 +87,33 @@ def test_runtime_health_does_not_bootstrap_missing_database(tmp_path, monkeypatc
         assert payload["application_readiness"] is False
         assert any("schema compatibility" in reason for reason in payload["status_reasons"])
     assert not db_path.exists()
+
+
+def test_gate_refusal_is_distinguishable_from_an_ordinary_query_failure(tmp_path, monkeypatch):
+    """A barrier refusal must not read as a broken query.
+
+    STD-DEPLOY-COM-002 asks for evidence sufficient to identify compatibility
+    gating as the reason work was refused. get_health() caught
+    SchemaCompatibilityError in its blanket handler and reported "database
+    query failed", so an operator could not tell a state refused by contract
+    from a database that was simply broken -- both fail closed, but only one
+    is fixed by running the Alembic upgrade.
+    """
+    db_path = tmp_path / "gate.db"
+    _set_db(monkeypatch, db_path)
+
+    from semi_intel.runtime_bridge import get_health
+
+    payload = get_health()
+    if not isinstance(payload, dict):
+        pytest.skip("runtime HealthPayload contract in use; dict shape not returned")
+    reasons = payload["status_reasons"]
+
+    gate = [r for r in reasons if "schema compatibility gate refused" in r]
+    assert gate, f"no reason identifies the compatibility gate: {reasons}"
+    # The specific cause survives alongside the category -- naming the gate
+    # must not cost the operator the actionable detail.
+    assert "run the explicit Alembic upgrade first" in gate[0]
+    assert not any(r.startswith("database query failed") for r in reasons)
+    assert payload["application_readiness"] is False
+    assert not db_path.exists()

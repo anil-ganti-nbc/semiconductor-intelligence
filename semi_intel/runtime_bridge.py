@@ -140,7 +140,7 @@ def get_health() -> Any:
     from semi_intel.db import get_engine, get_sessionmaker
     from semi_intel.domain.enums import OperationalJobStatus
     from semi_intel.domain.models import OperationalJobRun, Source
-    from semi_intel.schema_guard import require_schema_head
+    from semi_intel.schema_guard import SchemaCompatibilityError, require_schema_head
 
     url = _db_url()
     db_path = _sqlite_path_from_url(url)
@@ -186,6 +186,19 @@ def get_health() -> Any:
             query_ok = True
         finally:
             session.close()
+            engine.dispose()
+    except SchemaCompatibilityError as exc:
+        # Name the gate, not just the symptom. STD-DEPLOY-COM-002 requires
+        # evidence sufficient to identify compatibility gating as the reason
+        # work was refused, and this docstring already promises "the
+        # compatibility reason exposed in status_reasons" -- but the generic
+        # handler below flattened a barrier refusal into an ordinary
+        # "database query failed", leaving an operator unable to tell a
+        # refused-by-contract state from a broken query. The specific message
+        # is kept; only its category is now stated alongside it.
+        reasons.append(f"persistent state schema compatibility gate refused: {exc}")
+        query_ok = False
+        if engine is not None:
             engine.dispose()
     except Exception as exc:  # noqa: BLE001 - health must not raise
         reasons.append(f"database query failed: {exc}")
