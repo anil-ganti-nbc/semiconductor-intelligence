@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>hardware</title>
+  <link href="https://www.reddit.com/r/hardware/"/>
+  <updated>2026-09-01T18:00:00Z</updated>
+  <entry>
+    <author>
+      <name>/u/hardware_leaker</name>
+      <uri>https://www.reddit.com/user/hardware_leaker</uri>
+    </author>
+    <title>NVIDIA RTX 50 Super 24GB board slides</title>
+    <link href="https://www.reddit.com/r/hardware/comments/abc333/nvidia_rtx_50_super_24gb_board_slides/"/>
+    <id>https://www.reddit.com/r/hardware/comments/abc333/nvidia_rtx_50_super_24gb_board_slides/</id>
+    <updated>2026-09-01T18:00:00Z</updated>
+    <published>2026-09-01T18:00:00Z</published>
+    <content type="html">&lt;p&gt;Outbound coverage: &lt;a href="https://www.videocardz.com/newz/nvidia-geforce-rtx-50-super-specifications"&gt;VideoCardz&lt;/a&gt; and Tom's https://www.tomshardware.com/pc-components/gpus/rtx-50-super-leak&lt;/p&gt;</content>
+  </entry>
+  <entry>
+    <author>
+      <name>/u/chip_watcher</name>
+      <uri>https://www.reddit.com/user/chip_watcher</uri>
+    </author>
+    <title>ASML High-NA EUV throughput notes</title>
+    <link href="https://www.reddit.com/r/hardware/comments/abc222/asml_high_na_euv_throughput_notes/"/>
+    <id>https://www.reddit.com/r/hardware/comments/abc222/asml_high_na_euv_throughput_notes/</id>
+    <updated>2026-09-01T15:00:00Z</updated>
+    <published>2026-09-01T15:00:00Z</published>
+    <content type="html">&lt;p&gt;Discussion of High-NA EUV tool output.&lt;/p&gt;</content>
+  </entry>
+  <entry>
+    <author>
+      <name>/u/node_fan</name>
+      <uri>https://www.reddit.com/user/node_fan</uri>
+    </author>
+    <title>Intel 18A yield chatter</title>
+    <link href="https://www.reddit.com/r/hardware/comments/abc111/intel_18a_yield_chatter/"/>
+    <id>https://www.reddit.com/r/hardware/comments/abc111/intel_18a_yield_chatter/</id>
+    <updated>2026-09-01T12:00:00Z</updated>
+    <published>2026-09-01T12:00:00Z</published>
+    <content type="html">&lt;p&gt;Existing thread about Intel 18A.&lt;/p&gt;</content>
+  </entry>
+</feed>

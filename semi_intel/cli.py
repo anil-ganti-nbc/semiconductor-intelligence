@@ -77,6 +77,11 @@ from semi_intel.signals.candidate_state import mark_seen as mark_candidate_seen
 from semi_intel.signals.candidate_state import mark_unseen as mark_candidate_unseen
 from semi_intel.signals.clustering import cluster_unclustered_items
 from semi_intel.signals.collection import CollectionService, get_collection_settings
+from semi_intel.signals.source_lifecycle import (
+    admit_source_for_delivery,
+    register_reddit_hardware,
+    source_lifecycle_view,
+)
 from semi_intel.signals.promotion import (
     PromotionBlocked,
     check_automatic_eligibility,
@@ -1110,6 +1115,47 @@ def radar_import(
     except Exception:
         session.rollback()
         raise
+    finally:
+        session.close()
+
+
+@radar_app.command("register-reddit-hardware")
+def radar_register_reddit_hardware() -> None:
+    """Register the experimental r/hardware RSS pilot. Does not fetch, poll, or enable Discord."""
+    session = _session()
+    try:
+        source, created = register_reddit_hardware(session)
+        lifecycle = source_lifecycle_view(source)
+        verb = "Registered" if created else "Already registered"
+        typer.echo(f"{verb}: {source.name} (id={source.id})")
+        typer.echo(f"provider={source.provider} url={source.provider_key}")
+        typer.echo(
+            f"enabled={source.enabled} polling_enabled={source.polling_enabled} "
+            f"muted={source.muted} maturity={lifecycle.get('maturity')}"
+        )
+        typer.echo("No network fetch was performed. Polling remains off until an operator enables it.")
+    finally:
+        session.close()
+
+
+@radar_app.command("admit-source")
+def radar_admit_source(source_id: int) -> None:
+    """Lift experimental Discord blocking. Historical observations stay non-novel. Does not enable polling."""
+    session = _session()
+    try:
+        source = session.get(Source, source_id)
+        if source is None:
+            typer.secho(f"No source with id={source_id}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(code=1)
+        admit_source_for_delivery(source)
+        session.commit()
+        lifecycle = source_lifecycle_view(source)
+        typer.echo(
+            f"Admitted {source.name} (id={source.id}): muted={source.muted} "
+            f"maturity={lifecycle.get('maturity')} "
+            f"delivery_admitted_at={lifecycle.get('delivery_admitted_at')}"
+        )
+        typer.echo("Polling was not changed. Historical baseline/experimental observations will not flood Discord.")
     finally:
         session.close()
 

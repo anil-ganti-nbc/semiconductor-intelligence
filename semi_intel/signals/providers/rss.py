@@ -19,15 +19,19 @@ from __future__ import annotations
 
 import calendar
 import datetime as dt
+import html
 import socket
 from typing import Callable, Optional
+from urllib.parse import urlsplit
 
 import feedparser
 
+from semi_intel.editorial.service import URL_RE
 from semi_intel.signals.providers import (
     CollectResult,
     Cursor,
     NormalizedSignal,
+    ProviderUnavailable,
     RawItem,
     SourceCandidate,
     ValidationError,
@@ -53,8 +57,74 @@ def _to_datetime(struct_time) -> Optional[dt.datetime]:
     return dt.datetime.fromtimestamp(calendar.timegm(struct_time), tz=dt.timezone.utc).replace(tzinfo=None)
 
 
-def _entry_id(entry) -> str:
-    return entry.get("id") or entry.get("link") or entry.get("title", "")
+def is_reddit_feed(url: str) -> bool:
+    host = (urlsplit(url).netloc or "").lower()
+    if host.startswith("www."):
+        host = host[4:]
+    return host == "reddit.com" or host.endswith(".reddit.com")
+
+
+def _http_status(parsed) -> int | None:
+    status = getattr(parsed, "status", None)
+    if status is None and hasattr(parsed, "get"):
+        status = parsed.get("status")
+    try:
+        return int(status) if status is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _entry_id(entry, *, reddit: bool = False) -> str:
+    """Observation identity is id, then permalink. Reddit never falls back to title."""
+    eid = (entry.get("id") or "").strip()
+    if eid:
+        return eid
+    link = (entry.get("link") or "").strip()
+    if link:
+        return link
+    if reddit:
+        return ""
+    return (entry.get("title") or "").strip()
+
+
+def _entry_html(entry) -> str:
+    parts = [entry.get("summary") or "", entry.get("description") or ""]
+    for block in entry.get("content") or []:
+        if isinstance(block, dict):
+            parts.append(block.get("value") or "")
+        else:
+            parts.append(str(block))
+    return "\n".join(parts)
+
+
+def _looks_like_feed(parsed) -> bool:
+    version = (getattr(parsed, "version", None) or "").lower()
+    return version.startswith(("rss", "atom", "rdf"))
+
+
+def _raise_if_unusable_feed(source_handle: str, parsed) -> None:
+    """Fail closed on HTTP/parser evidence. Empty non-Reddit RSS stays valid."""
+    status = _http_status(parsed)
+    if status is not None and status >= 400:
+        if status == 429:
+            raise ProviderUnavailable(f"HTTP 429 rate-limited fetching {source_handle}")
+        if status in {401, 403}:
+            raise ProviderUnavailable(f"HTTP {status} blocked fetching {source_handle}")
+        raise ProviderUnavailable(f"HTTP {status} fetching {source_handle}")
+
+    entries = list(getattr(parsed, "entries", []) or [])
+    bozo = bool(getattr(parsed, "bozo", 0))
+    if bozo and not entries:
+        reason = str(getattr(parsed, "bozo_exception", "malformed feed"))
+        raise ProviderUnavailable(f"malformed RSS/Atom response: {reason}")
+    if is_reddit_feed(source_handle) and not entries:
+        if not _looks_like_feed(parsed):
+            raise ProviderUnavailable(
+                f"malformed RSS/Atom response fetching {source_handle}"
+            )
+        raise ProviderUnavailable(
+            f"suspicious empty Reddit listing fetching {source_handle}"
+        )
 
 
 class RSSProvider:
@@ -69,35 +139,51 @@ class RSSProvider:
         stops at the last-seen entry id so re-polling an unchanged feed is a
         cheap no-op, matching IngestionService's existing dedup philosophy."""
         parsed = self._fetch_fn(source_handle)
+        _raise_if_unusable_feed(source_handle, parsed)
+        reddit = is_reddit_feed(source_handle)
         entries = list(getattr(parsed, "entries", []))[: self.max_items]
 
         stop_id = cursor.value if cursor else None
         items: list[RawItem] = []
-        newest = _entry_id(entries[0]) if entries else stop_id
+        newest = _entry_id(entries[0], reddit=reddit) if entries else stop_id
+        seen_ids: set[str] = set()
         for entry in entries:
-            eid = _entry_id(entry)
+            eid = _entry_id(entry, reddit=reddit)
             if stop_id and eid == stop_id:
                 break
-            if eid:
-                items.append(RawItem(external_id=eid, payload=dict(entry)))
+            if not eid or eid in seen_ids:
+                continue
+            seen_ids.add(eid)
+            items.append(RawItem(external_id=eid, payload=dict(entry)))
         items.reverse()  # chronological order for storage
         return CollectResult(items=items, next_cursor=Cursor(newest) if newest else cursor)
 
     def normalize(self, raw: RawItem) -> NormalizedSignal:
         e = raw.payload
         title = (e.get("title") or "").strip()
-        summary = (e.get("summary") or e.get("description") or "").strip()
+        summary = _entry_html(e).strip()
         text = f"{title}\n\n{summary}".strip() if summary else title
+        permalink = (e.get("link") or "").strip() or None
+        links: list[str] = []
+        if permalink:
+            links.append(permalink)
+        for match in URL_RE.findall(html.unescape(summary)):
+            if match not in links:
+                links.append(match)
+        author = e.get("author")
+        if not author:
+            detail = e.get("author_detail") or {}
+            author = detail.get("name") if isinstance(detail, dict) else None
         return NormalizedSignal(
             external_id=raw.external_id,
             provider=self.name,
-            author_handle=e.get("author"),
-            author_display_name=e.get("author"),
+            author_handle=author,
+            author_display_name=author,
             posted_at=_to_datetime(e.get("published_parsed") or e.get("updated_parsed")),
             text=text,
             title=title or None,
-            url=e.get("link"),
-            links=[e["link"]] if e.get("link") else [],
+            url=permalink,
+            links=links,
             raw=e,
         )
 
@@ -106,6 +192,10 @@ class RSSProvider:
         if not url.lower().startswith(("http://", "https://")):
             return ValidationError("RSS source must be a feed URL (http:// or https://)")
         parsed = self._fetch_fn(url)
+        try:
+            _raise_if_unusable_feed(url, parsed)
+        except ProviderUnavailable as exc:
+            return ValidationError(str(exc))
         entries = getattr(parsed, "entries", None)
         bozo = getattr(parsed, "bozo", 0)
         if not entries and bozo:

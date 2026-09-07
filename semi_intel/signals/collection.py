@@ -39,6 +39,7 @@ from semi_intel.ingestion.hashing import hash_content
 from semi_intel.signals.providers import Cursor, Provider, ProviderUnavailable
 from semi_intel.signals.providers.replay import ReplayProvider
 from semi_intel.signals.providers.rss import RSSProvider
+from semi_intel.signals.source_lifecycle import stamp_first_success_baseline
 
 
 def _now() -> dt.datetime:
@@ -286,16 +287,18 @@ class CollectionService:
                 )
 
         source.cursor = result.next_cursor.value if result.next_cursor else source.cursor
-        source.last_success_at = _now()
+        finished_at = _now()
+        stamp_first_success_baseline(source, now=finished_at)
+        source.last_success_at = finished_at
         if created:
-            source.last_observed_item_at = _now()
+            source.last_observed_item_at = finished_at
         source.error_state = None
 
         run.items_collected = created
         run.duplicates_skipped = duplicates
         run.cursor_after = source.cursor
         run.status = ProviderRunStatus.OK
-        run.finished_at = _now()
+        run.finished_at = finished_at
         self.session.commit()
         return run
 

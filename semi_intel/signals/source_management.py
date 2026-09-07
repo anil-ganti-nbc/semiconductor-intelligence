@@ -12,6 +12,10 @@ from semi_intel.domain.enums import ProviderRunStatus
 from semi_intel.domain.models import ProviderRun, Source
 from semi_intel.notifications.service import safe_error
 from semi_intel.signals.providers.replay import ReplayProvider
+from semi_intel.signals.source_lifecycle import (
+    clear_collection_identity_watermarks,
+    source_lifecycle_view,
+)
 
 
 _HTTP_STATUS = re.compile(r"\b([45]\d\d)\b")
@@ -50,6 +54,10 @@ def classify_error(value: str | None) -> tuple[str, str | None]:
         return "rate_limited", summary
     if "challenge" in low or "captcha" in low:
         return "challenged", summary
+    if "blocked" in low or "403" in low:
+        return "blocked", summary
+    if "malformed" in low or "suspicious empty reddit" in low:
+        return "invalid_feed", summary
     if any(marker in low for marker in ("not authenticated", "session expired", "authentication required")):
         return "authentication_required", summary
     match = _HTTP_STATUS.search(summary)
@@ -107,6 +115,7 @@ class SourceManagementService:
                 source.last_observed_item_at.isoformat() if source.last_observed_item_at else None
             ),
             "health": self.health(source),
+            **source_lifecycle_view(source),
         }
 
     def update(
@@ -153,5 +162,6 @@ class SourceManagementService:
             source.last_success_at = None
             source.last_observed_item_at = None
             source.error_state = None
+            clear_collection_identity_watermarks(source)
         self.session.commit()
         return source

@@ -42,6 +42,7 @@ from semi_intel.domain.models import (
     Source,
     SourceSuggestion,
 )
+from semi_intel.signals.source_lifecycle import candidate_has_admitted_novelty
 
 
 def utcnow() -> dt.datetime:
@@ -266,6 +267,10 @@ class NotificationService:
 
         for candidate in candidates:
             recent = aware(candidate.latest_observed_at) >= activation
+            admitted = candidate_has_admitted_novelty(self.session, candidate)
+            # Source-scoped gate: experimental/baseline observations seed
+            # watermarks without entering the ordinary novelty path.
+            effective_recent = recent and admitted
             eligible_state = candidate.state == SignalCandidateState.ACTIVE
             topic_ok = not settings.required_topic_match or candidate.primary_topic_id is not None
             groups_ok = (
@@ -285,7 +290,7 @@ class NotificationService:
                     NotificationEventType.HIGH_ATTENTION, "candidate", candidate.id,
                     boolean=high, metadata={"sequence": 0},
                 )
-                if not recent:
+                if not effective_recent:
                     summary.seeded_historical_candidates += 1
                 elif high and settings.high_score_enabled:
                     sequence = self._sequence(state)
@@ -293,7 +298,7 @@ class NotificationService:
                     self._high_attention(candidate, settings, sequence, muted_types, muted_topic, now, summary)
             else:
                 previous = bool(state.last_boolean_value)
-                if high and not previous and recent and settings.high_score_enabled:
+                if high and not previous and effective_recent and settings.high_score_enabled:
                     sequence = self._sequence(state)
                     state.last_event_at = now
                     self._high_attention(candidate, settings, sequence, muted_types, muted_topic, now, summary)
@@ -309,7 +314,7 @@ class NotificationService:
                 baseline = score_state.last_numeric_value or 0.0
                 increase = candidate.attention_score - baseline
                 if (
-                    recent and eligible_state and settings.score_increase_enabled
+                    effective_recent and eligible_state and settings.score_increase_enabled
                     and increase >= settings.minimum_score_increase
                 ):
                     sequence = self._sequence(score_state)
@@ -347,7 +352,7 @@ class NotificationService:
             else:
                 previous_groups = int(group_state.last_numeric_value or 0)
                 if (
-                    recent and eligible_state and settings.corroboration_enabled
+                    effective_recent and eligible_state and settings.corroboration_enabled
                     and groups > previous_groups and previous_groups > 0
                 ):
                     self._emit(
@@ -388,7 +393,7 @@ class NotificationService:
             else:
                 previous_ready = bool(ready_state.last_boolean_value)
             if (
-                ready and not previous_ready and recent
+                ready and not previous_ready and effective_recent
                 and settings.promotion_ready_enabled
             ):
                 sequence = self._sequence(ready_state)
@@ -488,6 +493,8 @@ class NotificationService:
             if aware(event.created_at) < activation:
                 continue
             candidate = self.session.get(SignalCandidate, event.candidate_id)
+            if candidate is not None and not candidate_has_admitted_novelty(self.session, candidate):
+                continue
             title = candidate.title if candidate else f"Candidate #{event.candidate_id}"
             self._emit(
                 event_type=NotificationEventType.CANDIDATE_PROMOTED,
@@ -556,6 +563,8 @@ class NotificationService:
 
         for (provider, source_id), provider_runs in grouped.items():
             latest = provider_runs[-1]
+            source = self.session.get(Source, source_id) if source_id else None
+            delivery_blocked = bool(source is not None and source.muted)
             open_incident = self.session.scalar(select(ProviderIncident).where(
                 ProviderIncident.provider == provider,
                 ProviderIncident.source_id == source_id,
@@ -581,7 +590,8 @@ class NotificationService:
                         provider_run_id=latest.id,
                         source_id=source_id,
                         metadata={"provider": provider, "incident_id": open_incident.id},
-                        muted=NotificationEventType.PROVIDER_RECOVERY.value in muted_types,
+                        muted=NotificationEventType.PROVIDER_RECOVERY.value in muted_types
+                        or delivery_blocked,
                         now=now, summary=summary,
                     )
                     open_incident.recovery_notification_id = notification.id
@@ -623,7 +633,8 @@ class NotificationService:
                     provider_run_id=latest.id,
                     source_id=source_id,
                     metadata={"provider": provider, "consecutive_failures": consecutive},
-                    muted=NotificationEventType.PROVIDER_FAILURE.value in muted_types,
+                    muted=NotificationEventType.PROVIDER_FAILURE.value in muted_types
+                    or delivery_blocked,
                     now=now, summary=summary,
                 )
                 open_incident.failure_notification_id = notification.id
