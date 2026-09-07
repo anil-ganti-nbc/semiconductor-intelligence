@@ -41,6 +41,7 @@ METADATA_MATURITY = "maturity"
 METADATA_SUBREDDIT = "subreddit"
 METADATA_BASELINE_AT = "baseline_completed_at"
 METADATA_DELIVERY_ADMITTED_AT = "delivery_admitted_at"
+METADATA_DELIVERY_ADMISSION_REQUIRED = "delivery_admission_required"
 
 
 def _naive_utc(value: dt.datetime | None) -> dt.datetime | None:
@@ -56,13 +57,23 @@ def _isoformat(value: dt.datetime) -> str:
     return naive.isoformat()
 
 
-def parse_iso(value: str | None) -> dt.datetime | None:
-    if not value:
+def parse_iso(value: Any) -> dt.datetime | None:
+    """Parse an ISO timestamp. Malformed or unusable values fail closed (None)."""
+    if value is None:
+        return None
+    if isinstance(value, dt.datetime):
+        return _naive_utc(value)
+    if not isinstance(value, str):
         return None
     text = value.strip()
+    if not text:
+        return None
     if text.endswith("Z"):
         text = text[:-1] + "+00:00"
-    parsed = dt.datetime.fromisoformat(text)
+    try:
+        parsed = dt.datetime.fromisoformat(text)
+    except ValueError:
+        return None
     return _naive_utc(parsed) or parsed
 
 
@@ -92,6 +103,29 @@ def source_maturity(source: Source) -> str | None:
     return str(value) if value else None
 
 
+def source_requires_delivery_admission(source: Source) -> bool:
+    """Sticky experimental-admission contract. Survives unmute and maturity changes."""
+    value = source_metadata(source).get(METADATA_DELIVERY_ADMISSION_REQUIRED)
+    return value is True
+
+
+def source_delivery_blocked(source: Source) -> bool:
+    if source.muted:
+        return True
+    if source_requires_delivery_admission(source) and source_delivery_admitted_at(source) is None:
+        return True
+    return False
+
+
+def ensure_delivery_admission_required(source: Source) -> None:
+    """Set the sticky contract flag without clearing existing watermarks."""
+    meta = source_metadata(source)
+    if meta.get(METADATA_DELIVERY_ADMISSION_REQUIRED) is True:
+        return
+    meta[METADATA_DELIVERY_ADMISSION_REQUIRED] = True
+    write_source_metadata(source, meta)
+
+
 def source_lifecycle_view(source: Source) -> dict[str, Any]:
     meta = source_metadata(source)
     return {
@@ -100,7 +134,8 @@ def source_lifecycle_view(source: Source) -> dict[str, Any]:
         "subreddit": meta.get(METADATA_SUBREDDIT),
         "baseline_completed_at": meta.get(METADATA_BASELINE_AT),
         "delivery_admitted_at": meta.get(METADATA_DELIVERY_ADMITTED_AT),
-        "delivery_blocked": bool(source.muted),
+        "delivery_admission_required": source_requires_delivery_admission(source),
+        "delivery_blocked": source_delivery_blocked(source),
     }
 
 
@@ -116,17 +151,28 @@ def item_is_baseline(item: SignalItem, source: Source) -> bool:
 def item_is_delivery_admitted(item: SignalItem, source: Source) -> bool:
     """Whether this observation may enter the ordinary novelty / Discord path.
 
-    Existing historical sources (unmuted, no baseline stamp, no admission
-    watermark) remain admitted -- adding this gate must not reset them.
+    Ordinary SemInt sources (no experimental admission contract) keep prior
+    behaviour: unmuted, non-baseline observations are admitted.
+
+    Sources under the sticky `delivery_admission_required` contract fail
+    closed unless `admit_source_for_delivery` has stamped a usable
+    `delivery_admitted_at`. Clearing `Source.muted` alone never grants
+    authority. A missing or malformed watermark is denial, not a fallback
+    to `baseline_completed_at`.
     """
     if source.muted:
         return False
     if item_is_baseline(item, source):
         return False
+    collected = _naive_utc(item.collected_at)
+    if source_requires_delivery_admission(source):
+        admitted_at = source_delivery_admitted_at(source)
+        if admitted_at is None or collected is None:
+            return False
+        return collected > admitted_at
     admitted_at = source_delivery_admitted_at(source)
     if admitted_at is None:
         return True
-    collected = _naive_utc(item.collected_at)
     if collected is None:
         return False
     return collected > admitted_at
@@ -152,13 +198,17 @@ def candidate_has_admitted_novelty(session: Session, candidate) -> bool:
 
 
 def source_uses_silent_baseline(source: Source) -> bool:
-    """First-populate silence is source-scoped to experimental/muted sources.
+    """First-populate silence is source-scoped to admission-controlled sources.
 
     Ordinary SemInt sources keep prior novelty behaviour (global activation
     watermark only). Applying baseline to every first success would change
     existing unmuted RSS/replay sources.
     """
-    return bool(source.muted) or source_maturity(source) == MATURITY_EXPERIMENTAL
+    return (
+        bool(source.muted)
+        or source_maturity(source) == MATURITY_EXPERIMENTAL
+        or source_requires_delivery_admission(source)
+    )
 
 
 def stamp_first_success_baseline(source: Source, *, now: dt.datetime) -> bool:
@@ -181,7 +231,10 @@ def stamp_first_success_baseline(source: Source, *, now: dt.datetime) -> bool:
 
 
 def clear_collection_identity_watermarks(source: Source) -> None:
-    """When the collectable identity changes, first-populate starts over."""
+    """When the collectable identity changes, first-populate starts over.
+
+    `delivery_admission_required` is lifetime provenance and is not cleared.
+    """
     meta = source_metadata(source)
     meta.pop(METADATA_BASELINE_AT, None)
     meta.pop(METADATA_DELIVERY_ADMITTED_AT, None)
@@ -202,9 +255,14 @@ def register_reddit_hardware(session: Session) -> tuple[Source, bool]:
         )
     )
     if existing is not None:
+        ensure_delivery_admission_required(existing)
+        session.commit()
         return existing, False
     existing_name = session.scalar(select(Source).where(Source.name == HARDWARE_SOURCE_NAME))
     if existing_name is not None:
+        if existing_name.provider == "rss" and existing_name.provider_key == HARDWARE_FEED_URL:
+            ensure_delivery_admission_required(existing_name)
+            session.commit()
         return existing_name, False
 
     source = Source(
@@ -221,6 +279,7 @@ def register_reddit_hardware(session: Session) -> tuple[Source, bool]:
                 METADATA_PLATFORM: "reddit",
                 METADATA_MATURITY: MATURITY_EXPERIMENTAL,
                 METADATA_SUBREDDIT: HARDWARE_SUBREDDIT,
+                METADATA_DELIVERY_ADMISSION_REQUIRED: True,
             },
             sort_keys=True,
         ),
@@ -240,9 +299,10 @@ def admit_source_for_delivery(source: Source, *, now: dt.datetime | None = None)
     now = now or dt.datetime.utcnow()
     source.muted = False
     meta = source_metadata(source)
+    meta[METADATA_DELIVERY_ADMISSION_REQUIRED] = True
     if meta.get(METADATA_MATURITY) == MATURITY_EXPERIMENTAL or not meta.get(METADATA_MATURITY):
         meta[METADATA_MATURITY] = MATURITY_ADMITTED
-    if not meta.get(METADATA_DELIVERY_ADMITTED_AT):
+    if source_delivery_admitted_at(source) is None:
         meta[METADATA_DELIVERY_ADMITTED_AT] = _isoformat(now)
     write_source_metadata(source, meta)
     return source

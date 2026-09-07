@@ -33,6 +33,7 @@ Created state:
 | polling_enabled | **false** |
 | muted | **true** (experimental; Discord blocked) |
 | maturity | `experimental` in `provider_metadata` |
+| delivery_admission_required | **true** (sticky; unmute is not admission) |
 
 Registration performs **no network fetch**. Polling stays off until an
 operator enables it separately. This helper is idempotent: a second call
@@ -58,10 +59,14 @@ the existing `Source.provider_metadata` JSON:
   "platform": "reddit",
   "subreddit": "hardware",
   "maturity": "experimental",
+  "delivery_admission_required": true,
   "baseline_completed_at": "<ISO datetime of first successful collect>",
-  "delivery_admitted_at": "<ISO datetime when muted was lifted>"
+  "delivery_admitted_at": "<ISO datetime stamped only by admit_source_for_delivery>"
 }
 ```
+
+`delivery_admission_required` is sticky lifetime provenance. Unmute,
+maturity changes, and feed-identity cursor resets do not clear it.
 
 ## Silent first populate (STD-DATA-COM-002)
 
@@ -89,8 +94,18 @@ stays on `SignalItem.collected_at`. Observation identity stays
 
 While `Source.muted` is true, no member observation of that source is
 delivery-admitted. Candidate notifications seed transition watermarks
-without emitting, so later promotion cannot treat soak-era HIGH_ATTENTION
-as a fresh crossing.
+without emitting:
+
+* HIGH_ATTENTION / PROMOTION_READY boolean crossings are **not** consumed
+  during experimental soak, so a later admitted member can still cross.
+* SCORE_INCREASE / corroboration numeric watermarks **are** advanced
+  without emitting, so soak-era movement cannot become a backlog when the
+  gate later opens.
+
+Those are the existing candidate-level transition rules. An experimental
+echo that does not change score or independent-group count does not emit.
+An admitted member that does change those fields may emit. The Reddit
+observation remains non-admitted either way.
 
 This is source-scoped. The global webhook enable flag is left alone. Other
 SemInt sources can still Discord.
@@ -114,11 +129,19 @@ An observation is delivery-admitted only when all of these hold:
 
 1. the source is not muted
 2. the observation is not in the first-populate baseline
-3. if `delivery_admitted_at` is set, `collected_at` is **after** that watermark
+3. if the source has sticky `delivery_admission_required` (set at r/hardware
+   registration and kept for the source's lifetime), a **valid**
+   `delivery_admitted_at` must exist — missing or malformed timestamps fail
+   closed and never fall back to `baseline_completed_at`
+4. `collected_at` is **after** `delivery_admitted_at`
 
-Soak-era and baseline rows therefore cannot become a Discord backlog when
-the gate is lifted. Only new eligible observations after admission flow
-into the ordinary path.
+Clearing `Source.muted` without `admit_source_for_delivery` does **not**
+grant Discord authority.
+
+Ordinary SemInt sources never placed under this contract keep prior
+behaviour. Mixed-source candidates are not poisoned: an experimental
+member cannot emit, and cannot block an admitted member's own transition.
+Admission stays on observation/source provenance, not candidate maturity.
 
 ## Reddit RSS failure honesty
 

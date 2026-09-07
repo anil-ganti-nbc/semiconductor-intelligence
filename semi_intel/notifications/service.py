@@ -42,7 +42,10 @@ from semi_intel.domain.models import (
     Source,
     SourceSuggestion,
 )
-from semi_intel.signals.source_lifecycle import candidate_has_admitted_novelty
+from semi_intel.signals.source_lifecycle import (
+    candidate_has_admitted_novelty,
+    source_delivery_blocked,
+)
 
 
 def utcnow() -> dt.datetime:
@@ -286,23 +289,39 @@ class NotificationService:
             )
             state = self._state(NotificationEventType.HIGH_ATTENTION, "candidate", candidate.id)
             if state is None:
-                state = self._new_state(
-                    NotificationEventType.HIGH_ATTENTION, "candidate", candidate.id,
-                    boolean=high, metadata={"sequence": 0},
-                )
-                if not effective_recent:
+                if not recent:
+                    # Historical vs global activation_at: consume the crossing.
+                    state = self._new_state(
+                        NotificationEventType.HIGH_ATTENTION, "candidate", candidate.id,
+                        boolean=high, metadata={"sequence": 0},
+                    )
                     summary.seeded_historical_candidates += 1
-                elif high and settings.high_score_enabled:
-                    sequence = self._sequence(state)
-                    state.last_event_at = now
-                    self._high_attention(candidate, settings, sequence, muted_types, muted_topic, now, summary)
+                elif not admitted:
+                    # Experimental soak: seed without consuming HIGH_ATTENTION so
+                    # a later admitted member can still cross. Soak-era items
+                    # themselves stay non-admitted after promotion.
+                    state = self._new_state(
+                        NotificationEventType.HIGH_ATTENTION, "candidate", candidate.id,
+                        boolean=False, metadata={"sequence": 0},
+                    )
+                    summary.seeded_historical_candidates += 1
+                else:
+                    state = self._new_state(
+                        NotificationEventType.HIGH_ATTENTION, "candidate", candidate.id,
+                        boolean=high, metadata={"sequence": 0},
+                    )
+                    if high and settings.high_score_enabled:
+                        sequence = self._sequence(state)
+                        state.last_event_at = now
+                        self._high_attention(candidate, settings, sequence, muted_types, muted_topic, now, summary)
             else:
                 previous = bool(state.last_boolean_value)
                 if high and not previous and effective_recent and settings.high_score_enabled:
                     sequence = self._sequence(state)
                     state.last_event_at = now
                     self._high_attention(candidate, settings, sequence, muted_types, muted_topic, now, summary)
-                state.last_boolean_value = high
+                if admitted or not recent:
+                    state.last_boolean_value = high
 
             score_state = self._state(NotificationEventType.SCORE_INCREASE, "candidate", candidate.id)
             if score_state is None:
@@ -314,28 +333,31 @@ class NotificationService:
                 baseline = score_state.last_numeric_value or 0.0
                 increase = candidate.attention_score - baseline
                 if (
-                    effective_recent and eligible_state and settings.score_increase_enabled
+                    eligible_state and settings.score_increase_enabled
                     and increase >= settings.minimum_score_increase
                 ):
-                    sequence = self._sequence(score_state)
-                    detail = self._score_reason(candidate)
-                    self._emit(
-                        event_type=NotificationEventType.SCORE_INCREASE,
-                        severity=NotificationSeverity.NOTABLE,
-                        title=f"Attention increased: {candidate.title}",
-                        body=f"Score rose from {baseline:.2f} to {candidate.attention_score:.2f}.",
-                        reason=detail,
-                        dedup_key=f"score:{candidate.id}:{sequence}",
-                        candidate_id=candidate.id,
-                        topic_id=candidate.primary_topic_id,
-                        metadata={"previous_score": baseline, "score": candidate.attention_score},
-                        muted=(
-                            NotificationEventType.SCORE_INCREASE.value in muted_types
-                            or muted_topic
-                        ),
-                        now=now, summary=summary,
-                    )
-                    score_state.last_event_at = now
+                    if effective_recent:
+                        sequence = self._sequence(score_state)
+                        detail = self._score_reason(candidate)
+                        self._emit(
+                            event_type=NotificationEventType.SCORE_INCREASE,
+                            severity=NotificationSeverity.NOTABLE,
+                            title=f"Attention increased: {candidate.title}",
+                            body=f"Score rose from {baseline:.2f} to {candidate.attention_score:.2f}.",
+                            reason=detail,
+                            dedup_key=f"score:{candidate.id}:{sequence}",
+                            candidate_id=candidate.id,
+                            topic_id=candidate.primary_topic_id,
+                            metadata={"previous_score": baseline, "score": candidate.attention_score},
+                            muted=(
+                                NotificationEventType.SCORE_INCREASE.value in muted_types
+                                or muted_topic
+                            ),
+                            now=now, summary=summary,
+                        )
+                        score_state.last_event_at = now
+                    # Soak-era / historical increases are swallowed so they cannot
+                    # become a backlog when admission or activation later opens.
                     score_state.last_numeric_value = candidate.attention_score
                 elif candidate.attention_score < baseline:
                     score_state.last_numeric_value = candidate.attention_score
@@ -387,7 +409,8 @@ class NotificationService:
             if ready_state is None:
                 ready_state = self._new_state(
                     NotificationEventType.PROMOTION_READY, "candidate", candidate.id,
-                    boolean=ready, metadata={"sequence": 0},
+                    boolean=(ready if (admitted or not recent) else False),
+                    metadata={"sequence": 0},
                 )
                 previous_ready = False
             else:
@@ -416,7 +439,8 @@ class NotificationService:
                     now=now, summary=summary,
                 )
                 ready_state.last_event_at = now
-            ready_state.last_boolean_value = ready
+            if admitted or not recent:
+                ready_state.last_boolean_value = ready
 
     def _high_attention(
         self, candidate: SignalCandidate, settings: NotificationSettings,
@@ -564,7 +588,7 @@ class NotificationService:
         for (provider, source_id), provider_runs in grouped.items():
             latest = provider_runs[-1]
             source = self.session.get(Source, source_id) if source_id else None
-            delivery_blocked = bool(source is not None and source.muted)
+            delivery_blocked = bool(source is not None and source_delivery_blocked(source))
             open_incident = self.session.scalar(select(ProviderIncident).where(
                 ProviderIncident.provider == provider,
                 ProviderIncident.source_id == source_id,

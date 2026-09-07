@@ -48,6 +48,9 @@ from semi_intel.signals.source_lifecycle import (
     source_delivery_admitted_at,
     source_lifecycle_view,
     source_maturity,
+    source_metadata,
+    source_requires_delivery_admission,
+    write_source_metadata,
 )
 from tests.test_operations_webhook import Opener
 
@@ -147,8 +150,10 @@ def test_register_reddit_hardware_is_safe_and_offline(db_session, monkeypatch):
     assert source.polling_enabled is False
     assert source.muted is True
     assert source_maturity(source) == "experimental"
+    assert source_requires_delivery_admission(source) is True
     view = source_lifecycle_view(source)
     assert view["delivery_blocked"] is True
+    assert view["delivery_admission_required"] is True
     assert view["platform"] == "reddit"
     assert db_session.scalar(select(func.count()).select_from(SignalItem)) == 0
 
@@ -177,6 +182,7 @@ def test_register_cli_does_not_enable_polling(cli_env, monkeypatch):
     assert source.polling_enabled is False
     assert source.muted is True
     assert source.provider == "rss"
+    assert source_requires_delivery_admission(source) is True
     session.close()
 
 
@@ -548,3 +554,248 @@ def test_non_reddit_empty_rss_remains_healthy_and_sample_feed_still_parses(db_se
     provider = RSSProvider(fetch_fn=_fetch_from(SAMPLE))
     result = provider.collect("https://example.com/feed", cursor=None)
     assert len(result.items) == 2
+
+
+# --- Finding 1. Fail-closed admission authority --------------------------------
+
+def _ordinary_signal(db_session, *, name: str, external_id: str, collected_at: dt.datetime):
+    source = Source(
+        name=name,
+        type=SourceType.RSS,
+        provider="rss",
+        provider_key=f"https://example.com/{external_id}",
+        url=f"https://example.com/{external_id}",
+        enabled=True,
+        muted=False,
+    )
+    db_session.add(source)
+    db_session.flush()
+    item = SignalItem(
+        source_id=source.id, provider="rss", external_id=external_id, raw_payload="{}",
+        normalized_text="RTX 50 Super specifications", content_hash=external_id,
+        collected_at=collected_at, url=f"https://example.com/{external_id}",
+    )
+    db_session.add(item)
+    db_session.flush()
+    return source, item
+
+
+def test_unmute_without_delivery_admitted_at_is_denied(db_session):
+    source, _ = register_reddit_hardware(db_session)
+    _collect(db_session, source, LISTING)
+    _collect(db_session, source, LISTING_NEW)
+    item = _item_by_external_id(db_session, POST_NEW)
+    source.muted = False
+    db_session.flush()
+
+    assert source_requires_delivery_admission(source) is True
+    assert source_delivery_admitted_at(source) is None
+    assert item_is_baseline(item, source) is False
+    assert item_is_delivery_admitted(item, source) is False
+
+    now = BASE + dt.timedelta(days=2)
+    NotificationService(db_session).settings(now=BASE)
+    _topic, candidate = _high_candidate(db_session, fingerprint="unmute-no-admit", latest=now)
+    _attach(db_session, candidate, item)
+    generated = NotificationService(db_session).generate(now=now)
+    assert generated.created_count == 0
+    assert candidate_has_admitted_novelty(db_session, candidate) is False
+    assert db_session.scalar(select(func.count()).select_from(Notification)) == 0
+
+
+def test_malformed_delivery_admitted_at_is_denied(db_session):
+    source, _ = register_reddit_hardware(db_session)
+    _collect(db_session, source, LISTING)
+    _collect(db_session, source, LISTING_NEW)
+    item = _item_by_external_id(db_session, POST_NEW)
+    source.muted = False
+    meta = source_metadata(source)
+    meta["delivery_admitted_at"] = "not-a-timestamp"
+    write_source_metadata(source, meta)
+    db_session.flush()
+
+    assert source_requires_delivery_admission(source) is True
+    assert source_delivery_admitted_at(source) is None
+    assert item_is_delivery_admitted(item, source) is False
+    now = BASE + dt.timedelta(days=2)
+    NotificationService(db_session).settings(now=BASE)
+    _topic, candidate = _high_candidate(db_session, fingerprint="malformed-admit", latest=now)
+    _attach(db_session, candidate, item)
+    assert candidate_has_admitted_novelty(db_session, candidate) is False
+    generated = NotificationService(db_session).generate(now=now)
+    assert generated.created_count == 0
+
+
+def test_ordinary_source_without_admission_contract_keeps_prior_delivery(db_session):
+    ordinary, item = _ordinary_signal(
+        db_session, name="Ordinary News RSS", external_id="ord-prior",
+        collected_at=BASE.replace(tzinfo=None) + dt.timedelta(days=1),
+    )
+    assert source_requires_delivery_admission(ordinary) is False
+    assert ordinary.muted is False
+    assert item_is_delivery_admitted(item, ordinary) is True
+
+    now = BASE + dt.timedelta(days=2)
+    NotificationService(db_session).settings(now=BASE)
+    _topic, candidate = _high_candidate(db_session, fingerprint="ordinary-open", latest=now)
+    _attach(db_session, candidate, item)
+    generated = NotificationService(db_session).generate(now=now)
+    assert generated.created_count >= 1
+    assert candidate_has_admitted_novelty(db_session, candidate) is True
+
+
+def test_admit_source_for_delivery_is_the_only_authority_grant(db_session):
+    source, _ = register_reddit_hardware(db_session)
+    _collect(db_session, source, LISTING)
+    _collect(db_session, source, LISTING_NEW)
+    soak = _item_by_external_id(db_session, POST_NEW)
+    source.muted = False
+    db_session.flush()
+    assert item_is_delivery_admitted(soak, source) is False
+
+    admit_at = dt.datetime.utcnow()
+    admit_source_for_delivery(source, now=admit_at)
+    db_session.flush()
+    assert source.muted is False
+    assert source_requires_delivery_admission(source) is True
+    assert source_maturity(source) == "admitted"
+    assert source_delivery_admitted_at(source) is not None
+    assert item_is_delivery_admitted(soak, source) is False
+
+    _collect(db_session, source, LISTING_ADMIT)
+    later = _item_by_external_id(db_session, POST_ADMIT)
+    later.collected_at = admit_at + dt.timedelta(minutes=10)
+    db_session.flush()
+    assert item_is_baseline(later, source) is False
+    assert item_is_delivery_admitted(later, source) is True
+    assert item_is_delivery_admitted(soak, source) is False
+
+
+# --- Finding 2. Mixed-source candidate provenance -----------------------------
+
+def test_mixed_candidate_experimental_only_does_not_deliver(db_session):
+    reddit, _ = register_reddit_hardware(db_session)
+    _collect(db_session, reddit, LISTING)
+    _collect(db_session, reddit, LISTING_NEW)
+    reddit_item = _item_by_external_id(db_session, POST_NEW)
+    now = BASE + dt.timedelta(days=2)
+    NotificationService(db_session).settings(now=BASE)
+    _topic, candidate = _high_candidate(db_session, fingerprint="mixed-case1", latest=now)
+    _attach(db_session, candidate, reddit_item)
+    generated = NotificationService(db_session).generate(now=now)
+    assert generated.created_count == 0
+    assert candidate_has_admitted_novelty(db_session, candidate) is False
+    assert item_is_delivery_admitted(reddit_item, reddit) is False
+
+
+def test_mixed_candidate_admitted_corroboration_can_emit_without_admitting_reddit(db_session):
+    reddit, _ = register_reddit_hardware(db_session)
+    _collect(db_session, reddit, LISTING)
+    _collect(db_session, reddit, LISTING_NEW)
+    reddit_item = _item_by_external_id(db_session, POST_NEW)
+    now = BASE + dt.timedelta(days=2)
+    NotificationService(db_session).settings(now=BASE)
+    _topic, candidate = _high_candidate(
+        db_session, fingerprint="mixed-case2", latest=now, score=0.50,
+    )
+    candidate.independent_source_group_count = 1
+    _attach(db_session, candidate, reddit_item)
+    first = NotificationService(db_session).generate(now=now)
+    assert first.created_count == 0
+    assert item_is_delivery_admitted(reddit_item, reddit) is False
+
+    _ordinary, ordinary_item = _ordinary_signal(
+        db_session, name="Fixture Independent Benchmark", external_id="ord-corroboration",
+        collected_at=now.replace(tzinfo=None),
+    )
+    _attach(db_session, candidate, ordinary_item)
+    candidate.attention_score = 0.92
+    candidate.independent_source_group_count = 3
+    candidate.latest_observed_at = now + dt.timedelta(minutes=5)
+    db_session.flush()
+    assert item_is_delivery_admitted(ordinary_item, _ordinary) is True
+    assert item_is_delivery_admitted(reddit_item, reddit) is False
+    assert candidate_has_admitted_novelty(db_session, candidate) is True
+
+    second = NotificationService(db_session).generate(now=now + dt.timedelta(minutes=5))
+    event_types = {
+        row.event_type
+        for row in db_session.scalars(select(Notification).where(Notification.candidate_id == candidate.id))
+    }
+    assert second.created_count >= 1
+    assert NotificationEventType.HIGH_ATTENTION in event_types
+    assert NotificationEventType.INDEPENDENT_CORROBORATION in event_types
+    assert item_is_delivery_admitted(reddit_item, reddit) is False
+
+
+def test_mixed_candidate_reddit_echo_does_not_manufacture_a_transition(db_session):
+    ordinary, ordinary_item = _ordinary_signal(
+        db_session, name="Ordinary First Source", external_id="ord-first",
+        collected_at=BASE.replace(tzinfo=None) + dt.timedelta(days=1),
+    )
+    now = BASE + dt.timedelta(days=2)
+    NotificationService(db_session).settings(now=BASE)
+    _topic, candidate = _high_candidate(db_session, fingerprint="mixed-case3", latest=now)
+    _attach(db_session, candidate, ordinary_item)
+    first = NotificationService(db_session).generate(now=now)
+    assert first.created_count >= 1
+    before = list(db_session.scalars(select(Notification.id).where(Notification.candidate_id == candidate.id)))
+
+    reddit, _ = register_reddit_hardware(db_session)
+    _collect(db_session, reddit, LISTING)
+    _collect(db_session, reddit, LISTING_NEW)
+    reddit_item = _item_by_external_id(db_session, POST_NEW)
+    _attach(db_session, candidate, reddit_item)
+    candidate.item_count = 2
+    db_session.flush()
+    assert item_is_delivery_admitted(reddit_item, reddit) is False
+    assert candidate_has_admitted_novelty(db_session, candidate) is True
+
+    second = NotificationService(db_session).generate(now=now + dt.timedelta(minutes=5))
+    after = list(db_session.scalars(select(Notification.id).where(Notification.candidate_id == candidate.id)))
+    assert second.created_count == 0
+    assert after == before
+
+
+def test_mixed_candidate_post_admission_reddit_may_participate(db_session):
+    reddit, _ = register_reddit_hardware(db_session)
+    _collect(db_session, reddit, LISTING)
+    _collect(db_session, reddit, LISTING_NEW)
+    soak = _item_by_external_id(db_session, POST_NEW)
+    ordinary, ordinary_item = _ordinary_signal(
+        db_session, name="Ordinary Mix Source", external_id="ord-mix",
+        collected_at=BASE.replace(tzinfo=None) + dt.timedelta(days=1),
+    )
+    now = BASE + dt.timedelta(days=2)
+    NotificationService(db_session).settings(now=BASE)
+    settings = NotificationService(db_session).settings()
+    settings.minimum_score_increase = 0.05
+    _topic, candidate = _high_candidate(db_session, fingerprint="mixed-case4", latest=now, score=0.92)
+    _attach(db_session, candidate, soak)
+    _attach(db_session, candidate, ordinary_item)
+    first = NotificationService(db_session).generate(now=now)
+    assert first.created_count >= 1
+    assert item_is_delivery_admitted(soak, reddit) is False
+
+    admit_at = dt.datetime.utcnow()
+    admit_source_for_delivery(reddit, now=admit_at)
+    db_session.flush()
+    _collect(db_session, reddit, LISTING_ADMIT)
+    later = _item_by_external_id(db_session, POST_ADMIT)
+    later.collected_at = admit_at + dt.timedelta(minutes=10)
+    _attach(db_session, candidate, later)
+    candidate.attention_score = 0.99
+    candidate.latest_observed_at = now + dt.timedelta(hours=2)
+    db_session.flush()
+    assert item_is_delivery_admitted(later, reddit) is True
+    assert item_is_delivery_admitted(soak, reddit) is False
+
+    second = NotificationService(db_session).generate(now=now + dt.timedelta(hours=2))
+    event_types = {
+        row.event_type
+        for row in db_session.scalars(select(Notification).where(Notification.candidate_id == candidate.id))
+    }
+    assert second.created_count >= 1
+    assert NotificationEventType.SCORE_INCREASE in event_types
+    assert item_is_delivery_admitted(soak, reddit) is False
+
