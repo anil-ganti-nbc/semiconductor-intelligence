@@ -87,13 +87,23 @@ def _entry_id(entry, *, reddit: bool = False) -> str:
     return (entry.get("title") or "").strip()
 
 
-def _entry_html(entry) -> str:
-    parts = [entry.get("summary") or "", entry.get("description") or ""]
+_FEED_URL_PAYLOAD_KEY = "_semintel_feed_url"
+
+
+def _reddit_entry_html(entry) -> str:
+    """Atom HTML body for Reddit only. Identical duplicate fields are kept once."""
+    parts: list[str] = []
+    for value in (entry.get("summary"), entry.get("description")):
+        text = (value or "").strip()
+        if text and text not in parts:
+            parts.append(text)
     for block in entry.get("content") or []:
         if isinstance(block, dict):
-            parts.append(block.get("value") or "")
+            text = (block.get("value") or "").strip()
         else:
-            parts.append(str(block))
+            text = str(block).strip()
+        if text and text not in parts:
+            parts.append(text)
     return "\n".join(parts)
 
 
@@ -154,14 +164,42 @@ class RSSProvider:
             if not eid or eid in seen_ids:
                 continue
             seen_ids.add(eid)
-            items.append(RawItem(external_id=eid, payload=dict(entry)))
+            payload = dict(entry)
+            payload[_FEED_URL_PAYLOAD_KEY] = source_handle
+            items.append(RawItem(external_id=eid, payload=payload))
         items.reverse()  # chronological order for storage
         return CollectResult(items=items, next_cursor=Cursor(newest) if newest else cursor)
 
     def normalize(self, raw: RawItem) -> NormalizedSignal:
         e = raw.payload
+        feed_url = str(e.get(_FEED_URL_PAYLOAD_KEY) or "")
+        if is_reddit_feed(feed_url):
+            return self._normalize_reddit(raw)
+        return self._normalize_rss(raw)
+
+    def _normalize_rss(self, raw: RawItem) -> NormalizedSignal:
+        """Pre-M0 RSS normalisation. Ordinary feeds must keep this contract."""
+        e = raw.payload
         title = (e.get("title") or "").strip()
-        summary = _entry_html(e).strip()
+        summary = (e.get("summary") or e.get("description") or "").strip()
+        text = f"{title}\n\n{summary}".strip() if summary else title
+        return NormalizedSignal(
+            external_id=raw.external_id,
+            provider=self.name,
+            author_handle=e.get("author"),
+            author_display_name=e.get("author"),
+            posted_at=_to_datetime(e.get("published_parsed") or e.get("updated_parsed")),
+            text=text,
+            title=title or None,
+            url=e.get("link"),
+            links=[e["link"]] if e.get("link") else [],
+            raw=e,
+        )
+
+    def _normalize_reddit(self, raw: RawItem) -> NormalizedSignal:
+        e = raw.payload
+        title = (e.get("title") or "").strip()
+        summary = _reddit_entry_html(e).strip()
         text = f"{title}\n\n{summary}".strip() if summary else title
         permalink = (e.get("link") or "").strip() or None
         links: list[str] = []

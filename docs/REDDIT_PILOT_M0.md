@@ -21,6 +21,11 @@ semintel radar register-reddit-hardware
 
 or the Python helper `register_reddit_hardware(session)`.
 
+Exact existing identity `(provider=rss, provider_key=<r/hardware RSS URL>)`
+is idempotent. A different source that only reuses the display name
+`Reddit r/hardware` is a conflict: registration fails closed and does not
+mutate or adopt that row.
+
 Created state:
 
 | Field | Value |
@@ -107,6 +112,16 @@ echo that does not change score or independent-group count does not emit.
 An admitted member that does change those fields may emit. The Reddit
 observation remains non-admitted either way.
 
+Admission for emit is **transition-aware**, not lifetime membership. An
+older admitted observation already on the candidate does not authorise a
+later HIGH_ATTENTION, SCORE_INCREASE, INDEPENDENT_CORROBORATION, or
+PROMOTION_READY crossing caused only by new experimental material.
+Notification watermarks record which `SignalItem` ids have been evaluated;
+only newly attached members since that snapshot can grant authority. A
+later genuinely admitted observation may still produce a legitimate
+transition. Experimental numeric movement still advances internal
+watermarks so soak-era jumps cannot flood after admission.
+
 This is source-scoped. The global webhook enable flag is left alone. Other
 SemInt sources can still Discord.
 
@@ -160,6 +175,10 @@ feed `id` (permalink) then `link`. Title is never used. `SignalItem.url`
 keeps the Reddit permalink. Outbound aggregator URLs found in the entry
 HTML are stored on `expanded_links` so existing `canonical_url()` /
 independence grouping remain usable.
+
+Ordinary non-Reddit RSS normalisation is unchanged from pre-M0: one
+`summary or description` body, permalink-only `links`, and `author` as
+feedparser exposed it. Richer HTML/outbound extraction is Reddit-only.
 
 ## Out of scope for M0
 

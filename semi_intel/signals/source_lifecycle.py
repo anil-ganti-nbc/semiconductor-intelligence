@@ -44,6 +44,10 @@ METADATA_DELIVERY_ADMITTED_AT = "delivery_admitted_at"
 METADATA_DELIVERY_ADMISSION_REQUIRED = "delivery_admission_required"
 
 
+class SourceRegistrationConflict(ValueError):
+    """Display name collides with a source that is not the r/hardware RSS identity."""
+
+
 def _naive_utc(value: dt.datetime | None) -> dt.datetime | None:
     if value is None:
         return None
@@ -148,6 +152,17 @@ def item_is_baseline(item: SignalItem, source: Source) -> bool:
     return collected <= boundary
 
 
+def candidate_member_rows(session: Session, candidate) -> list[tuple[SignalItem, Source]]:
+    return list(
+        session.execute(
+            select(SignalItem, Source)
+            .join(CandidateSignalItem, CandidateSignalItem.signal_item_id == SignalItem.id)
+            .join(Source, Source.id == SignalItem.source_id)
+            .where(CandidateSignalItem.candidate_id == candidate.id)
+        )
+    )
+
+
 def item_is_delivery_admitted(item: SignalItem, source: Source) -> bool:
     """Whether this observation may enter the ordinary novelty / Discord path.
 
@@ -183,18 +198,39 @@ def candidate_has_admitted_novelty(session: Session, candidate) -> bool:
 
     Candidates with no linked SignalItems keep prior behaviour (admitted).
     Test fixtures and some in-app-only candidates have no membership rows.
+
+    This is lifetime membership, not transition authority. Notification
+    emit paths must use `candidate_transition_has_admitted_material`.
     """
-    rows = list(
-        session.execute(
-            select(SignalItem, Source)
-            .join(CandidateSignalItem, CandidateSignalItem.signal_item_id == SignalItem.id)
-            .join(Source, Source.id == SignalItem.source_id)
-            .where(CandidateSignalItem.candidate_id == candidate.id)
-        )
-    )
+    rows = candidate_member_rows(session, candidate)
     if not rows:
         return True
     return any(item_is_delivery_admitted(item, source) for item, source in rows)
+
+
+def candidate_transition_has_admitted_material(
+    session: Session,
+    candidate,
+    *,
+    previously_seen_item_ids: set[int] | frozenset[int],
+) -> bool:
+    """True when new member material since the last evaluation is admitted.
+
+    An older admitted member must not authorise a transition caused only by
+    later experimental observations. Empty membership keeps prior behaviour
+    (admitted). No new members since the watermark is denial, not a fallback
+    to lifetime membership.
+    """
+    rows = candidate_member_rows(session, candidate)
+    if not rows:
+        return True
+    new_rows = [
+        (item, source) for item, source in rows
+        if item.id not in previously_seen_item_ids
+    ]
+    if not new_rows:
+        return False
+    return any(item_is_delivery_admitted(item, source) for item, source in new_rows)
 
 
 def source_uses_silent_baseline(source: Source) -> bool:
@@ -247,6 +283,9 @@ def register_reddit_hardware(session: Session) -> tuple[Source, bool]:
     Created state: enabled, polling disabled, muted (experimental / Discord
     blocked), provider=rss, exact Reddit RSS URL. Existing rows are returned
     unchanged so a later operator promotion or polling enable is not clobbered.
+
+    A different source that only reuses the display name is a conflict: this
+    helper does not mutate or adopt that row.
     """
     existing = session.scalar(
         select(Source).where(
@@ -260,10 +299,14 @@ def register_reddit_hardware(session: Session) -> tuple[Source, bool]:
         return existing, False
     existing_name = session.scalar(select(Source).where(Source.name == HARDWARE_SOURCE_NAME))
     if existing_name is not None:
-        if existing_name.provider == "rss" and existing_name.provider_key == HARDWARE_FEED_URL:
-            ensure_delivery_admission_required(existing_name)
-            session.commit()
-        return existing_name, False
+        raise SourceRegistrationConflict(
+            f"A source named {HARDWARE_SOURCE_NAME!r} already exists with "
+            f"provider={existing_name.provider!r} "
+            f"provider_key={existing_name.provider_key!r}. "
+            "The r/hardware RSS pilot requires "
+            f"provider='rss' and provider_key={HARDWARE_FEED_URL!r} "
+            "and will not adopt an unrelated row."
+        )
 
     source = Source(
         name=HARDWARE_SOURCE_NAME,

@@ -27,6 +27,7 @@ from semi_intel.domain.models import (
     Source,
 )
 from semi_intel.editorial.service import canonical_url
+from semi_intel.ingestion.hashing import hash_content
 from semi_intel.notifications.service import NotificationService
 from semi_intel.operations.webhook import ExternalDeliveryService, WebhookAdapter, WebhookConfigurationService
 from semi_intel.signals.analysis import analyze_signal_item
@@ -39,8 +40,10 @@ from semi_intel.signals.providers.rss import RSSProvider
 from semi_intel.signals.source_lifecycle import (
     HARDWARE_FEED_URL,
     HARDWARE_SOURCE_NAME,
+    SourceRegistrationConflict,
     admit_source_for_delivery,
     candidate_has_admitted_novelty,
+    candidate_transition_has_admitted_material,
     item_is_baseline,
     item_is_delivery_admitted,
     register_reddit_hardware,
@@ -556,6 +559,83 @@ def test_non_reddit_empty_rss_remains_healthy_and_sample_feed_still_parses(db_se
     assert len(result.items) == 2
 
 
+def test_non_reddit_rss_normalization_matches_pre_m0_sample_feed(db_session):
+    provider = RSSProvider(fetch_fn=_fetch_from(SAMPLE))
+    collected = provider.collect("https://example.com/feed", cursor=None)
+    signals = {item.external_id: provider.normalize(item) for item in collected.items}
+    nova = signals["https://example.com/nova-lake-18a-p"]
+    assert nova.title == "Nova Lake spotted with 18A-P process node"
+    assert nova.text == (
+        "Nova Lake spotted with 18A-P process node\n\n"
+        "A new leak suggests Nova Lake uses Intel's 18A-P node."
+    )
+    assert nova.url == "https://example.com/nova-lake-18a-p"
+    assert nova.links == ["https://example.com/nova-lake-18a-p"]
+    assert nova.author_handle is None
+    assert nova.author_display_name is None
+
+    rtx = signals["https://example.com/rtx-5080-super-24gb"]
+    assert rtx.title == "RTX 5080 Super rumored with 24GB VRAM"
+    assert rtx.text == (
+        "RTX 5080 Super rumored with 24GB VRAM\n\n"
+        "Board partner slides show a 24GB configuration on a 256-bit bus."
+    )
+    assert rtx.url == "https://example.com/rtx-5080-super-24gb"
+    assert rtx.links == ["https://example.com/rtx-5080-super-24gb"]
+    assert rtx.text.count("Board partner slides show a 24GB configuration on a 256-bit bus.") == 1
+
+    source = Source(
+        name="Sample Hardware News",
+        type=SourceType.RSS,
+        provider="rss",
+        provider_key="https://example.com/feed",
+        url="https://example.com/feed",
+        enabled=True,
+        polling_enabled=False,
+        last_success_at=BASE.replace(tzinfo=None),
+    )
+    db_session.add(source)
+    db_session.commit()
+    run = _rss_service(db_session, _fetch_from(SAMPLE)).collect_source(source)
+    assert run.status == ProviderRunStatus.OK
+    stored = _item_by_external_id(db_session, "https://example.com/nova-lake-18a-p")
+    assert stored.title == nova.title
+    assert stored.normalized_text == nova.text
+    assert stored.url == nova.url
+    assert json.loads(stored.expanded_links) == nova.links
+    assert stored.author_handle is None
+    assert stored.content_hash == hash_content(nova.text)
+
+
+def test_non_reddit_rss_does_not_duplicate_equivalent_summary_description_content():
+    duplicate = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">'
+        "<channel><title>Dup</title>"
+        "<item>"
+        "<title>Same body twice</title>"
+        "<link>https://example.com/same-body</link>"
+        "<guid>https://example.com/same-body</guid>"
+        "<description>The leak is 24GB.</description>"
+        "<content:encoded>The leak is 24GB.</content:encoded>"
+        "</item></channel></rss>"
+    )
+
+    def fetch_fn(_url: str):
+        return feedparser.parse(duplicate)
+
+    provider = RSSProvider(fetch_fn=fetch_fn)
+    collected = provider.collect("https://example.com/dup.xml", cursor=None)
+    assert len(collected.items) == 1
+    signal = provider.normalize(collected.items[0])
+    assert signal.title == "Same body twice"
+    assert signal.text == "Same body twice\n\nThe leak is 24GB."
+    assert signal.text.count("The leak is 24GB.") == 1
+    assert signal.url == "https://example.com/same-body"
+    assert signal.links == ["https://example.com/same-body"]
+    assert signal.author_handle is None
+
+
 # --- Finding 1. Fail-closed admission authority --------------------------------
 
 def _ordinary_signal(db_session, *, name: str, external_id: str, collected_at: dt.datetime):
@@ -798,4 +878,235 @@ def test_mixed_candidate_post_admission_reddit_may_participate(db_session):
     assert second.created_count >= 1
     assert NotificationEventType.SCORE_INCREASE in event_types
     assert item_is_delivery_admitted(soak, reddit) is False
+
+
+# --- Finding 3. Registration name conflict ------------------------------------
+
+def test_register_reddit_hardware_fails_closed_on_unrelated_name_collision(db_session):
+    other = Source(
+        name=HARDWARE_SOURCE_NAME,
+        type=SourceType.RSS,
+        provider="rss",
+        provider_key="https://example.com/not-hardware.xml",
+        url="https://example.com/not-hardware.xml",
+        enabled=True,
+        polling_enabled=True,
+        muted=False,
+    )
+    db_session.add(other)
+    db_session.commit()
+    other_id = other.id
+
+    with pytest.raises(SourceRegistrationConflict, match="will not adopt an unrelated row"):
+        register_reddit_hardware(db_session)
+
+    reloaded = db_session.get(Source, other_id)
+    assert reloaded is not None
+    assert reloaded.name == HARDWARE_SOURCE_NAME
+    assert reloaded.provider_key == "https://example.com/not-hardware.xml"
+    assert reloaded.polling_enabled is True
+    assert reloaded.muted is False
+    assert db_session.scalar(
+        select(Source).where(Source.provider == "rss", Source.provider_key == HARDWARE_FEED_URL)
+    ) is None
+
+
+# --- Finding 1. Transition-aware mixed-source admission -----------------------
+
+def _candidate_event_types(session: Session, candidate_id: int) -> set[NotificationEventType]:
+    return {
+        row.event_type
+        for row in session.scalars(
+            select(Notification).where(Notification.candidate_id == candidate_id)
+        )
+    }
+
+
+def _reddit_new_item(db_session) -> tuple[Source, SignalItem]:
+    reddit, _ = register_reddit_hardware(db_session)
+    _collect(db_session, reddit, LISTING)
+    _collect(db_session, reddit, LISTING_NEW)
+    return reddit, _item_by_external_id(db_session, POST_NEW)
+
+
+def test_experimental_reddit_cannot_launder_high_attention_via_old_admitted_member(db_session):
+    ordinary, ordinary_item = _ordinary_signal(
+        db_session, name="Ordinary High Seed", external_id="ord-high",
+        collected_at=BASE.replace(tzinfo=None) + dt.timedelta(days=1),
+    )
+    now = BASE + dt.timedelta(days=2)
+    notifications = NotificationService(db_session)
+    notifications.settings(now=BASE)
+    _topic, candidate = _high_candidate(
+        db_session, fingerprint="launder-high", latest=now, score=0.50,
+    )
+    candidate.independent_source_group_count = 2
+    _attach(db_session, candidate, ordinary_item)
+    first = notifications.generate(now=now)
+    assert NotificationEventType.HIGH_ATTENTION not in _candidate_event_types(db_session, candidate.id)
+    assert first.created_count == 0 or NotificationEventType.HIGH_ATTENTION not in {
+        row.event_type for row in db_session.scalars(
+            select(Notification).where(Notification.candidate_id == candidate.id)
+        )
+    }
+
+    reddit, reddit_item = _reddit_new_item(db_session)
+    _attach(db_session, candidate, reddit_item)
+    candidate.attention_score = 0.92
+    candidate.latest_observed_at = now + dt.timedelta(minutes=5)
+    db_session.flush()
+    assert item_is_delivery_admitted(reddit_item, reddit) is False
+    assert candidate_has_admitted_novelty(db_session, candidate) is True
+    assert candidate_transition_has_admitted_material(
+        db_session, candidate, previously_seen_item_ids={ordinary_item.id}
+    ) is False
+
+    second = notifications.generate(now=now + dt.timedelta(minutes=5))
+    types = _candidate_event_types(db_session, candidate.id)
+    assert NotificationEventType.HIGH_ATTENTION not in types
+    assert second.created_count == 0 or NotificationEventType.HIGH_ATTENTION not in types
+    muted_types = json.loads(notifications.settings().muted_event_types or "[]")
+    assert muted_types == []
+    assert item_is_delivery_admitted(reddit_item, reddit) is False
+
+
+def test_experimental_reddit_cannot_launder_score_increase_via_old_admitted_member(db_session):
+    ordinary, ordinary_item = _ordinary_signal(
+        db_session, name="Ordinary Score Seed", external_id="ord-score",
+        collected_at=BASE.replace(tzinfo=None) + dt.timedelta(days=1),
+    )
+    now = BASE + dt.timedelta(days=2)
+    notifications = NotificationService(db_session)
+    notifications.settings(now=BASE)
+    _topic, candidate = _high_candidate(
+        db_session, fingerprint="launder-score", latest=now, score=0.50,
+    )
+    candidate.independent_source_group_count = 1
+    _attach(db_session, candidate, ordinary_item)
+    notifications.generate(now=now)
+    assert NotificationEventType.SCORE_INCREASE not in _candidate_event_types(db_session, candidate.id)
+
+    reddit, reddit_item = _reddit_new_item(db_session)
+    _attach(db_session, candidate, reddit_item)
+    candidate.attention_score = 0.66
+    candidate.latest_observed_at = now + dt.timedelta(minutes=5)
+    db_session.flush()
+    notifications.generate(now=now + dt.timedelta(minutes=5))
+    types = _candidate_event_types(db_session, candidate.id)
+    assert NotificationEventType.SCORE_INCREASE not in types
+    assert NotificationEventType.HIGH_ATTENTION not in types
+    assert item_is_delivery_admitted(reddit_item, reddit) is False
+
+
+def test_experimental_reddit_cannot_launder_corroboration_via_old_admitted_member(db_session):
+    ordinary, ordinary_item = _ordinary_signal(
+        db_session, name="Ordinary Group Seed", external_id="ord-group",
+        collected_at=BASE.replace(tzinfo=None) + dt.timedelta(days=1),
+    )
+    now = BASE + dt.timedelta(days=2)
+    notifications = NotificationService(db_session)
+    notifications.settings(now=BASE)
+    _topic, candidate = _high_candidate(
+        db_session, fingerprint="launder-group", latest=now, score=0.50,
+    )
+    candidate.independent_source_group_count = 1
+    _attach(db_session, candidate, ordinary_item)
+    notifications.generate(now=now)
+    assert NotificationEventType.INDEPENDENT_CORROBORATION not in _candidate_event_types(
+        db_session, candidate.id
+    )
+
+    reddit, reddit_item = _reddit_new_item(db_session)
+    _attach(db_session, candidate, reddit_item)
+    candidate.independent_source_group_count = 2
+    candidate.latest_observed_at = now + dt.timedelta(minutes=5)
+    db_session.flush()
+    notifications.generate(now=now + dt.timedelta(minutes=5))
+    assert NotificationEventType.INDEPENDENT_CORROBORATION not in _candidate_event_types(
+        db_session, candidate.id
+    )
+    assert item_is_delivery_admitted(reddit_item, reddit) is False
+
+
+def test_experimental_reddit_cannot_launder_promotion_ready_via_old_admitted_member(db_session):
+    ordinary, ordinary_item = _ordinary_signal(
+        db_session, name="Ordinary Ready Seed", external_id="ord-ready",
+        collected_at=BASE.replace(tzinfo=None) + dt.timedelta(days=1),
+    )
+    now = BASE + dt.timedelta(days=2)
+    notifications = NotificationService(db_session)
+    notifications.settings(now=BASE)
+    _topic, candidate = _high_candidate(
+        db_session, fingerprint="launder-ready", latest=now, score=0.72,
+    )
+    candidate.independent_source_group_count = 2
+    _attach(db_session, candidate, ordinary_item)
+    notifications.generate(now=now)
+    assert NotificationEventType.PROMOTION_READY not in _candidate_event_types(
+        db_session, candidate.id
+    )
+
+    reddit, reddit_item = _reddit_new_item(db_session)
+    _attach(db_session, candidate, reddit_item)
+    candidate.attention_score = 0.80
+    candidate.latest_observed_at = now + dt.timedelta(minutes=5)
+    db_session.flush()
+    notifications.generate(now=now + dt.timedelta(minutes=5))
+    assert NotificationEventType.PROMOTION_READY not in _candidate_event_types(
+        db_session, candidate.id
+    )
+    assert item_is_delivery_admitted(reddit_item, reddit) is False
+
+
+def test_admitted_observation_after_suppressed_experimental_transition_resumes(db_session):
+    ordinary, ordinary_item = _ordinary_signal(
+        db_session, name="Ordinary Resume Seed", external_id="ord-resume",
+        collected_at=BASE.replace(tzinfo=None) + dt.timedelta(days=1),
+    )
+    now = BASE + dt.timedelta(days=2)
+    notifications = NotificationService(db_session)
+    settings = notifications.settings(now=BASE)
+    assert json.loads(settings.muted_event_types or "[]") == []
+    _topic, candidate = _high_candidate(
+        db_session, fingerprint="launder-resume", latest=now, score=0.50,
+    )
+    candidate.independent_source_group_count = 2
+    _attach(db_session, candidate, ordinary_item)
+    notifications.generate(now=now)
+
+    reddit, reddit_item = _reddit_new_item(db_session)
+    _attach(db_session, candidate, reddit_item)
+    candidate.attention_score = 0.92
+    candidate.latest_observed_at = now + dt.timedelta(minutes=5)
+    db_session.flush()
+    suppressed = notifications.generate(now=now + dt.timedelta(minutes=5))
+    assert NotificationEventType.HIGH_ATTENTION not in _candidate_event_types(
+        db_session, candidate.id
+    )
+    assert NotificationEventType.SCORE_INCREASE not in _candidate_event_types(
+        db_session, candidate.id
+    )
+    assert suppressed.created_count == 0 or _candidate_event_types(db_session, candidate.id) == set()
+
+    later_source, later_item = _ordinary_signal(
+        db_session, name="Ordinary Resume Later", external_id="ord-resume-later",
+        collected_at=now.replace(tzinfo=None) + dt.timedelta(hours=1),
+    )
+    _attach(db_session, candidate, later_item)
+    candidate.attention_score = 0.99
+    candidate.latest_observed_at = now + dt.timedelta(hours=1)
+    db_session.flush()
+    resumed = notifications.generate(now=now + dt.timedelta(hours=1))
+    types = _candidate_event_types(db_session, candidate.id)
+    notes = list(db_session.scalars(
+        select(Notification).where(Notification.candidate_id == candidate.id)
+    ))
+    assert resumed.created_count >= 1
+    assert NotificationEventType.HIGH_ATTENTION in types
+    assert NotificationEventType.SCORE_INCREASE not in types
+    assert all(row.muted is False for row in notes)
+    assert json.loads(notifications.settings().muted_event_types or "[]") == []
+    assert item_is_delivery_admitted(reddit_item, reddit) is False
+    assert item_is_delivery_admitted(later_item, later_source) is True
+    assert item_is_delivery_admitted(ordinary_item, ordinary) is True
 

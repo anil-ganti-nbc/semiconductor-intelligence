@@ -44,8 +44,18 @@ from semi_intel.domain.models import (
 )
 from semi_intel.signals.source_lifecycle import (
     candidate_has_admitted_novelty,
+    candidate_member_rows,
+    candidate_transition_has_admitted_material,
     source_delivery_blocked,
 )
+
+_CANDIDATE_TRANSITION_TYPES = (
+    NotificationEventType.HIGH_ATTENTION,
+    NotificationEventType.SCORE_INCREASE,
+    NotificationEventType.INDEPENDENT_CORROBORATION,
+    NotificationEventType.PROMOTION_READY,
+)
+_SEEN_SIGNAL_ITEM_IDS = "seen_signal_item_ids"
 
 
 def utcnow() -> dt.datetime:
@@ -190,6 +200,40 @@ class NotificationService:
         state.state_metadata = json.dumps(metadata)
         return metadata["sequence"]
 
+    def _candidate_member_ids(self, candidate: SignalCandidate) -> set[int]:
+        return {item.id for item, _source in candidate_member_rows(self.session, candidate)}
+
+    def _read_seen_signal_item_ids(
+        self, candidate: SignalCandidate, current_ids: set[int]
+    ) -> set[int]:
+        found_state = False
+        for event_type in _CANDIDATE_TRANSITION_TYPES:
+            state = self._state(event_type, "candidate", candidate.id)
+            if state is None:
+                continue
+            found_state = True
+            metadata = json.loads(state.state_metadata or "{}")
+            if _SEEN_SIGNAL_ITEM_IDS in metadata:
+                return {int(value) for value in metadata.get(_SEEN_SIGNAL_ITEM_IDS) or []}
+        if found_state:
+            # Pre-remediation watermarks have no membership snapshot. Fail
+            # closed this pass rather than treating lifetime admitted members
+            # as authority for whatever just changed.
+            return set(current_ids)
+        return set()
+
+    def _write_seen_signal_item_ids(
+        self, candidate: SignalCandidate, current_ids: set[int]
+    ) -> None:
+        recorded = sorted(current_ids)
+        for event_type in _CANDIDATE_TRANSITION_TYPES:
+            state = self._state(event_type, "candidate", candidate.id)
+            if state is None:
+                continue
+            metadata = json.loads(state.state_metadata or "{}")
+            metadata[_SEEN_SIGNAL_ITEM_IDS] = recorded
+            state.state_metadata = json.dumps(metadata)
+
     def _emit(
         self,
         *,
@@ -270,9 +314,15 @@ class NotificationService:
 
         for candidate in candidates:
             recent = aware(candidate.latest_observed_at) >= activation
-            admitted = candidate_has_admitted_novelty(self.session, candidate)
-            # Source-scoped gate: experimental/baseline observations seed
-            # watermarks without entering the ordinary novelty path.
+            current_ids = self._candidate_member_ids(candidate)
+            seen_ids = self._read_seen_signal_item_ids(candidate, current_ids)
+            admitted = candidate_transition_has_admitted_material(
+                self.session, candidate, previously_seen_item_ids=seen_ids
+            )
+            # Transition-aware gate: an older admitted member does not
+            # authorise a crossing caused only by later experimental material.
+            # Experimental/baseline observations still seed watermarks without
+            # entering the ordinary novelty path.
             effective_recent = recent and admitted
             eligible_state = candidate.state == SignalCandidateState.ACTIVE
             topic_ok = not settings.required_topic_match or candidate.primary_topic_id is not None
@@ -441,6 +491,8 @@ class NotificationService:
                 ready_state.last_event_at = now
             if admitted or not recent:
                 ready_state.last_boolean_value = ready
+
+            self._write_seen_signal_item_ids(candidate, current_ids)
 
     def _high_attention(
         self, candidate: SignalCandidate, settings: NotificationSettings,

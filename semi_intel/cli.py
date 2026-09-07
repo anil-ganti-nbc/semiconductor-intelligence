@@ -78,6 +78,7 @@ from semi_intel.signals.candidate_state import mark_unseen as mark_candidate_uns
 from semi_intel.signals.clustering import cluster_unclustered_items
 from semi_intel.signals.collection import CollectionService, get_collection_settings
 from semi_intel.signals.source_lifecycle import (
+    SourceRegistrationConflict,
     admit_source_for_delivery,
     register_reddit_hardware,
     source_lifecycle_view,
@@ -1134,6 +1135,10 @@ def radar_register_reddit_hardware() -> None:
             f"muted={source.muted} maturity={lifecycle.get('maturity')}"
         )
         typer.echo("No network fetch was performed. Polling remains off until an operator enables it.")
+    except SourceRegistrationConflict as exc:
+        session.rollback()
+        typer.secho(str(exc), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
     finally:
         session.close()
 
