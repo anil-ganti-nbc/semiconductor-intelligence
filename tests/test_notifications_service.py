@@ -15,6 +15,7 @@ from semi_intel.domain.enums import (
 )
 from semi_intel.domain.models import (
     CandidatePromotionEvent,
+    CandidateSignalItem,
     EditorialStory,
     MonitoredTopic,
     Notification,
@@ -22,6 +23,7 @@ from semi_intel.domain.models import (
     ProviderIncident,
     ProviderRun,
     SignalCandidate,
+    SignalItem,
     Source,
     SourceSuggestion,
 )
@@ -63,6 +65,20 @@ def seed_topic_source_candidate(db_session, *, latest=BASE, score=0.5, groups=1)
     db_session.add(candidate)
     db_session.flush()
     return topic, source, candidate
+
+
+def _attach_ordinary_item(db_session, source, candidate, *, collected_at=BASE, external_id="ord-1"):
+    naive = collected_at.replace(tzinfo=None) if collected_at.tzinfo else collected_at
+    item = SignalItem(
+        source_id=source.id, provider="rss", external_id=external_id, raw_payload="{}",
+        normalized_text="RTX 50 Super specifications", content_hash=external_id,
+        collected_at=naive, url=f"https://example.com/{external_id}",
+    )
+    db_session.add(item)
+    db_session.flush()
+    db_session.add(CandidateSignalItem(candidate_id=candidate.id, signal_item_id=item.id))
+    db_session.flush()
+    return item
 
 
 def test_settings_default_external_off_and_activation_watermark(db_session):
@@ -257,3 +273,85 @@ def test_read_dismiss_restore_and_mutes_persist(db_session):
         Notification.event_type == NotificationEventType.HIGH_ATTENTION
     ))
     assert high.muted is True
+
+
+def test_ordinary_candidate_high_attention_without_new_member(db_session):
+    topic, source, candidate = seed_topic_source_candidate(
+        db_session, latest=BASE + dt.timedelta(minutes=1), score=0.50, groups=2
+    )
+    _attach_ordinary_item(db_session, source, candidate)
+    service = NotificationService(db_session)
+    settings = service.settings(now=BASE)
+    settings.minimum_attention_score = 0.70
+    settings.required_independent_group_count = 2
+
+    first = service.generate(now=BASE + dt.timedelta(minutes=1))
+    assert NotificationEventType.HIGH_ATTENTION not in set(
+        db_session.scalars(select(Notification.event_type).where(Notification.candidate_id == candidate.id))
+    )
+    assert first.created_count == 0 or NotificationEventType.HIGH_ATTENTION not in set(
+        db_session.scalars(select(Notification.event_type))
+    )
+
+    candidate.attention_score = 0.80
+    candidate.latest_observed_at = BASE + dt.timedelta(minutes=2)
+    db_session.flush()
+    second = service.generate(now=BASE + dt.timedelta(minutes=2))
+    event_types = set(
+        db_session.scalars(
+            select(Notification.event_type).where(Notification.candidate_id == candidate.id)
+        )
+    )
+    assert second.created_count >= 1
+    assert NotificationEventType.HIGH_ATTENTION in event_types
+    assert topic.id is not None
+
+
+def test_ordinary_candidate_score_increase_without_new_member(db_session):
+    _, source, candidate = seed_topic_source_candidate(
+        db_session, latest=BASE + dt.timedelta(minutes=1), score=0.50, groups=1
+    )
+    _attach_ordinary_item(db_session, source, candidate, external_id="ord-score")
+    service = NotificationService(db_session)
+    settings = service.settings(now=BASE)
+    settings.minimum_score_increase = 0.15
+    settings.required_independent_group_count = 2
+
+    service.generate(now=BASE + dt.timedelta(minutes=1))
+    candidate.attention_score = 0.66
+    candidate.latest_observed_at = BASE + dt.timedelta(minutes=2)
+    db_session.flush()
+    service.generate(now=BASE + dt.timedelta(minutes=2))
+    event_types = set(
+        db_session.scalars(
+            select(Notification.event_type).where(Notification.candidate_id == candidate.id)
+        )
+    )
+    assert NotificationEventType.SCORE_INCREASE in event_types
+    assert NotificationEventType.HIGH_ATTENTION not in event_types
+
+
+def test_ordinary_candidate_promotion_ready_without_new_member(db_session):
+    _, source, candidate = seed_topic_source_candidate(
+        db_session, latest=BASE + dt.timedelta(minutes=1), score=0.72, groups=2
+    )
+    _attach_ordinary_item(db_session, source, candidate, external_id="ord-ready")
+    service = NotificationService(db_session)
+    service.settings(now=BASE)
+
+    service.generate(now=BASE + dt.timedelta(minutes=1))
+    assert NotificationEventType.PROMOTION_READY not in set(
+        db_session.scalars(
+            select(Notification.event_type).where(Notification.candidate_id == candidate.id)
+        )
+    )
+
+    candidate.attention_score = 0.80
+    candidate.latest_observed_at = BASE + dt.timedelta(minutes=2)
+    db_session.flush()
+    service.generate(now=BASE + dt.timedelta(minutes=2))
+    assert NotificationEventType.PROMOTION_READY in set(
+        db_session.scalars(
+            select(Notification.event_type).where(Notification.candidate_id == candidate.id)
+        )
+    )

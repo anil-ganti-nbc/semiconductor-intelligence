@@ -26,8 +26,13 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from semi_intel.domain.enums import SourceType
-from semi_intel.domain.models import CandidateSignalItem, SignalItem, Source
+from semi_intel.domain.enums import NotificationEventType, SourceType
+from semi_intel.domain.models import (
+    CandidateSignalItem,
+    NotificationEventState,
+    SignalItem,
+    Source,
+)
 
 HARDWARE_FEED_URL = "https://www.reddit.com/r/hardware/.rss"
 HARDWARE_SOURCE_NAME = "Reddit r/hardware"
@@ -42,6 +47,13 @@ METADATA_SUBREDDIT = "subreddit"
 METADATA_BASELINE_AT = "baseline_completed_at"
 METADATA_DELIVERY_ADMITTED_AT = "delivery_admitted_at"
 METADATA_DELIVERY_ADMISSION_REQUIRED = "delivery_admission_required"
+CANDIDATE_SEEN_ITEM_IDS_KEY = "seen_signal_item_ids"
+_CANDIDATE_SNAPSHOT_TYPES = (
+    NotificationEventType.HIGH_ATTENTION,
+    NotificationEventType.SCORE_INCREASE,
+    NotificationEventType.INDEPENDENT_CORROBORATION,
+    NotificationEventType.PROMOTION_READY,
+)
 
 
 class SourceRegistrationConflict(ValueError):
@@ -193,6 +205,15 @@ def item_is_delivery_admitted(item: SignalItem, source: Source) -> bool:
     return collected > admitted_at
 
 
+def source_is_admission_controlled(source: Source) -> bool:
+    """True when this source is under the experimental admission contract."""
+    return (
+        source_requires_delivery_admission(source)
+        or bool(source.muted)
+        or source_maturity(source) == MATURITY_EXPERIMENTAL
+    )
+
+
 def candidate_has_admitted_novelty(session: Session, candidate) -> bool:
     """True when any member observation is delivery-admitted.
 
@@ -200,7 +221,8 @@ def candidate_has_admitted_novelty(session: Session, candidate) -> bool:
     Test fixtures and some in-app-only candidates have no membership rows.
 
     This is lifetime membership, not transition authority. Notification
-    emit paths must use `candidate_transition_has_admitted_material`.
+    emit paths and automatic promotion must use
+    `candidate_transition_has_admitted_material`.
     """
     rows = candidate_member_rows(session, candidate)
     if not rows:
@@ -214,15 +236,22 @@ def candidate_transition_has_admitted_material(
     *,
     previously_seen_item_ids: set[int] | frozenset[int],
 ) -> bool:
-    """True when new member material since the last evaluation is admitted.
+    """Whether this evaluation's participating material may authorise a transition.
 
-    An older admitted member must not authorise a transition caused only by
-    later experimental observations. Empty membership keeps prior behaviour
-    (admitted). No new members since the watermark is denial, not a fallback
+    Candidates whose members are entirely ordinary (not admission-controlled)
+    keep pre-M0 semantics: rescoring, reputation, or configuration changes
+    without a new SignalItem still authorise alerts.
+
+    When any member is admission-controlled, an older admitted member must
+    not authorise a transition caused only by later experimental
+    observations. Empty membership keeps prior behaviour (admitted). No new
+    members on an admission-controlled candidate is denial, not a fallback
     to lifetime membership.
     """
     rows = candidate_member_rows(session, candidate)
     if not rows:
+        return True
+    if not any(source_is_admission_controlled(source) for _item, source in rows):
         return True
     new_rows = [
         (item, source) for item, source in rows
@@ -231,6 +260,70 @@ def candidate_transition_has_admitted_material(
     if not new_rows:
         return False
     return any(item_is_delivery_admitted(item, source) for item, source in new_rows)
+
+
+def read_candidate_seen_item_ids(session: Session, candidate) -> set[int] | None:
+    """Membership snapshot from the last notification/promotion evaluation.
+
+    None means no watermark exists yet (first evaluation).
+    """
+    found_state = False
+    current_ids = {item.id for item, _source in candidate_member_rows(session, candidate)}
+    for event_type in _CANDIDATE_SNAPSHOT_TYPES:
+        state = session.scalar(
+            select(NotificationEventState).where(
+                NotificationEventState.event_type == event_type,
+                NotificationEventState.subject_kind == "candidate",
+                NotificationEventState.subject_id == candidate.id,
+            )
+        )
+        if state is None:
+            continue
+        found_state = True
+        metadata = json.loads(state.state_metadata or "{}")
+        if CANDIDATE_SEEN_ITEM_IDS_KEY in metadata:
+            return {int(value) for value in metadata.get(CANDIDATE_SEEN_ITEM_IDS_KEY) or []}
+    if found_state:
+        return set(current_ids)
+    return None
+
+
+def write_candidate_seen_item_ids(
+    session: Session,
+    candidate,
+    item_ids: set[int] | frozenset[int],
+    *,
+    create_if_missing: bool = False,
+) -> None:
+    """Persist the membership snapshot onto existing candidate event states."""
+    recorded = sorted(item_ids)
+    wrote = False
+    for event_type in _CANDIDATE_SNAPSHOT_TYPES:
+        state = session.scalar(
+            select(NotificationEventState).where(
+                NotificationEventState.event_type == event_type,
+                NotificationEventState.subject_kind == "candidate",
+                NotificationEventState.subject_id == candidate.id,
+            )
+        )
+        if state is None:
+            continue
+        metadata = json.loads(state.state_metadata or "{}")
+        metadata[CANDIDATE_SEEN_ITEM_IDS_KEY] = recorded
+        state.state_metadata = json.dumps(metadata)
+        wrote = True
+    if create_if_missing and not wrote:
+        session.add(
+            NotificationEventState(
+                event_type=NotificationEventType.PROMOTION_READY,
+                subject_kind="candidate",
+                subject_id=candidate.id,
+                last_boolean_value=False,
+                state_metadata=json.dumps(
+                    {"sequence": 0, CANDIDATE_SEEN_ITEM_IDS_KEY: recorded}
+                ),
+            )
+        )
 
 
 def source_uses_silent_baseline(source: Source) -> bool:

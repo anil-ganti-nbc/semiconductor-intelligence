@@ -19,7 +19,10 @@ from semi_intel.domain.enums import (
     SourceType,
 )
 from semi_intel.domain.models import (
+    CandidatePromotionEvent,
     CandidateSignalItem,
+    EditorialStory,
+    Evidence,
     MonitoredTopic,
     Notification,
     SignalCandidate,
@@ -37,6 +40,11 @@ from semi_intel.signals.independence import _Item, group_items
 from semi_intel.signals.providers import ProviderUnavailable
 from semi_intel.signals.providers.replay import ReplayProvider
 from semi_intel.signals.providers.rss import RSSProvider
+from semi_intel.signals.promotion import (
+    check_automatic_eligibility,
+    get_promotion_settings,
+    run_automatic_promotion,
+)
 from semi_intel.signals.source_lifecycle import (
     HARDWARE_FEED_URL,
     HARDWARE_SOURCE_NAME,
@@ -605,6 +613,10 @@ def test_non_reddit_rss_normalization_matches_pre_m0_sample_feed(db_session):
     assert json.loads(stored.expanded_links) == nova.links
     assert stored.author_handle is None
     assert stored.content_hash == hash_content(nova.text)
+    stored_payload = json.loads(stored.raw_payload)
+    assert "_semintel_feed_url" not in stored_payload
+    for raw in collected.items:
+        assert "_semintel_feed_url" not in raw.payload
 
 
 def test_non_reddit_rss_does_not_duplicate_equivalent_summary_description_content():
@@ -1108,5 +1120,138 @@ def test_admitted_observation_after_suppressed_experimental_transition_resumes(d
     assert json.loads(notifications.settings().muted_event_types or "[]") == []
     assert item_is_delivery_admitted(reddit_item, reddit) is False
     assert item_is_delivery_admitted(later_item, later_source) is True
+    assert item_is_delivery_admitted(ordinary_item, ordinary) is True
+
+
+# --- Finding 1. Automatic promotion honours source admission ------------------
+
+def _enable_auto_promotion(session: Session, *, minimum: float = 0.75):
+    settings = get_promotion_settings(session)
+    settings.automatic_promotion_enabled = True
+    settings.minimum_attention_score = minimum
+    session.flush()
+    return settings
+
+
+def test_automatic_promotion_ignores_experimental_only_eligibility(db_session):
+    ordinary, ordinary_item = _ordinary_signal(
+        db_session, name="Ordinary Auto Seed", external_id="ord-auto",
+        collected_at=BASE.replace(tzinfo=None) + dt.timedelta(days=1),
+    )
+    now = BASE + dt.timedelta(days=2)
+    _enable_auto_promotion(db_session, minimum=0.75)
+    _topic, candidate = _high_candidate(
+        db_session, fingerprint="auto-exp-only", latest=now, score=0.50,
+    )
+    candidate.independent_source_group_count = 1
+    _attach(db_session, candidate, ordinary_item)
+    first = run_automatic_promotion(db_session, now=now)
+    assert candidate.id not in first.promoted
+    assert candidate.state == SignalCandidateState.ACTIVE
+    assert candidate.promoted_story_id is None
+
+    reddit, reddit_item = _reddit_new_item(db_session)
+    _attach(db_session, candidate, reddit_item)
+    candidate.attention_score = 0.92
+    candidate.independent_source_group_count = 2
+    candidate.latest_observed_at = now + dt.timedelta(minutes=5)
+    db_session.flush()
+    eligibility = check_automatic_eligibility(
+        db_session, candidate, get_promotion_settings(db_session),
+        now=now + dt.timedelta(minutes=5),
+    )
+    assert eligibility.eligible is False
+    assert any("admitted source material" in reason for reason in eligibility.reasons)
+
+    second = run_automatic_promotion(db_session, now=now + dt.timedelta(minutes=5))
+    assert candidate.id not in second.promoted
+    assert candidate.state == SignalCandidateState.ACTIVE
+    assert candidate.promoted_story_id is None
+    assert db_session.scalar(select(func.count()).select_from(EditorialStory)) == 0
+    assert db_session.scalar(select(func.count()).select_from(Evidence)) == 0
+    assert db_session.scalar(select(func.count()).select_from(CandidatePromotionEvent)) == 0
+    assert item_is_delivery_admitted(reddit_item, reddit) is False
+    assert item_is_delivery_admitted(ordinary_item, ordinary) is True
+
+
+def test_automatic_promotion_resumes_after_admitted_observation(db_session):
+    ordinary, ordinary_item = _ordinary_signal(
+        db_session, name="Ordinary Auto Resume", external_id="ord-auto-resume",
+        collected_at=BASE.replace(tzinfo=None) + dt.timedelta(days=1),
+    )
+    now = BASE + dt.timedelta(days=2)
+    _enable_auto_promotion(db_session, minimum=0.75)
+    _topic, candidate = _high_candidate(
+        db_session, fingerprint="auto-resume", latest=now, score=0.50,
+    )
+    candidate.independent_source_group_count = 1
+    _attach(db_session, candidate, ordinary_item)
+    run_automatic_promotion(db_session, now=now)
+
+    reddit, reddit_item = _reddit_new_item(db_session)
+    _attach(db_session, candidate, reddit_item)
+    candidate.attention_score = 0.92
+    candidate.independent_source_group_count = 2
+    candidate.latest_observed_at = now + dt.timedelta(minutes=5)
+    db_session.flush()
+    denied = run_automatic_promotion(db_session, now=now + dt.timedelta(minutes=5))
+    assert candidate.id not in denied.promoted
+    assert candidate.state == SignalCandidateState.ACTIVE
+
+    later_source, later_item = _ordinary_signal(
+        db_session, name="Ordinary Auto Later", external_id="ord-auto-later",
+        collected_at=now.replace(tzinfo=None) + dt.timedelta(hours=1),
+    )
+    _attach(db_session, candidate, later_item)
+    candidate.latest_observed_at = now + dt.timedelta(hours=1)
+    db_session.flush()
+    resumed = run_automatic_promotion(db_session, now=now + dt.timedelta(hours=1))
+    assert candidate.id in resumed.promoted
+    assert candidate.state == SignalCandidateState.PROMOTED
+    assert candidate.promoted_story_id is not None
+    assert db_session.scalar(select(func.count()).select_from(CandidatePromotionEvent)) >= 1
+    assert item_is_delivery_admitted(reddit_item, reddit) is False
+    assert item_is_delivery_admitted(later_item, later_source) is True
+
+
+def test_automatic_promotion_notification_not_laundered_by_old_admitted_member(db_session):
+    ordinary, ordinary_item = _ordinary_signal(
+        db_session, name="Ordinary Auto Notify", external_id="ord-auto-note",
+        collected_at=BASE.replace(tzinfo=None) + dt.timedelta(days=1),
+    )
+    now = BASE + dt.timedelta(days=2)
+    notifications = NotificationService(db_session)
+    notifications.settings(now=BASE)
+    _topic, candidate = _high_candidate(
+        db_session, fingerprint="auto-note", latest=now, score=0.50,
+    )
+    candidate.independent_source_group_count = 2
+    _attach(db_session, candidate, ordinary_item)
+    notifications.generate(now=now)
+
+    reddit, reddit_item = _reddit_new_item(db_session)
+    _attach(db_session, candidate, reddit_item)
+    candidate.attention_score = 0.92
+    candidate.latest_observed_at = now + dt.timedelta(minutes=5)
+    db_session.flush()
+
+    story = EditorialStory(
+        canonical_key="experimental-only-promo", headline="RTX 50 Super", latest_at=now,
+    )
+    db_session.add(story)
+    db_session.flush()
+    db_session.add(
+        CandidatePromotionEvent(
+            candidate_id=candidate.id, story_id=story.id, promoted_by="automatic",
+            automatic=True, reason="should not notify",
+            created_at=now.replace(tzinfo=None) + dt.timedelta(minutes=5),
+        )
+    )
+    db_session.flush()
+    notifications.generate(now=now + dt.timedelta(minutes=5))
+    assert NotificationEventType.CANDIDATE_PROMOTED not in _candidate_event_types(
+        db_session, candidate.id
+    )
+    assert item_is_delivery_admitted(reddit_item, reddit) is False
     assert item_is_delivery_admitted(ordinary_item, ordinary) is True
 

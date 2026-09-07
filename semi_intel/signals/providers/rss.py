@@ -165,7 +165,8 @@ class RSSProvider:
                 continue
             seen_ids.add(eid)
             payload = dict(entry)
-            payload[_FEED_URL_PAYLOAD_KEY] = source_handle
+            if reddit:
+                payload[_FEED_URL_PAYLOAD_KEY] = source_handle
             items.append(RawItem(external_id=eid, payload=payload))
         items.reverse()  # chronological order for storage
         return CollectResult(items=items, next_cursor=Cursor(newest) if newest else cursor)

@@ -46,16 +46,10 @@ from semi_intel.signals.source_lifecycle import (
     candidate_has_admitted_novelty,
     candidate_member_rows,
     candidate_transition_has_admitted_material,
+    read_candidate_seen_item_ids,
     source_delivery_blocked,
+    write_candidate_seen_item_ids,
 )
-
-_CANDIDATE_TRANSITION_TYPES = (
-    NotificationEventType.HIGH_ATTENTION,
-    NotificationEventType.SCORE_INCREASE,
-    NotificationEventType.INDEPENDENT_CORROBORATION,
-    NotificationEventType.PROMOTION_READY,
-)
-_SEEN_SIGNAL_ITEM_IDS = "seen_signal_item_ids"
 
 
 def utcnow() -> dt.datetime:
@@ -155,8 +149,12 @@ class NotificationService:
 
         muted_types = set(json.loads(settings.muted_event_types or "[]"))
         muted_topics = {int(value) for value in json.loads(settings.muted_topic_ids or "[]")}
-        self._candidate_events(settings, muted_types, muted_topics, now, summary)
-        self._promotion_events(settings, muted_types, now, summary)
+        prior_seen = {
+            candidate.id: (read_candidate_seen_item_ids(self.session, candidate) or set())
+            for candidate in self.session.scalars(select(SignalCandidate))
+        }
+        self._candidate_events(settings, muted_types, muted_topics, now, summary, prior_seen)
+        self._promotion_events(settings, muted_types, now, summary, prior_seen)
         self._source_suggestion_events(settings, muted_types, now, summary)
         self._provider_events(settings, muted_types, now, summary)
         self._topic_events(settings, muted_types, muted_topics, now, summary)
@@ -202,37 +200,6 @@ class NotificationService:
 
     def _candidate_member_ids(self, candidate: SignalCandidate) -> set[int]:
         return {item.id for item, _source in candidate_member_rows(self.session, candidate)}
-
-    def _read_seen_signal_item_ids(
-        self, candidate: SignalCandidate, current_ids: set[int]
-    ) -> set[int]:
-        found_state = False
-        for event_type in _CANDIDATE_TRANSITION_TYPES:
-            state = self._state(event_type, "candidate", candidate.id)
-            if state is None:
-                continue
-            found_state = True
-            metadata = json.loads(state.state_metadata or "{}")
-            if _SEEN_SIGNAL_ITEM_IDS in metadata:
-                return {int(value) for value in metadata.get(_SEEN_SIGNAL_ITEM_IDS) or []}
-        if found_state:
-            # Pre-remediation watermarks have no membership snapshot. Fail
-            # closed this pass rather than treating lifetime admitted members
-            # as authority for whatever just changed.
-            return set(current_ids)
-        return set()
-
-    def _write_seen_signal_item_ids(
-        self, candidate: SignalCandidate, current_ids: set[int]
-    ) -> None:
-        recorded = sorted(current_ids)
-        for event_type in _CANDIDATE_TRANSITION_TYPES:
-            state = self._state(event_type, "candidate", candidate.id)
-            if state is None:
-                continue
-            metadata = json.loads(state.state_metadata or "{}")
-            metadata[_SEEN_SIGNAL_ITEM_IDS] = recorded
-            state.state_metadata = json.dumps(metadata)
 
     def _emit(
         self,
@@ -306,6 +273,7 @@ class NotificationService:
         muted_topics: set[int],
         now: dt.datetime,
         summary: GenerationSummary,
+        prior_seen: dict[int, set[int]],
     ) -> None:
         activation = aware(settings.activation_at)
         candidates = list(self.session.scalars(select(SignalCandidate)))
@@ -315,14 +283,14 @@ class NotificationService:
         for candidate in candidates:
             recent = aware(candidate.latest_observed_at) >= activation
             current_ids = self._candidate_member_ids(candidate)
-            seen_ids = self._read_seen_signal_item_ids(candidate, current_ids)
+            seen_ids = prior_seen.get(candidate.id, set())
             admitted = candidate_transition_has_admitted_material(
                 self.session, candidate, previously_seen_item_ids=seen_ids
             )
-            # Transition-aware gate: an older admitted member does not
-            # authorise a crossing caused only by later experimental material.
-            # Experimental/baseline observations still seed watermarks without
-            # entering the ordinary novelty path.
+            # Transition-aware only when an admission-controlled source is on
+            # the candidate. Entirely ordinary candidates keep pre-M0
+            # rescoring alerts. An older admitted member does not authorise
+            # a crossing caused only by later experimental material.
             effective_recent = recent and admitted
             eligible_state = candidate.state == SignalCandidateState.ACTIVE
             topic_ok = not settings.required_topic_match or candidate.primary_topic_id is not None
@@ -492,7 +460,7 @@ class NotificationService:
             if admitted or not recent:
                 ready_state.last_boolean_value = ready
 
-            self._write_seen_signal_item_ids(candidate, current_ids)
+            write_candidate_seen_item_ids(self.session, candidate, current_ids)
 
     def _high_attention(
         self, candidate: SignalCandidate, settings: NotificationSettings,
@@ -560,6 +528,7 @@ class NotificationService:
     def _promotion_events(
         self, settings: NotificationSettings, muted_types: set[str],
         now: dt.datetime, summary: GenerationSummary,
+        prior_seen: dict[int, set[int]],
     ) -> None:
         if not settings.promotion_completed_enabled:
             return
@@ -569,8 +538,15 @@ class NotificationService:
             if aware(event.created_at) < activation:
                 continue
             candidate = self.session.get(SignalCandidate, event.candidate_id)
-            if candidate is not None and not candidate_has_admitted_novelty(self.session, candidate):
-                continue
+            if candidate is not None:
+                if event.automatic:
+                    seen_ids = prior_seen.get(candidate.id, set())
+                    if not candidate_transition_has_admitted_material(
+                        self.session, candidate, previously_seen_item_ids=seen_ids
+                    ):
+                        continue
+                elif not candidate_has_admitted_novelty(self.session, candidate):
+                    continue
             title = candidate.title if candidate else f"Candidate #{event.candidate_id}"
             self._emit(
                 event_type=NotificationEventType.CANDIDATE_PROMOTED,

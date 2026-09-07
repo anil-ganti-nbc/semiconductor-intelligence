@@ -58,6 +58,12 @@ from semi_intel.domain.models import (
 )
 from semi_intel.editorial.service import EditorialDiscoveryService
 from semi_intel.ingestion.hashing import hash_content
+from semi_intel.signals.source_lifecycle import (
+    candidate_member_rows,
+    candidate_transition_has_admitted_material,
+    read_candidate_seen_item_ids,
+    write_candidate_seen_item_ids,
+)
 
 
 class PromotionBlocked(Exception):
@@ -297,6 +303,15 @@ def check_automatic_eligibility(
     if candidate.independent_source_group_count < 1:
         reasons.append("no independent evidence group")
 
+    if not reasons:
+        seen_ids = read_candidate_seen_item_ids(session, candidate) or set()
+        if not candidate_transition_has_admitted_material(
+            session, candidate, previously_seen_item_ids=seen_ids
+        ):
+            reasons.append(
+                "eligibility transition is not authorised by admitted source material"
+            )
+
     return EligibilityResult(eligible=not reasons, reasons=reasons)
 
 
@@ -346,8 +361,13 @@ def run_automatic_promotion(session: Session, *, now: Optional[dt.datetime] = No
             summary.budget_exhausted = True
             break
         result = check_automatic_eligibility(session, candidate, settings, now=now)
+        current_ids = {item.id for item, _source in candidate_member_rows(session, candidate)}
         if not result.eligible:
             summary.skipped.append((candidate.id, result.reasons))
+            write_candidate_seen_item_ids(
+                session, candidate, current_ids, create_if_missing=True
+            )
+            session.flush()
             continue
         promote_candidate(session, candidate, by="automatic", automatic=True, reason="conservative automatic promotion")
         summary.promoted.append(candidate.id)

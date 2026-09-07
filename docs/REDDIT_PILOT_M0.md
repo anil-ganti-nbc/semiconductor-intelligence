@@ -112,15 +112,28 @@ echo that does not change score or independent-group count does not emit.
 An admitted member that does change those fields may emit. The Reddit
 observation remains non-admitted either way.
 
-Admission for emit is **transition-aware**, not lifetime membership. An
-older admitted observation already on the candidate does not authorise a
-later HIGH_ATTENTION, SCORE_INCREASE, INDEPENDENT_CORROBORATION, or
-PROMOTION_READY crossing caused only by new experimental material.
-Notification watermarks record which `SignalItem` ids have been evaluated;
-only newly attached members since that snapshot can grant authority. A
-later genuinely admitted observation may still produce a legitimate
-transition. Experimental numeric movement still advances internal
-watermarks so soak-era jumps cannot flood after admission.
+Admission for emit is **transition-aware**, not lifetime membership, and
+only when an admission-controlled source is on the candidate. Candidates
+whose members are entirely ordinary keep pre-M0 notification semantics:
+rescoring, source-reputation, or configuration changes without a new
+`SignalItem` still authorise HIGH_ATTENTION, SCORE_INCREASE, and
+PROMOTION_READY.
+
+When any member is admission-controlled, an older admitted observation
+does not authorise a later HIGH_ATTENTION, SCORE_INCREASE,
+INDEPENDENT_CORROBORATION, PROMOTION_READY, or automatic-promotion
+crossing caused only by new experimental material. Notification watermarks
+record which `SignalItem` ids have been evaluated; only newly attached
+members since that snapshot can grant authority. A later genuinely
+admitted observation may still produce a legitimate transition.
+Experimental numeric movement still advances internal watermarks so
+soak-era jumps cannot flood after admission.
+
+Automatic promotion uses the same gate. Experimental-only eligibility
+cannot create an EditorialStory, Evidence promotion set, or
+CandidatePromotionEvent, even if an older admitted member is already on
+the candidate. Mixed candidates are not globally blocked. Manual human
+promotion remains an explicit operator action.
 
 This is source-scoped. The global webhook enable flag is left alone. Other
 SemInt sources can still Discord.
