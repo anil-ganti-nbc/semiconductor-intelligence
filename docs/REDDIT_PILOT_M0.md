@@ -122,12 +122,28 @@ SCORE_INCREASE, INDEPENDENT_CORROBORATION, and PROMOTION_READY.
 When any member is admission-controlled, an older admitted observation
 does not authorise a later HIGH_ATTENTION, SCORE_INCREASE,
 INDEPENDENT_CORROBORATION, PROMOTION_READY, or automatic-promotion
-crossing caused only by new experimental material. Notification watermarks
-record which `SignalItem` ids have been evaluated; only newly attached
-members since that snapshot can grant authority. A later genuinely
-admitted observation may still produce a legitimate transition.
-Experimental numeric movement still advances internal watermarks so
-soak-era jumps cannot flood after admission.
+crossing caused only by new experimental material. Transition watermarks
+record which `SignalItem` ids each authority has evaluated; only newly
+attached members since that snapshot can grant authority. A later
+genuinely admitted observation may still produce a legitimate
+transition. Experimental numeric movement still advances internal
+watermarks so soak-era jumps cannot flood after admission.
+
+The watermark is **per authority** and stored as separate keys in the
+same candidate event-state metadata (no schema migration):
+`seen_signal_item_ids` for notifications and
+`auto_promotion_seen_signal_item_ids` for automatic promotion. Neither
+subsystem reads or writes the other's key, so a promotion evaluation that
+is skipped for an unrelated reason cannot consume a genuinely admitted
+observation's notification authority (and vice versa).
+
+A candidate that an authority has **never evaluated has no snapshot**.
+Missing provenance is not lifetime authority: for an admission-controlled
+candidate a cold evaluation fails closed unless the candidate contains a
+genuinely delivery-admitted observation from the admission-controlled
+source itself. Ordinary-only candidates are unaffected. The cold
+evaluation still establishes the watermark, so no historical
+alert/autopromotion flood follows.
 
 Automatic promotion uses the same gate. Experimental-only eligibility
 cannot create an EditorialStory, Evidence promotion set, or

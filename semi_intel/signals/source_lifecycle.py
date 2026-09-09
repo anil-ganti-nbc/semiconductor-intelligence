@@ -47,7 +47,14 @@ METADATA_SUBREDDIT = "subreddit"
 METADATA_BASELINE_AT = "baseline_completed_at"
 METADATA_DELIVERY_ADMITTED_AT = "delivery_admitted_at"
 METADATA_DELIVERY_ADMISSION_REQUIRED = "delivery_admission_required"
-CANDIDATE_SEEN_ITEM_IDS_KEY = "seen_signal_item_ids"
+# Per-authority transition watermarks. Two authorities evaluate candidate
+# membership transitions -- NotificationService and run_automatic_promotion --
+# and neither may consume the other's. Both live as separate keys in the same
+# NotificationEventState.state_metadata JSON (no schema migration). The
+# notification key name is unchanged from earlier M0 watermarks so existing
+# persisted snapshots stay readable.
+NOTIFICATION_SEEN_ITEM_IDS_KEY = "seen_signal_item_ids"
+AUTO_PROMOTION_SEEN_ITEM_IDS_KEY = "auto_promotion_seen_signal_item_ids"
 _CANDIDATE_SNAPSHOT_TYPES = (
     NotificationEventType.HIGH_ATTENTION,
     NotificationEventType.SCORE_INCREASE,
@@ -234,7 +241,7 @@ def candidate_transition_has_admitted_material(
     session: Session,
     candidate,
     *,
-    previously_seen_item_ids: set[int] | frozenset[int],
+    previously_seen_item_ids: set[int] | frozenset[int] | None,
 ) -> bool:
     """Whether this evaluation's participating material may authorise a transition.
 
@@ -245,14 +252,27 @@ def candidate_transition_has_admitted_material(
     When any member is admission-controlled, an older admitted member must
     not authorise a transition caused only by later experimental
     observations. Empty membership keeps prior behaviour (admitted). No new
-    members on an admission-controlled candidate is denial, not a fallback
-    to lifetime membership.
+    members since the watermark is denial, not a fallback to lifetime
+    membership.
+
+    A None watermark means this authority has never evaluated the candidate.
+    Missing provenance is not lifetime authority: a historical ordinary
+    member cannot authorise experimental material. Only a genuinely
+    delivery-admitted observation from the admission-controlled source may
+    authorise a first evaluation; anything else fails closed (and the
+    caller establishes the watermark).
     """
     rows = candidate_member_rows(session, candidate)
     if not rows:
         return True
     if not any(source_is_admission_controlled(source) for _item, source in rows):
         return True
+    if previously_seen_item_ids is None:
+        return any(
+            item_is_delivery_admitted(item, source)
+            for item, source in rows
+            if source_is_admission_controlled(source)
+        )
     new_rows = [
         (item, source) for item, source in rows
         if item.id not in previously_seen_item_ids
@@ -262,13 +282,9 @@ def candidate_transition_has_admitted_material(
     return any(item_is_delivery_admitted(item, source) for item, source in new_rows)
 
 
-def read_candidate_seen_item_ids(session: Session, candidate) -> set[int] | None:
-    """Membership snapshot from the last notification/promotion evaluation.
-
-    None means no watermark exists yet (first evaluation).
-    """
-    found_state = False
-    current_ids = {item.id for item, _source in candidate_member_rows(session, candidate)}
+def read_candidate_seen_item_ids(session: Session, candidate, *, key: str) -> set[int] | None:
+    """Membership snapshot for one authority (`key`), or None when that
+    authority has never evaluated this candidate."""
     for event_type in _CANDIDATE_SNAPSHOT_TYPES:
         state = session.scalar(
             select(NotificationEventState).where(
@@ -279,12 +295,9 @@ def read_candidate_seen_item_ids(session: Session, candidate) -> set[int] | None
         )
         if state is None:
             continue
-        found_state = True
         metadata = json.loads(state.state_metadata or "{}")
-        if CANDIDATE_SEEN_ITEM_IDS_KEY in metadata:
-            return {int(value) for value in metadata.get(CANDIDATE_SEEN_ITEM_IDS_KEY) or []}
-    if found_state:
-        return set(current_ids)
+        if key in metadata:
+            return {int(value) for value in metadata.get(key) or []}
     return None
 
 
@@ -293,9 +306,14 @@ def write_candidate_seen_item_ids(
     candidate,
     item_ids: set[int] | frozenset[int],
     *,
+    key: str,
     create_if_missing: bool = False,
 ) -> None:
-    """Persist the membership snapshot onto existing candidate event states."""
+    """Persist one authority's membership snapshot onto candidate event states.
+
+    The notification and automatic-promotion snapshots are separate keys in
+    the same metadata; writing one never overwrites the other.
+    """
     recorded = sorted(item_ids)
     wrote = False
     for event_type in _CANDIDATE_SNAPSHOT_TYPES:
@@ -309,7 +327,7 @@ def write_candidate_seen_item_ids(
         if state is None:
             continue
         metadata = json.loads(state.state_metadata or "{}")
-        metadata[CANDIDATE_SEEN_ITEM_IDS_KEY] = recorded
+        metadata[key] = recorded
         state.state_metadata = json.dumps(metadata)
         wrote = True
     if create_if_missing and not wrote:
@@ -319,9 +337,7 @@ def write_candidate_seen_item_ids(
                 subject_kind="candidate",
                 subject_id=candidate.id,
                 last_boolean_value=False,
-                state_metadata=json.dumps(
-                    {"sequence": 0, CANDIDATE_SEEN_ITEM_IDS_KEY: recorded}
-                ),
+                state_metadata=json.dumps({"sequence": 0, key: recorded}),
             )
         )
 

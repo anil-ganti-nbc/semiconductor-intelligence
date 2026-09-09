@@ -43,6 +43,7 @@ from semi_intel.domain.models import (
     SourceSuggestion,
 )
 from semi_intel.signals.source_lifecycle import (
+    NOTIFICATION_SEEN_ITEM_IDS_KEY,
     candidate_has_admitted_novelty,
     candidate_member_rows,
     candidate_transition_has_admitted_material,
@@ -149,8 +150,16 @@ class NotificationService:
 
         muted_types = set(json.loads(settings.muted_event_types or "[]"))
         muted_topics = {int(value) for value in json.loads(settings.muted_topic_ids or "[]")}
+        # Notification transition watermark is isolated from the
+        # automatic-promotion watermark: a skipped promotion evaluation in
+        # the same pipeline cycle cannot consume an admitted observation's
+        # notification authority. None = notifications never evaluated the
+        # candidate (cold), handled fail-closed for admission-controlled
+        # candidates inside candidate_transition_has_admitted_material.
         prior_seen = {
-            candidate.id: (read_candidate_seen_item_ids(self.session, candidate) or set())
+            candidate.id: read_candidate_seen_item_ids(
+                self.session, candidate, key=NOTIFICATION_SEEN_ITEM_IDS_KEY
+            )
             for candidate in self.session.scalars(select(SignalCandidate))
         }
         self._candidate_events(settings, muted_types, muted_topics, now, summary, prior_seen)
@@ -283,7 +292,7 @@ class NotificationService:
         for candidate in candidates:
             recent = aware(candidate.latest_observed_at) >= activation
             current_ids = self._candidate_member_ids(candidate)
-            seen_ids = prior_seen.get(candidate.id, set())
+            seen_ids = prior_seen.get(candidate.id)
             admitted = candidate_transition_has_admitted_material(
                 self.session, candidate, previously_seen_item_ids=seen_ids
             )
@@ -460,7 +469,9 @@ class NotificationService:
             if admitted or not recent:
                 ready_state.last_boolean_value = ready
 
-            write_candidate_seen_item_ids(self.session, candidate, current_ids)
+            write_candidate_seen_item_ids(
+                self.session, candidate, current_ids, key=NOTIFICATION_SEEN_ITEM_IDS_KEY
+            )
 
     def _high_attention(
         self, candidate: SignalCandidate, settings: NotificationSettings,
@@ -540,7 +551,7 @@ class NotificationService:
             candidate = self.session.get(SignalCandidate, event.candidate_id)
             if candidate is not None:
                 if event.automatic:
-                    seen_ids = prior_seen.get(candidate.id, set())
+                    seen_ids = prior_seen.get(candidate.id)
                     if not candidate_transition_has_admitted_material(
                         self.session, candidate, previously_seen_item_ids=seen_ids
                     ):

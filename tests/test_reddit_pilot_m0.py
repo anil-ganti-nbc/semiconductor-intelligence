@@ -866,7 +866,11 @@ def test_mixed_candidate_post_admission_reddit_may_participate(db_session):
     _attach(db_session, candidate, soak)
     _attach(db_session, candidate, ordinary_item)
     first = NotificationService(db_session).generate(now=now)
-    assert first.created_count >= 1
+    # Cold evaluation of an admission-controlled candidate fails closed: the
+    # historical ordinary member is not transition authority, so the first
+    # pass seeds watermarks without emitting. Post-admission participation is
+    # proven by the second generate() below.
+    assert first.created_count == 0
     assert item_is_delivery_admitted(soak, reddit) is False
 
     admit_at = dt.datetime.utcnow()
@@ -1125,10 +1129,16 @@ def test_admitted_observation_after_suppressed_experimental_transition_resumes(d
 
 # --- Finding 1. Automatic promotion honours source admission ------------------
 
-def _enable_auto_promotion(session: Session, *, minimum: float = 0.75):
+def _enable_auto_promotion(
+    session: Session, *, minimum: float = 0.75, maximum_age_hours: int | None = None
+):
     settings = get_promotion_settings(session)
     settings.automatic_promotion_enabled = True
     settings.minimum_attention_score = minimum
+    if maximum_age_hours is not None:
+        # Cold/wall-clock admission scenarios outlive the default 72h age
+        # window; the age criterion is not what these tests exercise.
+        settings.maximum_candidate_age_hours = maximum_age_hours
     session.flush()
     return settings
 
@@ -1254,4 +1264,166 @@ def test_automatic_promotion_notification_not_laundered_by_old_admitted_member(d
     )
     assert item_is_delivery_admitted(reddit_item, reddit) is False
     assert item_is_delivery_admitted(ordinary_item, ordinary) is True
+
+
+# --- Final review. Isolated transition watermarks per authority ----------------
+
+
+def test_cold_mixed_candidate_first_automatic_promotion_fails_closed(db_session):
+    # No NotificationEventState and no prior promotion evaluation exists, so
+    # "new since last evaluation" is unknowable. A lifetime ordinary member
+    # is not transition provenance: the cold evaluation must fail closed.
+    ordinary, ordinary_item = _ordinary_signal(
+        db_session, name="Ordinary Cold Mixed", external_id="ord-cold-mixed",
+        collected_at=BASE.replace(tzinfo=None) + dt.timedelta(days=1),
+    )
+    now = BASE + dt.timedelta(days=2)
+    _enable_auto_promotion(db_session, minimum=0.75, maximum_age_hours=10_000)
+    _topic, candidate = _high_candidate(
+        db_session, fingerprint="cold-mixed", latest=now, score=0.92,
+    )
+    candidate.independent_source_group_count = 2
+    _attach(db_session, candidate, ordinary_item)
+    reddit, reddit_item = _reddit_new_item(db_session)
+    _attach(db_session, candidate, reddit_item)
+    db_session.flush()
+
+    first = run_automatic_promotion(db_session, now=now)
+    assert candidate.id not in first.promoted
+    assert candidate.state == SignalCandidateState.ACTIVE
+    assert candidate.promoted_story_id is None
+    assert db_session.scalar(select(func.count()).select_from(EditorialStory)) == 0
+    assert db_session.scalar(select(func.count()).select_from(Evidence)) == 0
+    assert db_session.scalar(select(func.count()).select_from(CandidatePromotionEvent)) == 0
+    assert item_is_delivery_admitted(reddit_item, reddit) is False
+
+    # A genuinely admitted post-admission observation restores normal
+    # automatic-promotion behaviour. Wall-clock admit times keep the
+    # observation clear of the source's baseline boundary.
+    admit_at = dt.datetime.now(dt.UTC)
+    admit_source_for_delivery(reddit, now=admit_at)
+    _collect(db_session, reddit, LISTING_ADMIT)
+    later = _item_by_external_id(db_session, POST_ADMIT)
+    later.collected_at = (admit_at + dt.timedelta(minutes=10)).replace(tzinfo=None)
+    _attach(db_session, candidate, later)
+    candidate.latest_observed_at = admit_at + dt.timedelta(minutes=10)
+    db_session.flush()
+    assert item_is_delivery_admitted(later, reddit) is True
+
+    resumed = run_automatic_promotion(db_session, now=admit_at + dt.timedelta(minutes=10))
+    assert candidate.id in resumed.promoted
+    assert candidate.state == SignalCandidateState.PROMOTED
+    assert db_session.scalar(select(func.count()).select_from(CandidatePromotionEvent)) >= 1
+
+
+def test_cold_candidate_admitted_reddit_material_authorises_first_eligibility(db_session):
+    # A cold admission-controlled candidate whose admission-controlled member
+    # is genuinely delivery-admitted may pass the source-admission portion of
+    # automatic-promotion eligibility on the first evaluation.
+    _enable_auto_promotion(db_session, minimum=0.75, maximum_age_hours=10_000)
+    reddit, _soak_item = _reddit_new_item(db_session)
+    admit_at = dt.datetime.now(dt.UTC)
+    admit_source_for_delivery(reddit, now=admit_at)
+    _collect(db_session, reddit, LISTING_ADMIT)
+    admitted_item = _item_by_external_id(db_session, POST_ADMIT)
+    admitted_item.collected_at = (admit_at + dt.timedelta(minutes=10)).replace(tzinfo=None)
+    db_session.flush()
+    assert item_is_delivery_admitted(admitted_item, reddit) is True
+
+    _topic, candidate = _high_candidate(
+        db_session, fingerprint="cold-admitted", latest=admit_at + dt.timedelta(minutes=10),
+        score=0.92,
+    )
+    candidate.independent_source_group_count = 2
+    _attach(db_session, candidate, admitted_item)
+
+    eligibility = check_automatic_eligibility(
+        db_session, candidate, get_promotion_settings(db_session),
+        now=admit_at + dt.timedelta(minutes=10),
+    )
+    assert eligibility.eligible is True
+    assert eligibility.reasons == []
+
+
+def test_auto_promotion_skip_does_not_consume_notification_admission(db_session):
+    # Automatic promotion and notifications hold separate transition
+    # watermarks: a promotion evaluation skipped for an unrelated reason must
+    # not consume a genuinely admitted observation's notification authority.
+    ordinary, ordinary_item = _ordinary_signal(
+        db_session, name="Ordinary Isolation Seed", external_id="ord-iso",
+        collected_at=BASE.replace(tzinfo=None) + dt.timedelta(days=1),
+    )
+    now = BASE + dt.timedelta(days=2)
+    _enable_auto_promotion(db_session, minimum=0.95, maximum_age_hours=10_000)
+    notifications = NotificationService(db_session)
+    settings = notifications.settings(now=BASE)
+    settings.minimum_score_increase = 0.15
+    settings.required_independent_group_count = 2
+    _topic, candidate = _high_candidate(
+        db_session, fingerprint="iso-notify", latest=now, score=0.50,
+    )
+    candidate.independent_source_group_count = 2
+    _attach(db_session, candidate, ordinary_item)
+    notifications.generate(now=now)
+    assert _candidate_event_types(db_session, candidate.id) == set()
+
+    reddit, _soak = _reddit_new_item(db_session)
+    admit_at = dt.datetime.now(dt.UTC)
+    admit_source_for_delivery(reddit, now=admit_at)
+    _collect(db_session, reddit, LISTING_ADMIT)
+    admitted_item = _item_by_external_id(db_session, POST_ADMIT)
+    admitted_item.collected_at = (admit_at + dt.timedelta(minutes=10)).replace(tzinfo=None)
+    _attach(db_session, candidate, admitted_item)
+    candidate.attention_score = 0.92
+    candidate.latest_observed_at = admit_at + dt.timedelta(minutes=10)
+    db_session.flush()
+    assert item_is_delivery_admitted(admitted_item, reddit) is True
+
+    # Promotion runs first and skips for an unrelated reason (score below
+    # the promotion minimum), snapshotting under the promotion key only.
+    skipped = run_automatic_promotion(db_session, now=admit_at + dt.timedelta(minutes=10))
+    assert candidate.id not in skipped.promoted
+    assert candidate.state == SignalCandidateState.ACTIVE
+
+    # Notifications afterwards must still see the admitted observation as
+    # fresh admitted material and may emit ordinary transitions.
+    second = notifications.generate(now=admit_at + dt.timedelta(minutes=10))
+    event_types = _candidate_event_types(db_session, candidate.id)
+    assert second.created_count >= 1
+    assert NotificationEventType.HIGH_ATTENTION in event_types
+    assert NotificationEventType.SCORE_INCREASE in event_types
+    assert candidate.state == SignalCandidateState.ACTIVE
+
+
+def test_experimental_member_blocks_later_config_change_promotion(db_session):
+    # After auto-promotion has evaluated (and denied) a mixed candidate, a
+    # later configuration/score change with no new admitted material still
+    # cannot launder an automatic promotion through the promotion watermark.
+    ordinary, ordinary_item = _ordinary_signal(
+        db_session, name="Ordinary Config Change", external_id="ord-config",
+        collected_at=BASE.replace(tzinfo=None) + dt.timedelta(days=1),
+    )
+    now = BASE + dt.timedelta(days=2)
+    settings = _enable_auto_promotion(db_session, minimum=0.98)
+    _topic, candidate = _high_candidate(
+        db_session, fingerprint="config-launder", latest=now, score=0.92,
+    )
+    candidate.independent_source_group_count = 2
+    _attach(db_session, candidate, ordinary_item)
+    reddit, reddit_item = _reddit_new_item(db_session)
+    _attach(db_session, candidate, reddit_item)
+    db_session.flush()
+
+    denied = run_automatic_promotion(db_session, now=now)
+    assert candidate.id not in denied.promoted
+
+    settings.minimum_attention_score = 0.80
+    db_session.flush()
+    still_denied = run_automatic_promotion(db_session, now=now + dt.timedelta(minutes=5))
+    assert candidate.id not in still_denied.promoted
+    assert candidate.state == SignalCandidateState.ACTIVE
+    assert candidate.promoted_story_id is None
+    assert db_session.scalar(select(func.count()).select_from(EditorialStory)) == 0
+    assert db_session.scalar(select(func.count()).select_from(CandidatePromotionEvent)) == 0
+    assert item_is_delivery_admitted(reddit_item, reddit) is False
 

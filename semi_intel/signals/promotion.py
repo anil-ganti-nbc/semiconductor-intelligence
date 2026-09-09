@@ -59,6 +59,7 @@ from semi_intel.domain.models import (
 from semi_intel.editorial.service import EditorialDiscoveryService
 from semi_intel.ingestion.hashing import hash_content
 from semi_intel.signals.source_lifecycle import (
+    AUTO_PROMOTION_SEEN_ITEM_IDS_KEY,
     candidate_member_rows,
     candidate_transition_has_admitted_material,
     read_candidate_seen_item_ids,
@@ -304,7 +305,13 @@ def check_automatic_eligibility(
         reasons.append("no independent evidence group")
 
     if not reasons:
-        seen_ids = read_candidate_seen_item_ids(session, candidate) or set()
+        # The automatic-promotion watermark is isolated from the notification
+        # watermark: a None here means promotion has never evaluated this
+        # candidate, which fails closed for admission-controlled candidates
+        # instead of treating lifetime ordinary membership as authority.
+        seen_ids = read_candidate_seen_item_ids(
+            session, candidate, key=AUTO_PROMOTION_SEEN_ITEM_IDS_KEY
+        )
         if not candidate_transition_has_admitted_material(
             session, candidate, previously_seen_item_ids=seen_ids
         ):
@@ -364,8 +371,12 @@ def run_automatic_promotion(session: Session, *, now: Optional[dt.datetime] = No
         current_ids = {item.id for item, _source in candidate_member_rows(session, candidate)}
         if not result.eligible:
             summary.skipped.append((candidate.id, result.reasons))
+            # Snapshot under the promotion key only. Notifications keep their
+            # own watermark, so a skipped promotion evaluation cannot consume
+            # a genuinely admitted observation's notification authority.
             write_candidate_seen_item_ids(
-                session, candidate, current_ids, create_if_missing=True
+                session, candidate, current_ids,
+                key=AUTO_PROMOTION_SEEN_ITEM_IDS_KEY, create_if_missing=True,
             )
             session.flush()
             continue
