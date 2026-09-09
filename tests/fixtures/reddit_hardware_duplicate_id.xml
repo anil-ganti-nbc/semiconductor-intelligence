@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>hardware</title>
+  <entry>
+    <title>First title for the same Reddit id</title>
+    <link href="https://www.reddit.com/r/hardware/comments/dup001/first_title_for_the_same_reddit_id/"/>
+    <id>https://www.reddit.com/r/hardware/comments/dup001/same_post/</id>
+    <updated>2026-09-01T12:00:00Z</updated>
+    <content type="html">First sighting.</content>
+  </entry>
+  <entry>
+    <title>Edited title must not become a second identity</title>
+    <link href="https://www.reddit.com/r/hardware/comments/dup001/edited_title_must_not_become_a_second_identity/"/>
+    <id>https://www.reddit.com/r/hardware/comments/dup001/same_post/</id>
+    <updated>2026-09-01T12:05:00Z</updated>
+    <content type="html">Resight of the same external id.</content>
+  </entry>
+</feed>

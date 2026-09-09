@@ -42,6 +42,15 @@ from semi_intel.domain.models import (
     Source,
     SourceSuggestion,
 )
+from semi_intel.signals.source_lifecycle import (
+    NOTIFICATION_SEEN_ITEM_IDS_KEY,
+    candidate_has_admitted_novelty,
+    candidate_member_rows,
+    candidate_transition_has_admitted_material,
+    read_candidate_seen_item_ids,
+    source_delivery_blocked,
+    write_candidate_seen_item_ids,
+)
 
 
 def utcnow() -> dt.datetime:
@@ -141,8 +150,20 @@ class NotificationService:
 
         muted_types = set(json.loads(settings.muted_event_types or "[]"))
         muted_topics = {int(value) for value in json.loads(settings.muted_topic_ids or "[]")}
-        self._candidate_events(settings, muted_types, muted_topics, now, summary)
-        self._promotion_events(settings, muted_types, now, summary)
+        # Notification transition watermark is isolated from the
+        # automatic-promotion watermark: a skipped promotion evaluation in
+        # the same pipeline cycle cannot consume an admitted observation's
+        # notification authority. None = notifications never evaluated the
+        # candidate (cold), handled fail-closed for admission-controlled
+        # candidates inside candidate_transition_has_admitted_material.
+        prior_seen = {
+            candidate.id: read_candidate_seen_item_ids(
+                self.session, candidate, key=NOTIFICATION_SEEN_ITEM_IDS_KEY
+            )
+            for candidate in self.session.scalars(select(SignalCandidate))
+        }
+        self._candidate_events(settings, muted_types, muted_topics, now, summary, prior_seen)
+        self._promotion_events(settings, muted_types, now, summary, prior_seen)
         self._source_suggestion_events(settings, muted_types, now, summary)
         self._provider_events(settings, muted_types, now, summary)
         self._topic_events(settings, muted_types, muted_topics, now, summary)
@@ -185,6 +206,9 @@ class NotificationService:
         metadata["sequence"] = int(metadata.get("sequence", 0)) + 1
         state.state_metadata = json.dumps(metadata)
         return metadata["sequence"]
+
+    def _candidate_member_ids(self, candidate: SignalCandidate) -> set[int]:
+        return {item.id for item, _source in candidate_member_rows(self.session, candidate)}
 
     def _emit(
         self,
@@ -258,6 +282,7 @@ class NotificationService:
         muted_topics: set[int],
         now: dt.datetime,
         summary: GenerationSummary,
+        prior_seen: dict[int, set[int]],
     ) -> None:
         activation = aware(settings.activation_at)
         candidates = list(self.session.scalars(select(SignalCandidate)))
@@ -266,6 +291,16 @@ class NotificationService:
 
         for candidate in candidates:
             recent = aware(candidate.latest_observed_at) >= activation
+            current_ids = self._candidate_member_ids(candidate)
+            seen_ids = prior_seen.get(candidate.id)
+            admitted = candidate_transition_has_admitted_material(
+                self.session, candidate, previously_seen_item_ids=seen_ids
+            )
+            # Transition-aware only when an admission-controlled source is on
+            # the candidate. Entirely ordinary candidates keep pre-M0
+            # rescoring alerts. An older admitted member does not authorise
+            # a crossing caused only by later experimental material.
+            effective_recent = recent and admitted
             eligible_state = candidate.state == SignalCandidateState.ACTIVE
             topic_ok = not settings.required_topic_match or candidate.primary_topic_id is not None
             groups_ok = (
@@ -281,23 +316,39 @@ class NotificationService:
             )
             state = self._state(NotificationEventType.HIGH_ATTENTION, "candidate", candidate.id)
             if state is None:
-                state = self._new_state(
-                    NotificationEventType.HIGH_ATTENTION, "candidate", candidate.id,
-                    boolean=high, metadata={"sequence": 0},
-                )
                 if not recent:
+                    # Historical vs global activation_at: consume the crossing.
+                    state = self._new_state(
+                        NotificationEventType.HIGH_ATTENTION, "candidate", candidate.id,
+                        boolean=high, metadata={"sequence": 0},
+                    )
                     summary.seeded_historical_candidates += 1
-                elif high and settings.high_score_enabled:
-                    sequence = self._sequence(state)
-                    state.last_event_at = now
-                    self._high_attention(candidate, settings, sequence, muted_types, muted_topic, now, summary)
+                elif not admitted:
+                    # Experimental soak: seed without consuming HIGH_ATTENTION so
+                    # a later admitted member can still cross. Soak-era items
+                    # themselves stay non-admitted after promotion.
+                    state = self._new_state(
+                        NotificationEventType.HIGH_ATTENTION, "candidate", candidate.id,
+                        boolean=False, metadata={"sequence": 0},
+                    )
+                    summary.seeded_historical_candidates += 1
+                else:
+                    state = self._new_state(
+                        NotificationEventType.HIGH_ATTENTION, "candidate", candidate.id,
+                        boolean=high, metadata={"sequence": 0},
+                    )
+                    if high and settings.high_score_enabled:
+                        sequence = self._sequence(state)
+                        state.last_event_at = now
+                        self._high_attention(candidate, settings, sequence, muted_types, muted_topic, now, summary)
             else:
                 previous = bool(state.last_boolean_value)
-                if high and not previous and recent and settings.high_score_enabled:
+                if high and not previous and effective_recent and settings.high_score_enabled:
                     sequence = self._sequence(state)
                     state.last_event_at = now
                     self._high_attention(candidate, settings, sequence, muted_types, muted_topic, now, summary)
-                state.last_boolean_value = high
+                if admitted or not recent:
+                    state.last_boolean_value = high
 
             score_state = self._state(NotificationEventType.SCORE_INCREASE, "candidate", candidate.id)
             if score_state is None:
@@ -309,28 +360,31 @@ class NotificationService:
                 baseline = score_state.last_numeric_value or 0.0
                 increase = candidate.attention_score - baseline
                 if (
-                    recent and eligible_state and settings.score_increase_enabled
+                    eligible_state and settings.score_increase_enabled
                     and increase >= settings.minimum_score_increase
                 ):
-                    sequence = self._sequence(score_state)
-                    detail = self._score_reason(candidate)
-                    self._emit(
-                        event_type=NotificationEventType.SCORE_INCREASE,
-                        severity=NotificationSeverity.NOTABLE,
-                        title=f"Attention increased: {candidate.title}",
-                        body=f"Score rose from {baseline:.2f} to {candidate.attention_score:.2f}.",
-                        reason=detail,
-                        dedup_key=f"score:{candidate.id}:{sequence}",
-                        candidate_id=candidate.id,
-                        topic_id=candidate.primary_topic_id,
-                        metadata={"previous_score": baseline, "score": candidate.attention_score},
-                        muted=(
-                            NotificationEventType.SCORE_INCREASE.value in muted_types
-                            or muted_topic
-                        ),
-                        now=now, summary=summary,
-                    )
-                    score_state.last_event_at = now
+                    if effective_recent:
+                        sequence = self._sequence(score_state)
+                        detail = self._score_reason(candidate)
+                        self._emit(
+                            event_type=NotificationEventType.SCORE_INCREASE,
+                            severity=NotificationSeverity.NOTABLE,
+                            title=f"Attention increased: {candidate.title}",
+                            body=f"Score rose from {baseline:.2f} to {candidate.attention_score:.2f}.",
+                            reason=detail,
+                            dedup_key=f"score:{candidate.id}:{sequence}",
+                            candidate_id=candidate.id,
+                            topic_id=candidate.primary_topic_id,
+                            metadata={"previous_score": baseline, "score": candidate.attention_score},
+                            muted=(
+                                NotificationEventType.SCORE_INCREASE.value in muted_types
+                                or muted_topic
+                            ),
+                            now=now, summary=summary,
+                        )
+                        score_state.last_event_at = now
+                    # Soak-era / historical increases are swallowed so they cannot
+                    # become a backlog when admission or activation later opens.
                     score_state.last_numeric_value = candidate.attention_score
                 elif candidate.attention_score < baseline:
                     score_state.last_numeric_value = candidate.attention_score
@@ -347,7 +401,7 @@ class NotificationService:
             else:
                 previous_groups = int(group_state.last_numeric_value or 0)
                 if (
-                    recent and eligible_state and settings.corroboration_enabled
+                    effective_recent and eligible_state and settings.corroboration_enabled
                     and groups > previous_groups and previous_groups > 0
                 ):
                     self._emit(
@@ -382,13 +436,14 @@ class NotificationService:
             if ready_state is None:
                 ready_state = self._new_state(
                     NotificationEventType.PROMOTION_READY, "candidate", candidate.id,
-                    boolean=ready, metadata={"sequence": 0},
+                    boolean=(ready if (admitted or not recent) else False),
+                    metadata={"sequence": 0},
                 )
                 previous_ready = False
             else:
                 previous_ready = bool(ready_state.last_boolean_value)
             if (
-                ready and not previous_ready and recent
+                ready and not previous_ready and effective_recent
                 and settings.promotion_ready_enabled
             ):
                 sequence = self._sequence(ready_state)
@@ -411,7 +466,12 @@ class NotificationService:
                     now=now, summary=summary,
                 )
                 ready_state.last_event_at = now
-            ready_state.last_boolean_value = ready
+            if admitted or not recent:
+                ready_state.last_boolean_value = ready
+
+            write_candidate_seen_item_ids(
+                self.session, candidate, current_ids, key=NOTIFICATION_SEEN_ITEM_IDS_KEY
+            )
 
     def _high_attention(
         self, candidate: SignalCandidate, settings: NotificationSettings,
@@ -479,6 +539,7 @@ class NotificationService:
     def _promotion_events(
         self, settings: NotificationSettings, muted_types: set[str],
         now: dt.datetime, summary: GenerationSummary,
+        prior_seen: dict[int, set[int]],
     ) -> None:
         if not settings.promotion_completed_enabled:
             return
@@ -488,6 +549,15 @@ class NotificationService:
             if aware(event.created_at) < activation:
                 continue
             candidate = self.session.get(SignalCandidate, event.candidate_id)
+            if candidate is not None:
+                if event.automatic:
+                    seen_ids = prior_seen.get(candidate.id)
+                    if not candidate_transition_has_admitted_material(
+                        self.session, candidate, previously_seen_item_ids=seen_ids
+                    ):
+                        continue
+                elif not candidate_has_admitted_novelty(self.session, candidate):
+                    continue
             title = candidate.title if candidate else f"Candidate #{event.candidate_id}"
             self._emit(
                 event_type=NotificationEventType.CANDIDATE_PROMOTED,
@@ -556,6 +626,8 @@ class NotificationService:
 
         for (provider, source_id), provider_runs in grouped.items():
             latest = provider_runs[-1]
+            source = self.session.get(Source, source_id) if source_id else None
+            delivery_blocked = bool(source is not None and source_delivery_blocked(source))
             open_incident = self.session.scalar(select(ProviderIncident).where(
                 ProviderIncident.provider == provider,
                 ProviderIncident.source_id == source_id,
@@ -581,7 +653,8 @@ class NotificationService:
                         provider_run_id=latest.id,
                         source_id=source_id,
                         metadata={"provider": provider, "incident_id": open_incident.id},
-                        muted=NotificationEventType.PROVIDER_RECOVERY.value in muted_types,
+                        muted=NotificationEventType.PROVIDER_RECOVERY.value in muted_types
+                        or delivery_blocked,
                         now=now, summary=summary,
                     )
                     open_incident.recovery_notification_id = notification.id
@@ -623,7 +696,8 @@ class NotificationService:
                     provider_run_id=latest.id,
                     source_id=source_id,
                     metadata={"provider": provider, "consecutive_failures": consecutive},
-                    muted=NotificationEventType.PROVIDER_FAILURE.value in muted_types,
+                    muted=NotificationEventType.PROVIDER_FAILURE.value in muted_types
+                    or delivery_blocked,
                     now=now, summary=summary,
                 )
                 open_incident.failure_notification_id = notification.id
