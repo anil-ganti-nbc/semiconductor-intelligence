@@ -115,9 +115,9 @@ observation remains non-admitted either way.
 Admission for emit is **transition-aware**, not lifetime membership, and
 only when an admission-controlled source is on the candidate. Candidates
 whose members are entirely ordinary keep pre-M0 notification semantics:
-rescoring, source-reputation, or configuration changes without a new
-`SignalItem` still authorise HIGH_ATTENTION, SCORE_INCREASE, and
-PROMOTION_READY.
+rescoring, source-reputation, re-grouping, or configuration changes
+without a new `SignalItem` still authorise HIGH_ATTENTION,
+SCORE_INCREASE, INDEPENDENT_CORROBORATION, and PROMOTION_READY.
 
 When any member is admission-controlled, an older admitted observation
 does not authorise a later HIGH_ATTENTION, SCORE_INCREASE,

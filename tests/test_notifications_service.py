@@ -355,3 +355,34 @@ def test_ordinary_candidate_promotion_ready_without_new_member(db_session):
             select(Notification.event_type).where(Notification.candidate_id == candidate.id)
         )
     )
+
+
+def test_ordinary_candidate_corroboration_without_new_member(db_session):
+    # A re-group (rule/config/entity-resolution change) can raise the
+    # independent group count without attaching a SignalItem. Ordinary
+    # candidates must keep the pre-M0 corroboration alert for that.
+    _, source, candidate = seed_topic_source_candidate(
+        db_session, latest=BASE + dt.timedelta(minutes=1), score=0.50, groups=1
+    )
+    _attach_ordinary_item(db_session, source, candidate, external_id="ord-corrob")
+    service = NotificationService(db_session)
+    service.settings(now=BASE)
+
+    service.generate(now=BASE + dt.timedelta(minutes=1))
+    assert NotificationEventType.INDEPENDENT_CORROBORATION not in set(
+        db_session.scalars(
+            select(Notification.event_type).where(Notification.candidate_id == candidate.id)
+        )
+    )
+
+    candidate.independent_source_group_count = 2
+    candidate.latest_observed_at = BASE + dt.timedelta(minutes=2)
+    db_session.flush()
+    service.generate(now=BASE + dt.timedelta(minutes=2))
+    event_types = set(
+        db_session.scalars(
+            select(Notification.event_type).where(Notification.candidate_id == candidate.id)
+        )
+    )
+    assert NotificationEventType.INDEPENDENT_CORROBORATION in event_types
+    assert NotificationEventType.HIGH_ATTENTION not in event_types
