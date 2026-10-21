@@ -31,6 +31,13 @@ WORKDIR /app
 
 RUN useradd --create-home --uid 10001 --shell /usr/sbin/nologin clank
 
+# DLA-4845-1: drop the compromised eMudhra/emSign CA. Bookworm-security
+# publishes the fix as 20250419~deb12u2.
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --only-upgrade ca-certificates \
+    && dpkg --compare-versions "$(dpkg-query -W ca-certificates | cut -f2)" ge '20250419~deb12u2' \
+    && rm -rf /var/lib/apt/lists/*
+
 # Only what semi_intel actually needs to install and run: the package
 # itself, its Alembic migrations (required by `semi-intel db upgrade`, never
 # edited by this change), and the entrypoint script. No src/oem_radar, no
